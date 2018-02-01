@@ -117,6 +117,11 @@ int main(int argc, char** argv)
 	redStart.y = ORIGIN_Y;
 	blueStart.x = ORIGIN_X;
 	blueStart.y = ORIGIN_Y;
+
+	//enable action search log at beginning
+	//redAlliance.setLogFile(pRedActionLog);
+	//blueAlliance.setLogFile(pBlueActionLog);
+
 	do {
 		//enable action search log at any time
 		//if (actionCounter == 72) {

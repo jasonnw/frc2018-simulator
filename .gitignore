@@ -1,0 +1,15 @@
+
+.vs/simulator/v15/.suo
+*.db
+*.opendb
+*.ipch
+*.obj
+*.exe
+*.ilk
+*.log
+*.pdb
+*.tlog
+*.idb
+*.iobj
+*.ipdb
+*.user

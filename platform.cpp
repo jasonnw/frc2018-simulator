@@ -70,6 +70,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		m_state.scaleRedBlockCount++;
 		break;
 	case CUBE_RED_FORCE_VAULT:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		m_state.forceRedBlockCount++;
 		if (m_state.forceRedBlockCount > 3) {
 			m_state.forceRedBlockCount = 3;
@@ -79,6 +82,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		}
 		break;
 	case CUBE_RED_BOOST_VAULT:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		m_state.boostRedBlockCount++;
 		if (m_state.boostRedBlockCount > 3) {
 			m_state.boostRedBlockCount = 3;
@@ -88,6 +94,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		}
 		break;
 	case CUBE_RED_LIFT_VAULT:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		m_state.liftRedBlockCount++;
 		if (m_state.liftRedBlockCount > 3) {
 			m_state.liftRedBlockCount = 3;
@@ -97,6 +106,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		}
 		break;
 	case PUSH_RED_FORCE_BUTTON:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		if (m_state.redForceButton == BUTTON_NOT_PUSH) {
 			m_state.redForceButton = BUTTON_PUSH;
 			m_state.forceRedButtonPushBlockCount = m_state.forceRedBlockCount;
@@ -106,6 +118,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		}
 		break;
 	case PUSH_RED_BOOST_BUTTON:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		if (m_state.redBoostButton == BUTTON_NOT_PUSH) {
 			m_state.redBoostButton = BUTTON_PUSH;
 			m_state.boostRedButtonPushBlockCount = m_state.boostRedBlockCount;
@@ -158,6 +173,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		m_state.scaleBlueBlockCount++;
 		break;
 	case CUBE_BLUE_FORCE_VAULT:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		m_state.forceBlueBlockCount++;
 		if (m_state.forceBlueBlockCount > 3) {
 			m_state.forceBlueBlockCount = 3;
@@ -167,6 +185,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		}
 		break;
 	case CUBE_BLUE_BOOST_VAULT:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		m_state.boostBlueBlockCount++;
 		if (m_state.boostBlueBlockCount > 3) {
 			m_state.boostBlueBlockCount = 3;
@@ -176,6 +197,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		}
 		break;
 	case CUBE_BLUE_LIFT_VAULT:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		m_state.liftBlueBlockCount++;
 		if (m_state.liftBlueBlockCount > 3) {
 			m_state.liftBlueBlockCount = 3;
@@ -185,6 +209,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		}
 		break;
 	case PUSH_BLUE_FORCE_BUTTON:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		if (m_state.blueForceButton == BUTTON_NOT_PUSH) {
 			m_state.blueForceButton = BUTTON_PUSH;
 			m_state.forceBlueButtonPushBlockCount = m_state.forceBlueBlockCount;
@@ -194,6 +221,9 @@ int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		}
 		break;
 	case PUSH_BLUE_BOOST_BUTTON:
+		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
 		if (m_state.blueBoostButton == BUTTON_NOT_PUSH) {
 			m_state.blueBoostButton = BUTTON_PUSH;
 			m_state.boostBlueButtonPushBlockCount = m_state.boostBlueBlockCount;
@@ -275,12 +305,25 @@ int platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn
 				*pOwnershipInOut = newOnershipIn;
 				ownershipChangeFlag = true;
 				scores++;
+				if (m_timeInSec + secondsIn < AUTONOMOUS_END_TIME) {
+					scores++; //in autonomous session, ownership change worth 2 points
+				}
 			}
 		}
 
 		if ((*pOwnershipInOut == newOnershipIn) &&
 			(ownershipChangeFlag == false)) { //ownership change happens before
+
 			scores += ROUNDING_METHOD(secondsIn);
+			if (m_timeInSec + secondsIn < AUTONOMOUS_END_TIME) {
+				scores += ROUNDING_METHOD(secondsIn);
+			}
+			else if (m_timeInSec < AUTONOMOUS_END_TIME) {
+				scores += ROUNDING_METHOD(AUTONOMOUS_END_TIME - m_timeInSec);
+			}
+			//Note: because button push is not allowed in autonomous session,
+			//      the logic above doesn't distinguish the ownership caused by cubes
+			//      or force button.
 		}
 		else if ((forceVaultButtonIn >= BUTTON_PUSH_0SEC) && (forceVaultButtonIn <= BUTTON_PUSH_9SEC) &&
 			     ((vaultForceBlockCountIn == vaultBlockSelectionIn) || (vaultForceBlockCountIn == 3))) {

@@ -100,7 +100,8 @@ const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 2; //minimum 2 blocks to own scale or 
 
 //Game time in seconds
 const float COMPETITION_START_TIME = 0;                      //competition start time
-const float COMPETITION_END_TIME = 135;                      //total competition time is 2m15sec
+const float AUTONOMOUS_END_TIME = 15;						 // Autonomous session end time 
+const float COMPETITION_END_TIME = AUTONOMOUS_END_TIME + 135; //total competition time is 2m15sec
 const float CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after competition time is additional 30sec
 															 //Note: To simplify the simulator, auto session result will be used to initialize the game state.
 															 //      Auto session time is excluded from game time. The game starts on COMPITATION_START_TIME

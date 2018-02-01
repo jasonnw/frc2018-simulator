@@ -370,6 +370,7 @@ void alliance::findBestAction(int actionIndexIn)
 			if (earliestTime >= m_pSearchList[previousActionIndex].projectedFinishTime) {
 				//if finished time is the same, favor the action closer to root to match the score testing sequence above.
 				memcpy(&m_bestAction, &m_pSearchList[previousActionIndex], sizeof(m_bestAction));
+				earliestTime = m_pSearchList[previousActionIndex].projectedFinishTime;
 			}
 
 			//one alliance submits the first action to the game platform and let other robots to carry out following action
