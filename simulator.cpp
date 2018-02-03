@@ -1,6 +1,5 @@
 // simulator.cpp : Defines the entry point for the console application.
 //
-
 //#include "stdafx.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -37,6 +36,21 @@ Mat image(IMAGE_RESOLUSION_y, IMAGE_RESOLUSION_X, CV_8UC3, Scalar(0, 0, 0));
 alliance redAlliance;
 alliance blueAlliance;
 platform gamePlatform;
+
+#ifndef _MSC_VER
+//missing definitions of MS visual studio unique code
+typedef int errno_t;
+#define sprintf_s	sprintf
+static errno_t fopen_s(FILE** pFile, const char *filename,  const char *mode)
+{
+	*pFile = fopen(filename, mode);
+	if(*pFile == NULL) {
+		return -1;
+	}else {
+		return 0;
+	}
+}
+#endif
 
 static void initDisplay(void)
 {

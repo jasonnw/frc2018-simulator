@@ -15,8 +15,8 @@ platform::platform()
 	m_redScore = 0;
 	m_blueScore = 0;
 	m_pLogFIle = NULL;
-	m_liftRedRobotIndex = INT_MAX;
-	m_liftBlueRobotIndex = INT_MAX;
+	m_liftRedRobotIndex = INT32_MAX;
+	m_liftBlueRobotIndex = INT32_MAX;
 }
 
 
@@ -469,7 +469,7 @@ void platform::updateScore(float secondsIn)
 		if (m_liftRedRobotIndex < NUMBER_OF_ROBOTS) {
 			m_state.redLiftFlag[m_liftRedRobotIndex] = true;
 			m_redScore += 30;
-			m_liftRedRobotIndex = INT_MAX;
+			m_liftRedRobotIndex = INT32_MAX;
 		}
 
 		liftRebotCount = (m_state.redLiftButton == BUTTON_PUSH_OVER_10SEC);
@@ -492,7 +492,7 @@ void platform::updateScore(float secondsIn)
 		if (m_liftBlueRobotIndex < NUMBER_OF_ROBOTS) {
 			m_state.blueLiftFlag[m_liftBlueRobotIndex] = true;
 			m_blueScore += 30;
-			m_liftBlueRobotIndex = INT_MAX;
+			m_liftBlueRobotIndex = INT32_MAX;
 		}
 
 		liftRebotCount = (m_state.blueLiftButton == BUTTON_PUSH_OVER_10SEC);

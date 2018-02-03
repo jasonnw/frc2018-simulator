@@ -13,3 +13,7 @@
 *.iobj
 *.ipdb
 *.user
+*.d
+*.o
+Release/simulator
+Debug/simulator

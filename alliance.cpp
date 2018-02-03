@@ -115,7 +115,7 @@ void alliance::findBestAction(int actionIndexIn)
 	previousLayerEndIndex = 1;
 	m_pSearchList[previousLayerStartIndex].actionType = endAction;
 	m_pSearchList[previousLayerStartIndex].projectedFinalScore = 0; //entry not used
-	m_pSearchList[previousLayerStartIndex].previousIndex = UINT32_MAX;
+	m_pSearchList[previousLayerStartIndex].previousIndex = INT32_MAX;
 	m_pSearchList[previousLayerStartIndex].projectedFinishTime = m_referencePlatForm.getTime();
 	m_pSearchList[previousLayerStartIndex].robotIndex = INDEX_OF_ROBOT_NONE;
 	//Note: this root action will not be used in real action list. It is a start point for action searching.
@@ -202,7 +202,7 @@ void alliance::findBestAction(int actionIndexIn)
 							}
 
 							previousActionIndex = m_pSearchList[previousActionIndex].previousIndex;
-						} while (previousActionIndex != UINT32_MAX);
+						} while (previousActionIndex != INT32_MAX);
 
 						if (previousFinishTime == 0) {
 							previousFinishTime = m_referencePlatForm.getTime();
@@ -264,7 +264,7 @@ void alliance::findBestAction(int actionIndexIn)
 			for (int i = pending; i >= 0; i--) {
 				actionChain[i].actionIndex = previousActionIndex;
 				actionChain[i].isActionExecutedFlag = 0;
-				if (m_pSearchList[previousActionIndex].previousIndex == UINT32_MAX) {
+				if (m_pSearchList[previousActionIndex].previousIndex == INT32_MAX) {
 					printf("Error: index calculation error\n");
 				}
 				else {
@@ -355,7 +355,7 @@ void alliance::findBestAction(int actionIndexIn)
 	if (searchFailedFlag) {
 		m_bestAction.actionType = endAction;
 		m_bestAction.projectedFinalScore = 0; //entry not used
-		m_bestAction.previousIndex = UINT32_MAX;
+		m_bestAction.previousIndex = INT32_MAX;
 		m_bestAction.projectedFinishTime = m_referencePlatForm.getTime() + 1;
 		m_bestAction.robotIndex = INDEX_OF_ROBOT_NONE;
 	}
@@ -377,7 +377,7 @@ void alliance::findBestAction(int actionIndexIn)
 			//in the case that the following action in the same sequence is picked as the next action, the delay is shorter.
 			m_robot[m_pSearchList[previousActionIndex].robotIndex].setPreviousPlannedAction(&m_pSearchList[previousActionIndex]);
 
-			if (m_pSearchList[previousActionIndex].previousIndex == UINT32_MAX) {
+			if (m_pSearchList[previousActionIndex].previousIndex == INT32_MAX) {
 				printf("Error: index calculation error\n");
 			}
 			else {
@@ -397,6 +397,6 @@ void alliance::findBestAction(int actionIndexIn)
 void alliance::resetSearchList(void)
 {
 	for (int i = 0; i < m_maxSearchListSize; i++) {
-		m_pSearchList[i].previousIndex = UINT32_MAX;
+		m_pSearchList[i].previousIndex = INT32_MAX;
 	}
 }
