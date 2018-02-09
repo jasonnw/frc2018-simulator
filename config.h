@@ -2,6 +2,22 @@
 
 #include <stdint.h>
 
+//coordinate on the field
+//(0, 0) is the lower corner on the red alliance side
+typedef struct coordinateType {
+	float x;
+	float y;
+}coordinateType;
+
+typedef struct rectangleObjectType {
+	coordinateType center;
+	float sizeX;
+	float sizeY;
+	int objectId; //a unique ID for each object on the field
+}rectangleObjectType;
+
+typedef struct coordinateType cubeStateType;
+
 //Robot delay configurations in number of second
 typedef struct robotConfigurationType {
 	float randomDelayFactor;
@@ -95,8 +111,37 @@ typedef struct platformStateType {
 	vaultButtonStateType blueLiftButton;
 }platformStateType;
 
+typedef enum robotActionType {
+	PUT_CUBE_ON_SWITCH,
+	PUT_CUBE_ON_SCALE,
+	PUT_CUBE_ON_EXCHANGE,
+	TAKE_CUBE_FROM_EXCHANGE,
+	TAKE_CUBE_FROM_GROUND,
+	LIFT_ONE_ROBOT,
+	ACTION_NONE
+}robotActionType;
+
+const int MAX_WALL_TO_WALL_MOVES = 4;
+const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 4;
+//maximum turning points on the path
+//the last turning point must be the target position
+
+typedef struct robotPathType {
+	coordinateType turnPoints[MAX_TURNS_ON_PATH];
+	int numberOfTurns;  //the number of turns on the path.
+	float totalDistance;
+}robotPathType;
+
+typedef struct robotStateType {
+	rectangleObjectType currentPosition;
+	robotPathType path;
+	robotActionType action;
+	cubeStateType *pCube; //NULL mean no cube
+	int elevaterHeight;
+}robotStateType;
 
 const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 2; //minimum 2 blocks to own scale or switch
+const float ROBOT_TO_WALL_DISTANCE = 2;         //always 2 inches away from the wall
 
 //Game time in seconds
 const float COMPETITION_START_TIME = 0;                      //competition start time

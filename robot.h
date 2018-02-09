@@ -1,7 +1,7 @@
 #pragma once
 
+#include <string.h>
 #include "config.h"
-#include "platform.h"
 
 
 typedef struct pendingActionType {
@@ -18,15 +18,32 @@ class robot
 private:
 	robotConfigurationType m_config;
 	pendingActionType m_previousPlannedAction;
+	robotStateType m_state;
 
 public:
 	robot();
 	~robot();
 
+	const robotConfigurationType *getConfiguration(void) const
+	{
+		return &m_config;
+	}
+
+	const robotStateType *getState(void) const
+	{
+		return &m_state;
+	}
 	void setConfiguration(const robotConfigurationType *pConfigIn);
 	float getActionDelayInSec(actionTypeType actionIn, float currentTimeIn, bool firstActionAfterUpdateIn);
 
 	void setPreviousPlannedAction(const pendingActionType *pPlannedActionIn);
 	void resetPreviousPlannedAction(void);
+
+	const robot & operator = (const robot &srcIn)
+	{
+		setConfiguration(srcIn.getConfiguration());
+		memcpy(&m_state, srcIn.getState(), sizeof(m_state));
+		return srcIn;
+	}
 };
 

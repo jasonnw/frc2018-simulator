@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include "robot.h"
 
 const float MINMUM_TIME_RESOLUTION = (float) 0.1; //second

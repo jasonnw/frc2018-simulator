@@ -617,3 +617,309 @@ void platform::logFinalScore(void)
 		finalRedScore, finalBlueScore);
 	fflush(m_pLogFIle);
 }
+
+
+bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
+	bool isTargetACubeIn, robotPathType *pPathOut)
+{
+	//scan all static objects to find out a shortest path to the end point
+
+	//the path selection algorithm is,
+	//1. First, the direct path to the target position is tried. 
+	//2. If the first try failed, the program always searching for a path beside north or south walls. 
+	//3. If there is a robot block the path, go to the opposite wall and back to step 2. Otherwise, proceed to the desired x coordinate
+	//4. directly go the target position. if failed, goto the opposite wall and repeat step 2.
+
+	//Note: if the target is a cube, and, the path is blocked by a cube, just stop at the cube
+
+	bool collisionDetectedFlag;
+	const rectangleObjectType *pCollisionObject;
+	int turnPointIndex = 0;
+	float distance;
+	coordinateType startPoint;
+
+	//try the shortest path
+	collisionDetectedFlag = collisionWithAllOtherObjects(pMovingObjectIn, endPointIn, &pCollisionObject);
+
+	if (!collisionDetectedFlag) {
+		//return the shortest path
+		pPathOut->turnPoints[turnPointIndex] = endPointIn;
+		turnPointIndex++;
+		pPathOut->numberOfTurns = turnPointIndex;
+		distance = (endPointIn.x - pMovingObjectIn->center.x)*(endPointIn.x - pMovingObjectIn->center.x) +
+			(endPointIn.y - pMovingObjectIn->center.y)*(endPointIn.y - pMovingObjectIn->center.y);
+
+		pPathOut->totalDistance = (float) sqrt(distance);
+		return true;
+	}
+
+	//else, try go along the wall
+
+	//Y direction first
+	coordinateType upToWall1;
+	coordinateType upToWall2;
+	coordinateType oppositeWall;
+	bool isOppositeWallFlag = false;
+
+	if (endPointIn.y >= pMovingObjectIn->center.y) {
+		upToWall1.x = pMovingObjectIn->center.x;
+		upToWall1.y = m_platformStructure.northWall - pMovingObjectIn->sizeY / 2 - ROBOT_TO_WALL_DISTANCE;
+
+		upToWall2.x = pMovingObjectIn->center.x;
+		upToWall2.y = m_platformStructure.southWall + pMovingObjectIn->sizeY / 2 + ROBOT_TO_WALL_DISTANCE;
+	}
+	else {
+		upToWall2.x = pMovingObjectIn->center.x;
+		upToWall2.y = m_platformStructure.northWall - pMovingObjectIn->sizeY / 2 - ROBOT_TO_WALL_DISTANCE;
+
+		upToWall1.x = pMovingObjectIn->center.x;
+		upToWall1.y = m_platformStructure.southWall + pMovingObjectIn->sizeY / 2 + ROBOT_TO_WALL_DISTANCE;
+	}
+
+	oppositeWall = upToWall2;
+	collisionDetectedFlag = collisionWithAllOtherObjects(pMovingObjectIn, upToWall1, &pCollisionObject);
+	if (collisionDetectedFlag) {
+		//cannot go to the wall, try the opposite wall
+		oppositeWall = upToWall1;
+		upToWall1 = upToWall2;
+		isOppositeWallFlag = true;
+	}
+
+	for (int i = 0; i < MAX_WALL_TO_WALL_MOVES; i++) {
+
+		if (isOppositeWallFlag) {
+			collisionDetectedFlag = collisionWithAllOtherObjects(pMovingObjectIn, upToWall2, &pCollisionObject);
+			if (collisionDetectedFlag) {
+				return false; //cannot find a path to the opposite wall, give up
+			}
+		}
+
+		//save the path to the wall
+		if (turnPointIndex >= MAX_TURNS_ON_PATH) {
+			printf("ERROR, turning points buffer overflow\n");
+			return false;
+		}
+		pPathOut->turnPoints[turnPointIndex] = upToWall1;
+		turnPointIndex++;
+
+		//move the object along the wall
+		coordinateType alongWall;
+		rectangleObjectType newPosition;
+
+		newPosition.sizeX = pMovingObjectIn->sizeX;
+		newPosition.sizeY = pMovingObjectIn->sizeY;
+		newPosition.objectId = pMovingObjectIn->objectId;
+		newPosition.center = upToWall1;
+
+		alongWall.y = upToWall1.y;
+		alongWall.x = endPointIn.x;
+
+		//move as far as possible along the wall
+		do {
+			collisionDetectedFlag = collisionWithAllOtherObjects(&newPosition, alongWall, &pCollisionObject);
+
+			if (collisionDetectedFlag) {
+				if (alongWall.x > newPosition.center.x) {
+					alongWall.x = pCollisionObject->center.x - pCollisionObject->sizeX / 2 - newPosition.sizeX / 2;
+
+					if (alongWall.x <= newPosition.center.x + ROBOT_TO_WALL_DISTANCE) {
+						//no move at all, give up
+						return false;
+					}
+				}
+				else {
+					alongWall.x = pCollisionObject->center.x + pCollisionObject->sizeX / 2 + newPosition.sizeX / 2;
+
+					if (alongWall.x >= newPosition.center.x - ROBOT_TO_WALL_DISTANCE) {
+						//no move at all, give up
+						return false;
+					}
+
+				}
+			}
+		} while (collisionDetectedFlag);
+
+		//check again if the direct path is OK
+		newPosition.center = alongWall;
+		collisionDetectedFlag = collisionWithAllOtherObjects(&newPosition, endPointIn, &pCollisionObject);
+
+		if (!collisionDetectedFlag) {
+			//success
+			if (turnPointIndex+1 >= MAX_TURNS_ON_PATH) {
+				printf("ERROR, turning points buffer overflow\n");
+				return false;
+			}
+
+			pPathOut->turnPoints[turnPointIndex] = alongWall;
+			turnPointIndex++;
+			pPathOut->turnPoints[turnPointIndex] = endPointIn;
+			turnPointIndex++;
+			pPathOut->numberOfTurns = turnPointIndex;
+
+			startPoint = pMovingObjectIn->center;
+			pPathOut->totalDistance = 0;
+
+			for (int p = 0; p < turnPointIndex; p++) {
+
+				distance = (pPathOut->turnPoints[p].x - startPoint.x)*(pPathOut->turnPoints[p].x - startPoint.x) +
+					(pPathOut->turnPoints[p].y - startPoint.y)*(pPathOut->turnPoints[p].y - startPoint.y);
+
+				pPathOut->totalDistance += (float)sqrt(distance);
+			}
+
+			return true;
+		}
+
+		//TODO, please confirm that blue switch is on the right side
+		float rightMostPath = m_platformStructure.blueSwitchSouthPlate.center.x +
+			m_platformStructure.blueSwitchSouthPlate.sizeX / 2 +
+			m_platformStructure.bluePowerCubeZone.sizeX +
+			ROBOT_TO_WALL_DISTANCE;
+		float secondRightPath = m_platformStructure.scaleSouthPlate.center.x +
+			m_platformStructure.scaleSouthPlate.sizeX / 2 +
+			ROBOT_TO_WALL_DISTANCE;
+		float thirdRightPath = m_platformStructure.scaleSouthPlate.center.x -
+			m_platformStructure.scaleSouthPlate.sizeX / 2 -
+			ROBOT_TO_WALL_DISTANCE;
+		float forthRightPath = m_platformStructure.blueSwitchSouthPlate.center.x +
+			m_platformStructure.blueSwitchSouthPlate.sizeX / 2 +
+			m_platformStructure.bluePowerCubeZone.sizeX +
+			ROBOT_TO_WALL_DISTANCE;
+
+		//else, adjust along the wall to the next opening between alongWall and upToWall1
+		if (alongWall.x > upToWall1.x) {
+
+			if ((alongWall.x >= rightMostPath) && (upToWall1.x <= rightMostPath)) {
+				alongWall.x = rightMostPath;
+			}
+			else if ((alongWall.x >= secondRightPath) && (upToWall1.x <= secondRightPath)) {
+				alongWall.x = secondRightPath;
+			}
+			else if ((alongWall.x >= thirdRightPath) && (upToWall1.x <= thirdRightPath)) {
+				alongWall.x = thirdRightPath;
+			}
+			else {
+				alongWall.x = forthRightPath;
+			}
+		}
+		else {
+			if ((alongWall.x >= forthRightPath) && (upToWall1.x <= forthRightPath)) {
+				alongWall.x = forthRightPath;
+			}
+			else if ((alongWall.x >= thirdRightPath) && (upToWall1.x <= thirdRightPath)) {
+				alongWall.x = thirdRightPath;
+			}
+			else if ((alongWall.x >= secondRightPath) && (upToWall1.x <= secondRightPath)) {
+				alongWall.x = secondRightPath;
+			}
+			else {
+				alongWall.x = rightMostPath;
+			}
+
+		}
+
+		//save the path along the wall
+		if (turnPointIndex >= MAX_TURNS_ON_PATH) {
+			printf("ERROR, turning points buffer overflow\n");
+			return false;
+		}
+
+		pPathOut->turnPoints[turnPointIndex] = alongWall;
+		turnPointIndex++;
+
+		//goto the opposite wall
+		upToWall2 = oppositeWall;
+		oppositeWall = upToWall1;
+		upToWall1 = upToWall2;
+		isOppositeWallFlag = true;
+	}
+
+	//cannot find any path
+	return false;
+}
+
+bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
+	                                        const rectangleObjectType **pCollisionObjectOut)
+{
+	const robotStateType *pRobotState;
+	const rectangleObjectType *pRobotPosition;
+
+	for (int i = 0; i < NUM_STILL_STRUCTURE; i++) {
+		if (collisionDectection(&m_platformStructure.structures[i], pMovingObjectIn, endPointIn)) {
+			*pCollisionObjectOut = &m_platformStructure.structures[i];
+			return true;
+		}
+	}
+
+	//else
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		pRobotState =  m_redRobots[i].getState();
+		pRobotPosition = &pRobotState->currentPosition;
+
+		for (int j = 0; j < 2; j++) {
+			if (pRobotPosition->objectId != pMovingObjectIn->objectId) {
+				if (collisionDectection(pRobotPosition, pMovingObjectIn, endPointIn)) {
+					*pCollisionObjectOut = pRobotPosition;
+					return true;
+				}
+			}
+
+			pRobotState = m_blueRobots[i].getState();
+			pRobotPosition = &pRobotState->currentPosition;
+		}
+	}
+	return false;
+}
+
+
+bool platform::collisionDectection(const rectangleObjectType *pStillObjectIn, const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn)
+{
+	float mLeftX, mTopY, mBottomY, mRightX;
+	float sLeftX, sTopY, sBottomY, sRightX;
+
+	//find moving object covered rectangle
+	mLeftX = pMovingObjectIn->center.x - pMovingObjectIn->sizeX / 2;
+	mRightX = pMovingObjectIn->center.x + pMovingObjectIn->sizeX / 2;
+	mTopY = pMovingObjectIn->center.y + pMovingObjectIn->sizeY / 2;
+	mBottomY = pMovingObjectIn->center.y - pMovingObjectIn->sizeY / 2;
+
+	if (endPointIn.x > pMovingObjectIn->center.x) {
+		//move to right
+		mRightX += endPointIn.x - pMovingObjectIn->center.x;
+	}
+	else {
+		//move left
+		mLeftX -= pMovingObjectIn->center.x - endPointIn.x;
+	}
+
+	if (endPointIn.y > pMovingObjectIn->center.y) {
+		//move up
+		mTopY += endPointIn.y - pMovingObjectIn->center.y;
+	}
+	else {
+		//move down
+		mBottomY -= pMovingObjectIn->center.y - endPointIn.y;
+	}
+
+	//find the still object rectangle
+	sLeftX = pStillObjectIn->center.x - pStillObjectIn->sizeX/2;
+	sRightX = pStillObjectIn->center.x + pStillObjectIn->sizeX/2;
+	sTopY = pStillObjectIn->center.y + pStillObjectIn->sizeY / 2;
+	sBottomY = pStillObjectIn->center.y - pStillObjectIn->sizeY / 2;
+
+	//test if two rectangles overlap on 4 corners
+	if (pointInRectangle(mLeftX, mTopY, mBottomY, mRightX, sLeftX, sTopY)) {
+		return true;
+	}
+	if (pointInRectangle(mLeftX, mTopY, mBottomY, mRightX, sRightX, sTopY)) {
+		return true;
+	}
+	if (pointInRectangle(mLeftX, mTopY, mBottomY, mRightX, sLeftX, sBottomY)) {
+		return true;
+	}
+	if (pointInRectangle(mLeftX, mTopY, mBottomY, mRightX, sRightX, sBottomY)) {
+		return true;
+	}
+
+	return false;
+}

@@ -122,6 +122,8 @@ int main(int argc, char** argv)
 	gamePlatform.setRedScore(initRedScore);
 	gamePlatform.setBlueScore(initBlueScore);
 	gamePlatform.setLogFIle(stdout);
+	gamePlatform.configRedRobots(RED_CONFIGURATION);
+	gamePlatform.configBlueRobots(RED_CONFIGURATION);
 
 	actionCounter = 0;
 	redAlliance.syncLocalPlatform(gamePlatform, actionCounter);

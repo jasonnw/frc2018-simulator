@@ -83,6 +83,8 @@ void alliance::findBestAction(int actionIndexIn)
 	float bestFinishTime;
 	float finishTime;
 	float previousFinishTime;
+	float lastFinishTime;
+	float bestScoreFinishTime;
 
 	int bestFinishRobotIdx;
 	int layerStartIndex;
@@ -93,7 +95,6 @@ void alliance::findBestAction(int actionIndexIn)
 	int bestScore, score;
 	int finalBlueScore, finalRedScore;
 	int bestScoreIdx;
-	int bestNoActionCount, noActionCount;
 	int projectedRedScore, projectedBlueScore, projectedScore;
 
 	float earliestTime;
@@ -252,8 +253,9 @@ void alliance::findBestAction(int actionIndexIn)
 
 		//After an action tree is created, search which action sequence can get the best score
 		bestScore = INT32_MIN;
-		bestNoActionCount = 0;
+		bestScoreFinishTime = 0;
 		bestScoreIdx = 0;
+		lastFinishTime = 0;
 
 		//execute each action branch
 		for (int exeIdx = previousLayerStartIndex; exeIdx < previousLayerEndIndex; exeIdx++) {
@@ -276,7 +278,6 @@ void alliance::findBestAction(int actionIndexIn)
 			testPlatForm = m_referencePlatForm;
 			testPlatForm.setLogFIle(m_pLogFIle);
 			isActionRejectedFlag = false;
-			noActionCount = 0;
 			for (int i = 0; i <= pending; i++) {
 				earliestTime = CLIMB_END_TIME + 2;
 				//note: the initial value of earliest time must be later than the initial time of each action
@@ -301,9 +302,8 @@ void alliance::findBestAction(int actionIndexIn)
 				}
 				actionChain[chainIndex].isActionExecutedFlag = 1;
 				earliestIndex = actionChain[chainIndex].actionIndex;
-				if (m_pSearchList[earliestIndex].actionType == endAction) {
-					noActionCount++;
-				}
+				lastFinishTime = m_pSearchList[earliestIndex].projectedFinishTime;
+
 				if (0 != testPlatForm.takeAction(m_pSearchList[earliestIndex].actionType,
 					m_pSearchList[earliestIndex].projectedFinishTime,
 					m_pSearchList[earliestIndex].robotIndex,
@@ -333,13 +333,13 @@ void alliance::findBestAction(int actionIndexIn)
 			if (score > bestScore) {
 				bestScoreIdx = actionChain[pending].actionIndex;
 				bestScore = score;
-				bestNoActionCount = noActionCount;
+				bestScoreFinishTime = lastFinishTime;
 			}
-			else if ((score == bestScore) && (noActionCount > bestNoActionCount)) {
-				//favor the same score without action
+			else if ((score == bestScore) && (bestScoreFinishTime > lastFinishTime)) {
+				//favor the same score and finished earlier
 				bestScoreIdx = actionChain[pending].actionIndex;
 				bestScore = score;
-				bestNoActionCount = noActionCount;
+				bestScoreFinishTime = lastFinishTime;
 			}
 		}
 
