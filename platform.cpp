@@ -618,6 +618,61 @@ void platform::logFinalScore(void)
 	fflush(m_pLogFIle);
 }
 
+float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
+	const rectangleObjectType *pMovingObjectIn, cubeStateType *pCubeOut, robotPathType *pPathOut)
+{
+	float shortestPath = shortestPathIn;
+	robotPathType nextPath;
+
+	//search for cubs by the switch
+	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
+		if (!m_cubes[i].availbleFlag) {
+			continue;
+		}
+
+		if (findAvailablePath(pMovingObjectIn, m_cubes[i].position, true, &nextPath)) {
+			if (shortestPath > nextPath.totalDistance) {
+				memcpy(pPathOut, &nextPath, sizeof(robotPathType));
+				memcpy(pCubeOut, &m_cubes[i], sizeof(cubeStateType));
+				shortestPath = nextPath.totalDistance;
+			}
+		}
+		//It is a simple implementation, the number of turns is not counted.
+
+		if (isAllCubeSameFlag) {
+			break; //all the cubes are the same, find available one is enough
+		}
+	}
+
+	return shortestPath;
+}
+
+
+void platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType *pCubeOut, robotPathType *pPathOut)
+{
+	float shortestPath = 10000000;
+
+	//search for cubs by the switch
+	shortestPath = findOneCube(shortestPath, CUBE_BY_RED_SWITCH, CUBE_BY_RED_POWER_ZONE, false,
+		pMovingObjectIn, pCubeOut, pPathOut);
+
+	//search power zone and exchange zone
+	if (allianceIn == ALLIANCE_RED) {
+		shortestPath = findOneCube(shortestPath, CUBE_BY_RED_POWER_ZONE, CUBE_BY_BLUE_POWER_ZONE, true,
+			pMovingObjectIn, pCubeOut, pPathOut);
+
+		shortestPath = findOneCube(shortestPath, CUBE_BY_RED_EXCHANGE_ZONE, CUBE_BY_BLUE_EXCHANGE_ZONE, true,
+			pMovingObjectIn, pCubeOut, pPathOut);
+	}
+	else {
+		shortestPath = findOneCube(shortestPath, CUBE_BY_BLUE_POWER_ZONE, CUBE_BY_RED_EXCHANGE_ZONE, true,
+			pMovingObjectIn, pCubeOut, pPathOut);
+
+		shortestPath = findOneCube(shortestPath, CUBE_BY_BLUE_EXCHANGE_ZONE, CUBE_LAST, true,
+			pMovingObjectIn, pCubeOut, pPathOut);
+	}
+}
+
 
 bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
 	bool isTargetACubeIn, robotPathType *pPathOut)

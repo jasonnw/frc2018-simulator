@@ -16,7 +16,11 @@ typedef struct rectangleObjectType {
 	int objectId; //a unique ID for each object on the field
 }rectangleObjectType;
 
-typedef struct coordinateType cubeStateType;
+typedef struct  cubeStateType
+{
+	coordinateType position;
+	bool availbleFlag;
+}cubeStateType;
 
 //Robot delay configurations in number of second
 typedef struct robotConfigurationType {

@@ -48,6 +48,17 @@ typedef struct platformLayoutType {
 	rectangleObjectType scaleSouthPlate;
 }platformLayoutType;
 
+//the indexes to all cubes in the cube array
+typedef enum cubeIndexType {
+	CUBE_BY_RED_SWITCH = 0,
+	CUBE_BY_BLUE_SWITCH = 6,
+	CUBE_BY_RED_POWER_ZONE = 12,
+	CUBE_BY_BLUE_POWER_ZONE = 22,
+	CUBE_BY_RED_EXCHANGE_ZONE = 32,
+	CUBE_BY_BLUE_EXCHANGE_ZONE = 1064,
+	CUBE_LAST = MAX_CUBES - 1
+}cubeIndexType;
+
 
 class platform
 {
@@ -139,7 +150,12 @@ public:
 		bool isTargetACubeIn, robotPathType *pPathOut);
 	//Note: cube will not block robot because it could be pushed out
 
+	void findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType *pCubeOut, robotPathType *pPathOut);
+
 protected:
+	float findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
+		const rectangleObjectType *pMovingObjectIn, cubeStateType *pCubeOut, robotPathType *pPathOut);
+
 	void updateScore(float secondsIn);
 	int updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
 		vaultButtonStateType forceVaultButtonIn, vaultButtonStateType boostVaultButtonIn,
