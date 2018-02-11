@@ -14,8 +14,6 @@ typedef enum allianceType {
 }allianceType;
 
 typedef enum structuresType {
-	RED_EXCHANGE_ZONE,
-	BLUE_EXCHANGE_ZONE,
 	RED_POWERCUBE_ZONE,
 	BLUE_POWERCUB_ZONE,
 	RED_SWITCH_ZONE,
@@ -46,6 +44,12 @@ typedef struct platformLayoutType {
 
 	rectangleObjectType scaleNorthPlate;
 	rectangleObjectType scaleSouthPlate;
+
+	rectangleObjectType redExchangeZone;
+	rectangleObjectType blueExchangeZone;
+
+	rectangleObjectType redLiftZone;
+	rectangleObjectType blueLiftZone;
 }platformLayoutType;
 
 //the indexes to all cubes in the cube array
@@ -94,6 +98,57 @@ public:
 	const robot * getRedRobots(void) const { return m_redRobots; }
 	const robot * getBlueRobots(void) const { return m_blueRobots; }
 
+	float getScaleX(void) { return m_platformStructure.scaleNorthPlate.center.x; }
+	float getScaleNorthY(void) { 
+		return m_platformStructure.scaleNorthPlate.center.y + m_platformStructure.scaleNorthPlate.sizeY/2;
+	}
+	float getScaleSouthY(void) {
+		return m_platformStructure.scaleSouthPlate.center.y - m_platformStructure.scaleSouthPlate.sizeY / 2;
+	}
+
+	float getRedSwitchX(void) {
+		return m_platformStructure.redSwitchNorthPlate.center.x;
+	}
+	float getBlueSwitchX(void) {
+		return m_platformStructure.blueSwitchNorthPlate.center.x;
+	}
+	float getRedSwitchNorthY(void) {
+		return m_platformStructure.redSwitchNorthPlate.center.y + m_platformStructure.redSwitchNorthPlate.sizeY/2;
+	}
+	float getRedSwitchSouthY(void) {
+		return m_platformStructure.redSwitchSouthPlate.center.y - m_platformStructure.redSwitchSouthPlate.sizeY / 2;
+	}
+
+	float getBlueSwitchNorthY(void) {
+		return m_platformStructure.blueSwitchNorthPlate.center.y + m_platformStructure.blueSwitchNorthPlate.sizeY / 2;
+	}
+	float getBlueSwitchSouthY(void) {
+		return m_platformStructure.blueSwitchSouthPlate.center.y - m_platformStructure.blueSwitchSouthPlate.sizeY / 2;
+	}
+
+	float getRedExchangeZoneX(void) {
+		return m_platformStructure.redExchangeZone.center.x + m_platformStructure.redExchangeZone.sizeX/2;
+		//Note red exchange zone is on the left side
+	}
+	float getRedExchangeZoneY(void) {
+		return m_platformStructure.redExchangeZone.center.y;
+	}
+	float getBlueExchangeZoneX(void) {
+		return m_platformStructure.blueExchangeZone.center.x - m_platformStructure.blueExchangeZone.sizeX / 2;
+		//NOte: blue exchange zone is on the right side
+	}
+	float getBlueExchangeZoneY(void) {
+		return m_platformStructure.blueExchangeZone.center.y;
+	}
+
+	coordinateType getRedLiftZonePosition(void) {
+		return m_platformStructure.redLiftZone.center;
+	}
+
+	coordinateType getBlueLiftZonePosition(void) {
+		return m_platformStructure.blueLiftZone.center;
+	}
+
 	void setState(const platformStateType *pStateIn) { memcpy(&m_state, pStateIn,  sizeof(m_state)); }
 	void setTime(float timeIn) { m_timeInSec = timeIn; }
 	void setRedScore(int redScoreIn) { m_redScore = redScoreIn; }
@@ -128,13 +183,13 @@ public:
 	void configRedRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
 	{
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-			m_redRobots[i].setConfiguration(config1In);
+			m_redRobots[i].setConfiguration(config1In, this);
 		}
 	}
 	void configBlueRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
 	{
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-			m_redRobots[i].setConfiguration(config1In);
+			m_redRobots[i].setConfiguration(config1In, this);
 		}
 	}
 
@@ -150,11 +205,11 @@ public:
 		bool isTargetACubeIn, robotPathType *pPathOut);
 	//Note: cube will not block robot because it could be pushed out
 
-	void findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType *pCubeOut, robotPathType *pPathOut);
+	bool findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
 
 protected:
 	float findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
-		const rectangleObjectType *pMovingObjectIn, cubeStateType *pCubeOut, robotPathType *pPathOut);
+		const rectangleObjectType *pMovingObjectIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
 
 	void updateScore(float secondsIn);
 	int updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,

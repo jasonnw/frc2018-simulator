@@ -619,7 +619,7 @@ void platform::logFinalScore(void)
 }
 
 float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
-	const rectangleObjectType *pMovingObjectIn, cubeStateType *pCubeOut, robotPathType *pPathOut)
+	const rectangleObjectType *pMovingObjectIn, cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
 	float shortestPath = shortestPathIn;
 	robotPathType nextPath;
@@ -633,7 +633,7 @@ float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endS
 		if (findAvailablePath(pMovingObjectIn, m_cubes[i].position, true, &nextPath)) {
 			if (shortestPath > nextPath.totalDistance) {
 				memcpy(pPathOut, &nextPath, sizeof(robotPathType));
-				memcpy(pCubeOut, &m_cubes[i], sizeof(cubeStateType));
+				*pCubeOut =  &m_cubes[i];
 				shortestPath = nextPath.totalDistance;
 			}
 		}
@@ -647,10 +647,10 @@ float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endS
 	return shortestPath;
 }
 
-
-void platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType *pCubeOut, robotPathType *pPathOut)
+const float DISTANCE_OUT_OF_RANGE = 1000000;
+bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
-	float shortestPath = 10000000;
+	float shortestPath = DISTANCE_OUT_OF_RANGE;
 
 	//search for cubs by the switch
 	shortestPath = findOneCube(shortestPath, CUBE_BY_RED_SWITCH, CUBE_BY_RED_POWER_ZONE, false,
@@ -671,6 +671,11 @@ void platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 		shortestPath = findOneCube(shortestPath, CUBE_BY_BLUE_EXCHANGE_ZONE, CUBE_LAST, true,
 			pMovingObjectIn, pCubeOut, pPathOut);
 	}
+
+	if (shortestPath >= DISTANCE_OUT_OF_RANGE) {
+		return false;
+	}
+	return true;
 }
 
 
@@ -692,6 +697,13 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	int turnPointIndex = 0;
 	float distance;
 	coordinateType startPoint;
+
+	//check if it is arrived 
+	if ((pMovingObjectIn->center.x == endPointIn.x) && (pMovingObjectIn->center.y == endPointIn.y)) {
+		pPathOut->numberOfTurns = 0;
+		pPathOut->totalDistance = 0;
+		return true;
+	}
 
 	//try the shortest path
 	collisionDetectedFlag = collisionWithAllOtherObjects(pMovingObjectIn, endPointIn, &pCollisionObject);
@@ -909,7 +921,7 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 	//else
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		pRobotState =  m_redRobots[i].getState();
-		pRobotPosition = &pRobotState->currentPosition;
+		pRobotPosition = &pRobotState->pos;
 
 		for (int j = 0; j < 2; j++) {
 			if (pRobotPosition->objectId != pMovingObjectIn->objectId) {
@@ -920,7 +932,7 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 			}
 
 			pRobotState = m_blueRobots[i].getState();
-			pRobotPosition = &pRobotState->currentPosition;
+			pRobotPosition = &pRobotState->pos;
 		}
 	}
 	return false;

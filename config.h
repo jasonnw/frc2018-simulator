@@ -2,6 +2,11 @@
 
 #include <stdint.h>
 
+//configuration of scale and switches transmitted by the Field Management System
+const bool RED_NORTH_SWITCH_FLAG = true;
+const bool BLUE_NORTH_SWITCH_FLAG = true;
+const bool RED_NORTH_SCALE_FLAG = true;
+
 //coordinate on the field
 //(0, 0) is the lower corner on the red alliance side
 typedef struct coordinateType {
@@ -25,11 +30,12 @@ typedef struct  cubeStateType
 //Robot delay configurations in number of second
 typedef struct robotConfigurationType {
 	float randomDelayFactor;
-	float boxToVaultDelay;
-	float boxToSwitchDelay;
-	float boxToScaleDelay;
-	float pushButtonDelay;
 	float liftRobotDelay;
+	float pickUpCubeDelay;
+	float dumpCubeDelay;
+	float turnDelay;
+	float maximumSpeed;
+	float accelerationDistance;
 }robotConfigurationType;
 
 typedef enum ownerShipType {
@@ -61,22 +67,22 @@ typedef enum actionTypeType {
 	CUBE_RED_FORCE_VAULT,
 	CUBE_RED_BOOST_VAULT,
 	CUBE_RED_LIFT_VAULT,
+	LIFT_ONE_RED_ROBOT,
+	RED_ACTION_NONE,
 	PUSH_RED_FORCE_BUTTON,
 	PUSH_RED_BOOST_BUTTON,
 	PUSH_RED_LIFT_BUTTON,
-	LIFT_ONE_RED_ROBOT,
-	RED_ACTION_NONE,
 	CUBE_BLUE_OFFENCE_SWITCH = 100, //blue team starts here to search the best action
 	CUBE_BLUE_DEFENCE_SWITCH,
 	CUBE_BLUE_SCALE,
 	CUBE_BLUE_FORCE_VAULT,
 	CUBE_BLUE_BOOST_VAULT,
 	CUBE_BLUE_LIFT_VAULT,
+	LIFT_ONE_BLUE_ROBOT,
+	BLUE_ACTION_NONE,
 	PUSH_BLUE_FORCE_BUTTON,
 	PUSH_BLUE_BOOST_BUTTON,
-	PUSH_BLUE_LIFT_BUTTON,
-	LIFT_ONE_BLUE_ROBOT,
-	BLUE_ACTION_NONE
+	PUSH_BLUE_LIFT_BUTTON
 }actionTypeType;
 
 const int NUMBER_OF_ROBOTS = 3; //the number of robots per alliance
@@ -115,16 +121,6 @@ typedef struct platformStateType {
 	vaultButtonStateType blueLiftButton;
 }platformStateType;
 
-typedef enum robotActionType {
-	PUT_CUBE_ON_SWITCH,
-	PUT_CUBE_ON_SCALE,
-	PUT_CUBE_ON_EXCHANGE,
-	TAKE_CUBE_FROM_EXCHANGE,
-	TAKE_CUBE_FROM_GROUND,
-	LIFT_ONE_ROBOT,
-	ACTION_NONE
-}robotActionType;
-
 const int MAX_WALL_TO_WALL_MOVES = 4;
 const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 4;
 //maximum turning points on the path
@@ -135,14 +131,6 @@ typedef struct robotPathType {
 	int numberOfTurns;  //the number of turns on the path.
 	float totalDistance;
 }robotPathType;
-
-typedef struct robotStateType {
-	rectangleObjectType currentPosition;
-	robotPathType path;
-	robotActionType action;
-	cubeStateType *pCube; //NULL mean no cube
-	int elevaterHeight;
-}robotStateType;
 
 const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 2; //minimum 2 blocks to own scale or switch
 const float ROBOT_TO_WALL_DISTANCE = 2;         //always 2 inches away from the wall
@@ -156,7 +144,7 @@ const float CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after compe
 															 //      Auto session time is excluded from game time. The game starts on COMPITATION_START_TIME
 //action search control parameters
 const int MAXIMUM_PENDING_ACTIONS = 6;                       //maximum number of look forward actions to search for the best move
-const int NUM_OF_POSSIBLE_ACTIONS = RED_ACTION_NONE + 1;     //the number of possible actions
+const int NUM_OF_POSSIBLE_ACTIONS = PUSH_RED_LIFT_BUTTON + 1;     //the number of possible actions per robot
 const int MIN_SCORE_CHECKING_STEP = 4;                       //start check if the action worth to continue
 const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold score to continue action search
 //Note: SEARCH_GIVEUP_THRESHOLD controls action search speed and quality. Smaller SEARCH_GIVEUP_THRESHOLD will make search slower but may find the best action.
@@ -164,15 +152,15 @@ const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold sco
 //robot delay configurations in number of second
 const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 0.5,  /*random delay factor*/	5.5,  /*delay to vault*/ 6.5,  /*delay to switch*/	8.0,  /*delay to scale*/ 1.0, /*push button*/ 20.0 /*lift robot*/ },
-	{ 0.5,  /*random delay factor*/	5.5,  /*delay to vault*/ 6.5,  /*delay to switch*/	8.0,  /*delay to scale*/ 1.0, /*push button*/ 20.0 /*lift robot*/ },
-	{ 0.5,  /*random delay factor*/	5.5,  /*delay to vault*/ 6.5,  /*delay to switch*/	8.0,  /*delay to scale*/ 1.0, /*push button*/ 20.0 /*lift robot*/ },
+	{ 0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17*12, /*max speed*/ 2*12 /*acceleration distance*/ },
+	{ 0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 const robotConfigurationType BLUE_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 6,  /*random delay factor*/	5.5,  /*delay to vault*/ 6.5,  /*delay to switch*/	8.0,  /*delay to scale*/ 1.0, /*push button*/ 20.0 /*lift robot*/ },
-	{ 6,  /*random delay factor*/	5.5,  /*delay to vault*/ 6.5,  /*delay to switch*/	8.0,  /*delay to scale*/ 1.0, /*push button*/ 20.0 /*lift robot*/ },
-	{ 6,  /*random delay factor*/	5.5,  /*delay to vault*/ 6.5,  /*delay to switch*/	8.0,  /*delay to scale*/ 1.0, /*push button*/ 20.0 /*lift robot*/ },
+	{ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 
 //initialize game setting after auto session is done
