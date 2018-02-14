@@ -6,16 +6,12 @@
 #include "config.h"
 #include "robot.h"
 
-const int MAX_CUBES = 2000;
-
 typedef enum allianceType {
 	ALLIANCE_RED,
 	ALLIANCE_BLUE
 }allianceType;
 
 typedef enum structuresType {
-	RED_POWERCUBE_ZONE,
-	BLUE_POWERCUB_ZONE,
 	RED_SWITCH_ZONE,
 	BLUE_SWITCH_ZONE,
 	SCALE_ZONE,
@@ -24,15 +20,17 @@ typedef enum structuresType {
 
 
 typedef struct platformLayoutType {
+
+	//still structures for collision detection
 	float southWall;
 	float northWall;
 	float eastWall;
 	float westWall;
 	float redAutoLine;
 	float blueAutoLine;
-
 	rectangleObjectType structures[NUM_STILL_STRUCTURE];
 
+	//possible robot destination
 	rectangleObjectType redPowerCubeZone;
 	rectangleObjectType bluePowerCubeZone;
 	rectangleObjectType redPlatformZone;
@@ -53,12 +51,15 @@ typedef struct platformLayoutType {
 }platformLayoutType;
 
 //the indexes to all cubes in the cube array
+const int MAX_CUBES = 2000;
 typedef enum cubeIndexType {
-	CUBE_BY_RED_SWITCH = 0,
-	CUBE_BY_BLUE_SWITCH = 6,
-	CUBE_BY_RED_POWER_ZONE = 12,
-	CUBE_BY_BLUE_POWER_ZONE = 22,
-	CUBE_BY_RED_EXCHANGE_ZONE = 32,
+	CUBE_ON_RED_ROBOTS = 0,
+	CUBE_ON_BLUE_ROBOTS = 0,
+	CUBE_BY_RED_SWITCH = 6,
+	CUBE_BY_BLUE_SWITCH = 12,
+	CUBE_BY_RED_POWER_ZONE = 18,
+	CUBE_BY_BLUE_POWER_ZONE = 28,
+	CUBE_BY_RED_EXCHANGE_ZONE = 38,
 	CUBE_BY_BLUE_EXCHANGE_ZONE = 1064,
 	CUBE_LAST = MAX_CUBES - 1
 }cubeIndexType;
@@ -177,23 +178,18 @@ public:
 		setCubes(srcIn.getCubes());
 		setRedRobots(srcIn.getRedRobots());
 		setBlueRobots(srcIn.getBlueRobots());
+
 		return srcIn;
 	}
 
-	void configRedRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
-	{
-		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-			m_redRobots[i].setConfiguration(config1In, this);
-		}
-	}
-	void configBlueRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
-	{
-		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-			m_redRobots[i].setConfiguration(config1In, this);
-		}
-	}
+	void configRedRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS]);
+	void configBlueRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS]);
 
-	int takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn);
+	void removeCube(int cubeIdxIn) { m_cubes[cubeIdxIn].availbleFlag = false; }
+
+	void setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
+
+	int commitAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
 
 	int isGameTimeOver(void);
 	void getFinalScore(int *pRedScoreOut, int *pBlueScoreOut);

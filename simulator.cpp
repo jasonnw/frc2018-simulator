@@ -91,14 +91,18 @@ static void initDisplay(void)
 
 int main(int argc, char** argv)
 {
-	pendingActionType redAction;
-	pendingActionType blueAction;
+	searchActionType redAction[NUMBER_OF_ROBOTS];
+	searchActionType blueAction[NUMBER_OF_ROBOTS];
 	Point redStart, redEnd;
 	Point blueStart, blueEnd;
 	int actionCounter;
 	FILE *pRedActionLog = NULL;
 	FILE *pBlueActionLog = NULL;
 	errno_t errCode;
+
+	float earliestFinishTime;
+	searchActionType *pEarliestFinishAction;
+	allianceType earliestFinishAlliance;
 
 	if (argc != 3) {
 		printf("usage: simulator [redActionLogFileName blueActionLogFileName]\n");
@@ -115,15 +119,15 @@ int main(int argc, char** argv)
 	initDisplay();
 
 	//initialization
-	redAlliance.initAlliance(ALLIANCE_RED, NULL, RED_CONFIGURATION);
-	blueAlliance.initAlliance(ALLIANCE_BLUE, NULL, BLUE_CONFIGURATION);
-
 	gamePlatform.setState(&initState);
 	gamePlatform.setRedScore(initRedScore);
 	gamePlatform.setBlueScore(initBlueScore);
 	gamePlatform.setLogFIle(stdout);
 	gamePlatform.configRedRobots(RED_CONFIGURATION);
 	gamePlatform.configBlueRobots(RED_CONFIGURATION);
+
+	redAlliance.initAlliance(ALLIANCE_RED, NULL, RED_CONFIGURATION, gamePlatform);
+	blueAlliance.initAlliance(ALLIANCE_BLUE, NULL, BLUE_CONFIGURATION, gamePlatform);
 
 	actionCounter = 0;
 	redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
@@ -145,34 +149,36 @@ int main(int argc, char** argv)
 		//}else {
 		//  blueAlliance.setLogFile(NULL);
 		//}
-		redAlliance.getBestAction(&redAction);
-		blueAlliance.getBestAction(&blueAction);
+		redAlliance.getBestAction(redAction);
+		blueAlliance.getBestAction(blueAction);
 
-		//platform only take actions in time order
-		//find out which action is finished first
-		if (redAction.projectedFinishTime <= blueAction.projectedFinishTime) {
-			if (redAction.projectedFinishTime <= CLIMB_END_TIME) {
-				if (0 != gamePlatform.takeAction(redAction.actionType, redAction.projectedFinishTime, redAction.robotIndex, actionCounter)) {
-					printf("Error: Action %d of red alliance robot(%d) is rejected\n", redAction.actionType, redAction.robotIndex);
-				}
-				redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
+		gamePlatform.setRobotAction(redAction, ALLIANCE_RED, actionCounter);
+		gamePlatform.setRobotAction(blueAction, ALLIANCE_BLUE, actionCounter);
+
+		//commit the earliest action
+		earliestFinishTime = CLIMB_END_TIME + 2;
+		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+			if (earliestFinishTime > redAction[i].projectedFinishTime) {
+				earliestFinishTime = redAction[i].projectedFinishTime;
+				pEarliestFinishAction = &redAction[i];
+				earliestFinishAlliance = ALLIANCE_RED;
 			}
-			else {
-				break; //the finish time is after game over, stop here
-			}
-		}
-		else {
-			if (blueAction.projectedFinishTime <= CLIMB_END_TIME) {
-				if (0 != gamePlatform.takeAction(blueAction.actionType, blueAction.projectedFinishTime, blueAction.robotIndex, actionCounter)) {
-					printf("Error: Action %d of blue alliance robot(%d) is rejected\n", blueAction.actionType, blueAction.robotIndex);
-				}
-				blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
-			}
-			else {
-				break; //the finish time is after game over, stop here
+			if (earliestFinishTime > blueAction[i].projectedFinishTime) {
+				earliestFinishTime = blueAction[i].projectedFinishTime;
+				pEarliestFinishAction = &blueAction[i];
+				earliestFinishAlliance = ALLIANCE_BLUE;
 			}
 		}
-		//Note: after one action is done, only re-run syncLocalPlatform() of the alliance which take the action, because syncLocalPlatform() is very slow.
+
+		if (earliestFinishTime <= CLIMB_END_TIME) {
+
+			if (0 != gamePlatform.commitAction(pEarliestFinishAction->actionType, earliestFinishTime, pEarliestFinishAction->robotIndex, earliestFinishAlliance, actionCounter)) {
+				printf("Error: Action %d of red alliance robot(%d) is rejected\n", pEarliestFinishAction->actionType, pEarliestFinishAction->robotIndex);
+			}
+
+			redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
+			blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
+		}
 
 		//update the score display
 		redEnd.x = blueEnd.x = POINTS_PER_SECOND * (int) floor(gamePlatform.getTime() + 0.5);

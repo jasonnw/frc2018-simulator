@@ -13,13 +13,14 @@ typedef struct actionChainType {
 class alliance
 {
 private:
+	platform m_testPlatForm;
 	allianceType m_allianceType;
 	float m_timeInSec;
 	platform m_referencePlatForm;
-	robot m_robot[NUMBER_OF_ROBOTS];
-	pendingActionType m_bestAction;
+	const robot *m_pRobots;
+	searchActionType m_bestAction[NUMBER_OF_ROBOTS];
 
-	pendingActionType *m_pSearchList;
+	searchActionType *m_pSearchList;
 	int m_maxSearchListSize;
 	FILE *m_pLogFIle;
 
@@ -28,7 +29,8 @@ public:
 	~alliance();
 
 	int initAlliance(allianceType typeIn, FILE *pLogFile,
-		const robotConfigurationType config1In[NUMBER_OF_ROBOTS]);
+		const robotConfigurationType config1In[NUMBER_OF_ROBOTS],
+		const platform &platformIn);
 
 	void setLogFile(FILE *pFile)
 	{
@@ -37,9 +39,9 @@ public:
 
 	void syncLocalPlatform(const platform &platformIn, int actionIndexIn);
 
-	void getBestAction(pendingActionType *pActionOut)
+	void getBestAction(searchActionType *pActionOut)
 	{
-		memcpy(pActionOut, &m_bestAction, sizeof(pendingActionType));
+		memcpy(pActionOut, m_bestAction, sizeof(pendingActionType)*NUMBER_OF_ROBOTS);
 	}
 
 protected:

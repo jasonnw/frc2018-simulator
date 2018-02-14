@@ -29,6 +29,8 @@ typedef struct  cubeStateType
 
 //Robot delay configurations in number of second
 typedef struct robotConfigurationType {
+	float sizeX;
+	float sizeY;
 	float randomDelayFactor;
 	float liftRobotDelay;
 	float pickUpCubeDelay;
@@ -82,7 +84,8 @@ typedef enum actionTypeType {
 	BLUE_ACTION_NONE,
 	PUSH_BLUE_FORCE_BUTTON,
 	PUSH_BLUE_BOOST_BUTTON,
-	PUSH_BLUE_LIFT_BUTTON
+	PUSH_BLUE_LIFT_BUTTON,
+	INVALID_ACTION
 }actionTypeType;
 
 const int NUMBER_OF_ROBOTS = 3; //the number of robots per alliance
@@ -122,14 +125,15 @@ typedef struct platformStateType {
 }platformStateType;
 
 const int MAX_WALL_TO_WALL_MOVES = 4;
-const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 4;
+const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 8;
 //maximum turning points on the path
 //the last turning point must be the target position
 
 typedef struct robotPathType {
 	coordinateType turnPoints[MAX_TURNS_ON_PATH];
-	int numberOfTurns;  //the number of turns on the path.
 	float totalDistance;
+	int numberOfTurns;  //the number of turns on the path.
+	int pickUpCubeIndex; //the turning point to pick up a cube
 }robotPathType;
 
 const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 2; //minimum 2 blocks to own scale or switch
@@ -152,15 +156,15 @@ const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold sco
 //robot delay configurations in number of second
 const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17*12, /*max speed*/ 2*12 /*acceleration distance*/ },
-	{ 0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17*12, /*max speed*/ 2*12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 const robotConfigurationType BLUE_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 
 //initialize game setting after auto session is done

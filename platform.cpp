@@ -17,6 +17,179 @@ platform::platform()
 	m_pLogFIle = NULL;
 	m_liftRedRobotIndex = INT32_MAX;
 	m_liftBlueRobotIndex = INT32_MAX;
+
+	//give each robot access with the platform
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		m_redRobots[i].setPlatformAndCube(this, i+ CUBE_ON_RED_ROBOTS);
+		m_blueRobots[i].setPlatformAndCube(this, i + CUBE_ON_BLUE_ROBOTS);
+	}
+
+	//field layout, in unit of inch,
+	//red alliance is on the left side, blue is on the right side
+	//the whole field is (288*2 + 72) x (264 + 48*2)
+	m_platformStructure.blueAutoLine = (288 * 2 + 72) - 10 * 12;
+
+	m_platformStructure.blueExchangeZone.objectId = 1;
+	m_platformStructure.blueExchangeZone.center.x = (288 * 2 + 72) - 36;
+	m_platformStructure.blueExchangeZone.center.y = (264 + 48 * 2) / 2 - 12 - 24;
+	m_platformStructure.blueExchangeZone.sizeX = 36;
+	m_platformStructure.blueExchangeZone.sizeY = 48;
+
+	m_platformStructure.blueLiftZone.objectId = 2;
+	m_platformStructure.blueLiftZone.center.x = (float) ((288 * 2 + 72) - 261.74);
+	m_platformStructure.blueLiftZone.center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.blueLiftZone.sizeX = (float) ((288 * 2 + 72)/2 - 261.74);
+	m_platformStructure.blueLiftZone.sizeY = 9 * 12;
+
+	m_platformStructure.bluePlatformZone.objectId = 3;
+	m_platformStructure.bluePlatformZone.center.x = (288 * 2 + 72) - 196;
+	m_platformStructure.bluePlatformZone.center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.bluePlatformZone.sizeX = (288 * 2 + 72) / 2 - 196;
+	m_platformStructure.bluePlatformZone.sizeY = 9 * 12;
+
+	m_platformStructure.bluePowerCubeZone.objectId = 4;
+	m_platformStructure.bluePowerCubeZone.center.x = (288 * 2 + 72) - 98 - 42 / 2;
+	m_platformStructure.bluePowerCubeZone.center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.bluePowerCubeZone.sizeX = 42;
+	m_platformStructure.bluePowerCubeZone.sizeY = 45;
+
+	m_platformStructure.blueSwitchNorthPlate.objectId = 5;
+	m_platformStructure.blueSwitchNorthPlate.center.x = (288 * 2 + 72) - 140 - 56 / 2;
+	m_platformStructure.blueSwitchNorthPlate.center.y = (264 + 48 * 2) / 2 + 6 * 12;
+	m_platformStructure.blueSwitchNorthPlate.sizeX = 4 * 12;
+	m_platformStructure.blueSwitchNorthPlate.sizeY = 3 * 12;
+
+	m_platformStructure.blueSwitchSouthPlate.objectId = 6;
+	m_platformStructure.blueSwitchSouthPlate.center.x = (288 * 2 + 72) - 140 - 56 / 2;
+	m_platformStructure.blueSwitchSouthPlate.center.y = (264 + 48 * 2) / 2 - 6 * 12;
+	m_platformStructure.blueSwitchSouthPlate.sizeX = 4 * 12;
+	m_platformStructure.blueSwitchSouthPlate.sizeY = 3 * 12;
+
+	m_platformStructure.eastWall = (288 * 2 + 72);
+	m_platformStructure.northWall = (264 + 48 * 2);
+	m_platformStructure.redAutoLine = 10 * 12;
+	
+	m_platformStructure.redExchangeZone.objectId = 7;
+	m_platformStructure.redExchangeZone.center.x = 36;
+	m_platformStructure.redExchangeZone.center.y = (264 + 48 * 2) / 2 + 12 + 24;
+	m_platformStructure.redExchangeZone.sizeX = 36;
+	m_platformStructure.redExchangeZone.sizeY = 48;
+
+	m_platformStructure.redLiftZone.objectId = 8;
+	m_platformStructure.redLiftZone.center.x = (float) 261.74;
+	m_platformStructure.redLiftZone.center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.redLiftZone.sizeX = (float)((288 * 2 + 72) / 2 - 261.74);
+	m_platformStructure.redLiftZone.sizeY = 9 * 12;
+
+	m_platformStructure.redPlatformZone.objectId = 9;
+	m_platformStructure.redPlatformZone.center.x = 196;
+	m_platformStructure.redPlatformZone.center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.redPlatformZone.sizeX = (288 * 2 + 72) / 2 - 196;
+	m_platformStructure.redPlatformZone.sizeY = 9 * 12;
+
+	m_platformStructure.redPowerCubeZone.objectId = 10;
+	m_platformStructure.redPowerCubeZone.center.x = 98 + 42 / 2;
+	m_platformStructure.redPowerCubeZone.center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.redPowerCubeZone.sizeX = 42;
+	m_platformStructure.redPowerCubeZone.sizeY = 45;
+
+	m_platformStructure.redSwitchNorthPlate.objectId = 11;
+	m_platformStructure.redSwitchNorthPlate.center.x = 140 + 56 / 2;
+	m_platformStructure.redSwitchNorthPlate.center.y = (264 + 48 * 2) / 2 + 6 * 12;
+	m_platformStructure.redSwitchNorthPlate.sizeX = 4 * 12;
+	m_platformStructure.redSwitchNorthPlate.sizeY = 3 * 12;
+
+	m_platformStructure.redSwitchSouthPlate.objectId = 12;
+	m_platformStructure.redSwitchSouthPlate.center.x = 140 + 56 / 2;
+	m_platformStructure.redSwitchSouthPlate.center.y = (264 + 48 * 2) / 2 - 6 * 12;
+	m_platformStructure.redSwitchSouthPlate.sizeX = 4 * 12;
+	m_platformStructure.redSwitchSouthPlate.sizeY = 3 * 12;
+
+	m_platformStructure.scaleNorthPlate.objectId = 13;
+	m_platformStructure.scaleNorthPlate.center.x = (288 * 2 + 72) / 2;
+	m_platformStructure.scaleNorthPlate.center.y = (264 + 48 * 2) / 2 + (15 * 12 / 2);
+	m_platformStructure.scaleNorthPlate.sizeX = 4 * 12;
+	m_platformStructure.scaleNorthPlate.sizeY = 3 * 12;
+
+	m_platformStructure.scaleSouthPlate.objectId = 14;
+	m_platformStructure.scaleSouthPlate.center.x = (288 * 2 + 72) / 2;
+	m_platformStructure.scaleSouthPlate.center.y = (264 + 48 * 2) / 2 - (15 * 12 / 2);
+	m_platformStructure.scaleSouthPlate.sizeX = 4 * 12;
+	m_platformStructure.scaleSouthPlate.sizeY = 3 * 12;
+
+	m_platformStructure.southWall = 0;
+	m_platformStructure.westWall = 0;
+
+	m_platformStructure.structures[RED_SWITCH_ZONE].objectId = 15;
+	m_platformStructure.structures[RED_SWITCH_ZONE].center.x = 140 + 56 / 2;
+	m_platformStructure.structures[RED_SWITCH_ZONE].center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.structures[RED_SWITCH_ZONE].sizeX = 4 * 12 + 8;
+	m_platformStructure.structures[RED_SWITCH_ZONE].sizeY = 12 * 12 + 9.5;
+
+	m_platformStructure.structures[BLUE_SWITCH_ZONE].objectId = 16;
+	m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x = (288 * 2 + 72) - 140 - 56 / 2;
+	m_platformStructure.structures[BLUE_SWITCH_ZONE].center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX = 4 * 12 + 8;
+	m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY = 12 * 12 + 9.5;
+
+	m_platformStructure.structures[SCALE_ZONE].objectId = 17;
+	m_platformStructure.structures[SCALE_ZONE].center.x = (288 * 2 + 72) / 2;
+	m_platformStructure.structures[SCALE_ZONE].center.y = (264 + 48 * 2) / 2;
+	m_platformStructure.structures[SCALE_ZONE].sizeX = 4 * 12;
+	m_platformStructure.structures[SCALE_ZONE].sizeY = 15 * 12;
+
+	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
+		m_cubes[i].availbleFlag = true;
+		m_cubes[i].position.x = 196 + 6;
+		m_cubes[i].position.y = (float) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + i * 24);
+	}
+	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
+		m_cubes[i].availbleFlag = true;
+		m_cubes[i].position.x = (288 * 2 + 72) - 196 - 6;
+		m_cubes[i].position.y = (float)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + i * 24);
+	}
+	for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
+		m_cubes[i].availbleFlag = true;
+		m_cubes[i].position = m_platformStructure.redPowerCubeZone.center;
+	}
+	for (int i = CUBE_BY_BLUE_POWER_ZONE; i < CUBE_BY_RED_EXCHANGE_ZONE; i++) {
+		m_cubes[i].availbleFlag = true;
+		m_cubes[i].position = m_platformStructure.bluePowerCubeZone.center;
+	}
+	for (int i = CUBE_BY_RED_EXCHANGE_ZONE; i < CUBE_BY_BLUE_EXCHANGE_ZONE; i++) {
+		m_cubes[i].availbleFlag = true;
+		m_cubes[i].position = m_platformStructure.redExchangeZone.center;
+	}
+	for (int i = CUBE_BY_BLUE_EXCHANGE_ZONE; i < CUBE_LAST; i++) {
+		m_cubes[i].availbleFlag = true;
+		m_cubes[i].position = m_platformStructure.blueExchangeZone.center;
+	}
+
+	//Note: center is not the actual object center. It is the position for the robot to arrive.
+}
+
+
+
+void platform::configRedRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
+{
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		m_redRobots[i].setConfiguration(&config1In[i], this);
+	}
+	//set robot initial positions
+	m_redRobots[0].setPosition(config1In[0].sizeX / 2, config1In[0].sizeY * 2, 18);
+	m_redRobots[1].setPosition(config1In[1].sizeX / 2, (264 + 48 * 2) / 2, 19);
+	m_redRobots[2].setPosition(config1In[0].sizeX / 2, (264 + 48 * 2) - config1In[0].sizeY * 2, 20);
+}
+
+void platform::configBlueRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
+{
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		m_redRobots[i].setConfiguration(&config1In[i], this);
+	}
+	//set robot initial positions
+	m_blueRobots[0].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, config1In[0].sizeY * 2, 18);
+	m_blueRobots[1].setPosition((288 * 2 + 72) - config1In[1].sizeX / 2, (264 + 48 * 2) / 2, 19);
+	m_blueRobots[2].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, (264 + 48 * 2) - config1In[0].sizeY * 2, 20);
 }
 
 
@@ -45,7 +218,25 @@ bool platform::isRobotLifted(allianceType allianceIn, int robotIdxIn)
 	}
 }
 
-int platform::takeAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn)
+void platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn)
+{
+	robot *pRobots;
+
+	if (allianceIn == ALLIANCE_RED) {
+		pRobots = m_redRobots;
+	}
+	else {
+		pRobots = m_blueRobots;
+	}
+
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		pRobots[i].takeAction(pActionListInOut[i].actionType, pActionListInOut[i].startTime, indexIn);
+		//update the projected finished time
+		pActionListInOut[i].projectedFinishTime = pRobots[i].getPlannedActionFinishTime();
+	}
+}
+
+int platform::commitAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn)
 {
 	int liftRebotCount = 0;
 
@@ -625,7 +816,7 @@ float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endS
 	robotPathType nextPath;
 
 	//search for cubs by the switch
-	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
+	for (int i = startSearchIdxIn; i < endSearchIdxIn; i++) {
 		if (!m_cubes[i].availbleFlag) {
 			continue;
 		}
@@ -652,6 +843,8 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 {
 	float shortestPath = DISTANCE_OUT_OF_RANGE;
 
+	pPathOut->numberOfTurns = 0;
+
 	//search for cubs by the switch
 	shortestPath = findOneCube(shortestPath, CUBE_BY_RED_SWITCH, CUBE_BY_RED_POWER_ZONE, false,
 		pMovingObjectIn, pCubeOut, pPathOut);
@@ -675,6 +868,9 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 	if (shortestPath >= DISTANCE_OUT_OF_RANGE) {
 		return false;
 	}
+
+	//the last turn point is the point to pick up a cube
+	pPathOut->pickUpCubeIndex = pPathOut->numberOfTurns - 1;
 	return true;
 }
 
