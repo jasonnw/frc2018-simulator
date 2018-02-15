@@ -7,6 +7,8 @@ const bool RED_NORTH_SWITCH_FLAG = true;
 const bool BLUE_NORTH_SWITCH_FLAG = true;
 const bool RED_NORTH_SCALE_FLAG = true;
 
+const int INVALID_IDX = INT32_MAX;
+
 //coordinate on the field
 //(0, 0) is the lower corner on the red alliance side
 typedef struct coordinateType {
@@ -89,7 +91,7 @@ typedef enum actionTypeType {
 }actionTypeType;
 
 const int NUMBER_OF_ROBOTS = 3; //the number of robots per alliance
-const int INDEX_OF_ROBOT_NONE = INT32_MAX;  // invalid robot index
+const int INDEX_OF_ROBOT_NONE = INVALID_IDX;  // invalid robot index
 
 //the state of platform
 typedef struct platformStateType {
@@ -152,6 +154,8 @@ const int NUM_OF_POSSIBLE_ACTIONS = PUSH_RED_LIFT_BUTTON + 1;     //the number o
 const int MIN_SCORE_CHECKING_STEP = 4;                       //start check if the action worth to continue
 const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold score to continue action search
 //Note: SEARCH_GIVEUP_THRESHOLD controls action search speed and quality. Smaller SEARCH_GIVEUP_THRESHOLD will make search slower but may find the best action.
+
+const float PICK_UP_CUBE_DISTANCE = 4 * 12;
 
 //robot delay configurations in number of second
 const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =

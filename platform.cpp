@@ -15,8 +15,8 @@ platform::platform()
 	m_redScore = 0;
 	m_blueScore = 0;
 	m_pLogFIle = NULL;
-	m_liftRedRobotIndex = INT32_MAX;
-	m_liftBlueRobotIndex = INT32_MAX;
+	m_liftRedRobotIndex = INVALID_IDX;
+	m_liftBlueRobotIndex = INVALID_IDX;
 
 	//give each robot access with the platform
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -239,6 +239,58 @@ void platform::setRobotAction(searchActionType *pActionListInOut, allianceType a
 int platform::commitAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn)
 {
 	int liftRebotCount = 0;
+	int cubeIndex;
+	bool needCubeFlag;
+	const pendingActionType *pPlannedAction;
+	robot *pRobots;
+
+	if (allianceIn == ALLIANCE_RED) {
+		pRobots = m_redRobots;
+	}else{
+		pRobots = m_blueRobots;
+	}
+	pPlannedAction = pRobots[robotIndexIn].getPlannedAction();
+
+	needCubeFlag = robot::isActionNeedCube(actionIn);
+	if (needCubeFlag) {
+
+		if (pPlannedAction->actionType != actionIn) {
+			printf("ERROR: wrong action type or wrong robot\n");
+		}
+
+		if (pRobots[robotIndexIn].hasCube()) {
+			pRobots[robotIndexIn].dumpOneCube();
+		}
+		else {
+			if (pPlannedAction->path.pickUpCubeIndex != INVALID_IDX) {
+				cubeIndex = pickUpCube(pPlannedAction->path.turnPoints[pPlannedAction->path.pickUpCubeIndex], allianceIn);
+
+				if (cubeIndex == INVALID_IDX) {
+					printf("ERROR: pick up cube failed\n");
+				}
+				else {
+					pRobots[robotIndexIn].pickUpOneCube(cubeIndex);
+					pRobots[robotIndexIn].dumpOneCube();
+				}
+			}
+			else {
+				printf("ERROR: no pick up cube move but the action needs a cube\n");
+			}
+		}
+	}
+	else {
+		if (pPlannedAction->path.pickUpCubeIndex != INVALID_IDX) {
+			cubeIndex = pickUpCube(pPlannedAction->path.turnPoints[pPlannedAction->path.pickUpCubeIndex], allianceIn);
+
+			if (cubeIndex == INVALID_IDX) {
+				printf("ERROR: pick up cube failed\n");
+			}
+			else {
+				pRobots[robotIndexIn].pickUpOneCube(cubeIndex);
+			}
+		}
+	}
+
 
 	if (m_timeInSec >= CLIMB_END_TIME) {
 		return 0; //game is over, do nothing
@@ -660,7 +712,7 @@ void platform::updateScore(float secondsIn)
 		if (m_liftRedRobotIndex < NUMBER_OF_ROBOTS) {
 			m_state.redLiftFlag[m_liftRedRobotIndex] = true;
 			m_redScore += 30;
-			m_liftRedRobotIndex = INT32_MAX;
+			m_liftRedRobotIndex = INVALID_IDX;
 		}
 
 		liftRebotCount = (m_state.redLiftButton == BUTTON_PUSH_OVER_10SEC);
@@ -683,7 +735,7 @@ void platform::updateScore(float secondsIn)
 		if (m_liftBlueRobotIndex < NUMBER_OF_ROBOTS) {
 			m_state.blueLiftFlag[m_liftBlueRobotIndex] = true;
 			m_blueScore += 30;
-			m_liftBlueRobotIndex = INT32_MAX;
+			m_liftBlueRobotIndex = INVALID_IDX;
 		}
 
 		liftRebotCount = (m_state.blueLiftButton == BUTTON_PUSH_OVER_10SEC);
@@ -838,6 +890,18 @@ float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endS
 	return shortestPath;
 }
 
+const cubeSearchRangeType redCubeSearchRange[] =
+{	{ CUBE_BY_RED_SWITCH , CUBE_BY_RED_POWER_ZONE },  //cubes by switch
+	{ CUBE_BY_RED_POWER_ZONE , CUBE_BY_BLUE_POWER_ZONE },  //CUBE BY POWER ZONE
+	{ CUBE_BY_RED_EXCHANGE_ZONE , CUBE_BY_BLUE_EXCHANGE_ZONE }   //CUBE BY EXCHANGE ZONE
+};
+
+const cubeSearchRangeType blueCubeSearchRange[] =
+{	{ CUBE_BY_RED_SWITCH , CUBE_BY_RED_POWER_ZONE },  //cubes by switch
+	{ CUBE_BY_BLUE_POWER_ZONE , CUBE_BY_RED_EXCHANGE_ZONE },  //CUBE BY POWER ZONE
+	{ CUBE_BY_BLUE_EXCHANGE_ZONE , CUBE_LAST }   //CUBE BY EXCHANGE ZONE
+};
+
 const float DISTANCE_OUT_OF_RANGE = 1000000;
 bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
@@ -845,24 +909,20 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 
 	pPathOut->numberOfTurns = 0;
 
-	//search for cubs by the switch
-	shortestPath = findOneCube(shortestPath, CUBE_BY_RED_SWITCH, CUBE_BY_RED_POWER_ZONE, false,
-		pMovingObjectIn, pCubeOut, pPathOut);
-
 	//search power zone and exchange zone
 	if (allianceIn == ALLIANCE_RED) {
-		shortestPath = findOneCube(shortestPath, CUBE_BY_RED_POWER_ZONE, CUBE_BY_BLUE_POWER_ZONE, true,
-			pMovingObjectIn, pCubeOut, pPathOut);
+		for (int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
+			shortestPath = findOneCube(shortestPath, redCubeSearchRange[i].startIdx, redCubeSearchRange[i].endIdx, true,
+				pMovingObjectIn, pCubeOut, pPathOut);
 
-		shortestPath = findOneCube(shortestPath, CUBE_BY_RED_EXCHANGE_ZONE, CUBE_BY_BLUE_EXCHANGE_ZONE, true,
-			pMovingObjectIn, pCubeOut, pPathOut);
+		}
 	}
 	else {
-		shortestPath = findOneCube(shortestPath, CUBE_BY_BLUE_POWER_ZONE, CUBE_BY_RED_EXCHANGE_ZONE, true,
-			pMovingObjectIn, pCubeOut, pPathOut);
+		for (int i = 0; i < sizeof(blueCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
+			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[i].startIdx, blueCubeSearchRange[i].endIdx, true,
+				pMovingObjectIn, pCubeOut, pPathOut);
 
-		shortestPath = findOneCube(shortestPath, CUBE_BY_BLUE_EXCHANGE_ZONE, CUBE_LAST, true,
-			pMovingObjectIn, pCubeOut, pPathOut);
+		}
 	}
 
 	if (shortestPath >= DISTANCE_OUT_OF_RANGE) {
@@ -872,6 +932,40 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 	//the last turn point is the point to pick up a cube
 	pPathOut->pickUpCubeIndex = pPathOut->numberOfTurns - 1;
 	return true;
+}
+
+int platform::pickUpCube(coordinateType positionIn, allianceType allianceIn)
+{
+	if (allianceIn == ALLIANCE_RED) {
+		for (int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
+			if (tryPickOneCube(positionIn, m_cubes[i].position) ){
+				return i;
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < sizeof(blueCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
+			if (tryPickOneCube(positionIn, m_cubes[i].position)) {
+				return i;
+			}
+		}
+	}
+	return INVALID_IDX;
+}
+
+bool  platform::tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn)
+{
+	float distance;
+
+	distance = (robotPosIn.x - cubePosIn.x) * (robotPosIn.x - cubePosIn.x) + (robotPosIn.y - cubePosIn.y) * (robotPosIn.y - cubePosIn.y);
+	distance = (float) sqrt(distance);
+
+	if (distance <= PICK_UP_CUBE_DISTANCE) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 

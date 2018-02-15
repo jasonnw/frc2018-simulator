@@ -64,6 +64,12 @@ typedef enum cubeIndexType {
 	CUBE_LAST = MAX_CUBES - 1
 }cubeIndexType;
 
+typedef struct cubeSearchRangeType
+{
+	int startIdx;
+	int endIdx;
+}cubeSearchRangeType;
+
 
 class platform
 {
@@ -229,5 +235,8 @@ protected:
 			return false;
 		}
 	}
+
+	int pickUpCube(coordinateType positionIn, allianceType allianceIn);
+	bool tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn);
 };
 
