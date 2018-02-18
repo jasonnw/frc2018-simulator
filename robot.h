@@ -8,15 +8,12 @@ typedef struct robotStateType {
 	//real state
 	rectangleObjectType pos;
 	int cubeIdx; //INT32_MAX mean no cube
-
-	//pending action
-	actionTypeType pendingAction;
-	robotPathType pendingPath;
-	int pendingPickUpCubeIdx; //the turn point index to pick up a cube
 }robotStateType;
 
 typedef struct searchActionType {
 	actionTypeType actionType;
+	coordinateType actionDonePos;
+	bool actionDoneWithCube;
 	float startTime;
 	float projectedFinishTime;
 	int projectedFinalScore;
@@ -43,6 +40,7 @@ private:
 	robotConfigurationType m_config;
 	robotStateType m_state;
 	pendingActionType m_plannedAction;
+	allianceType m_allianceType;
 
 public:
 	robot();
@@ -58,6 +56,11 @@ public:
 		return &m_state;
 	}
 
+	coordinateType getPosition(void) const
+	{
+		return m_state.pos.center;
+	}
+
 	const pendingActionType *getPlannedAction(void) const
 	{
 		return &m_plannedAction;
@@ -67,13 +70,20 @@ public:
 	{
 		return m_state.cubeIdx == INVALID_IDX ? false : true;
 	}
+
+	void setAllianceType(allianceType allianceTypeIn)
+	{
+		m_allianceType = allianceTypeIn;
+	}
+
 	void setConfiguration(const robotConfigurationType *pConfigIn, platform *pPlatform);
 	void setPosition(float xIn, float yIn, int objectIdIn);
 	void setPlatformAndCube(platform *pPlatform, int cubeIdxIn);
 	void dumpOneCube(void);
 	void pickUpOneCube(int cubeIdxIn);
 
-	float getActionDelayInSec(actionTypeType actionIn, float currentTimeIn, bool interruptFlagIn, robotPathType *pPathOut) const;
+	float estimateActionDelayInSec(actionTypeType actionIn, float currentTimeIn, bool interruptFlagIn,
+		  coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn, coordinateType *pEndPosOut) const;
 
 	const robot & operator = (const robot &srcIn)
 	{
@@ -82,7 +92,7 @@ public:
 		return srcIn;
 	}
 
-	int takeAction(actionTypeType actionIn, float timeIn, int indexIn);
+	void takeAction(actionTypeType actionIn, float timeIn, int indexIn);
 
 	float getPlannedActionFinishTime(void)
 	{
@@ -91,11 +101,14 @@ public:
 
 	static bool isActionNeedCube(actionTypeType actionIn);
 
+	bool moveToNextTime(float timeIn);
+
 protected:
 	int combineTwoPathes(const robotPathType *pPath1In, const robotPathType *pPath2In, robotPathType *pPathOut) const;
 	float calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const;
-	int findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, float stopDelayIn, coordinateType *pStopPositionOut, bool *pHasCubFlagOut) const;
-	float getActionDelayInSec(actionTypeType actionIn, float currentTimeIn, const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn,
+	int findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, float stopDelayIn,
+		coordinateType *pStopPositionOut, int *pCubeIndexOutt, bool *pGiveUpCubeFlag) const;
+	float getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn, const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn,
 		bool interruptFlagIn, robotPathType *pPathOut) const;
 
 };

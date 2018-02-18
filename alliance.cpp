@@ -88,7 +88,6 @@ void alliance::syncLocalPlatform(const platform &platformIn, int actionIndexIn)
 void alliance::findBestAction(int actionIndexIn)
 {
 	platform testPlatForm;
-	robotPathType actionPath;
 	bool searchFailedFlag;
 
 	int previousActionIndex;
@@ -112,6 +111,13 @@ void alliance::findBestAction(int actionIndexIn)
 	bool isRealActionFlag; 
 	bool updetedTreeFlag;
 	bool interruptFlag;
+
+	coordinateType actionDonePos;
+	coordinateType actionNewPos;
+	bool actionDoneWithCube;
+
+	coordinateType bestRobotNewPos;
+	bool bestRobotDoneWithCube;
 
 	actionTypeType startAction = (m_allianceType == ALLIANCE_RED) ? CUBE_RED_OFFENCE_SWITCH : CUBE_BLUE_OFFENCE_SWITCH;
 	actionTypeType endAction = (m_allianceType == ALLIANCE_RED) ? PUSH_RED_LIFT_BUTTON : PUSH_BLUE_LIFT_BUTTON;
@@ -196,6 +202,8 @@ void alliance::findBestAction(int actionIndexIn)
 					previousActionIndex = prevIdx;
 					previousFinishTime = 0;
 					interruptFlag = true;
+					actionDonePos = m_pRobots[robot].getPosition();
+					actionDoneWithCube = m_pRobots[robot].hasCube();
 
 					if (m_referencePlatForm.isRobotLifted(m_allianceType, robot) &&
 						(isRealActionFlag)) {
@@ -214,6 +222,8 @@ void alliance::findBestAction(int actionIndexIn)
 									//robot is lifted, not available for any other actions
 									previousFinishTime = CLIMB_END_TIME + 1;
 								}
+								actionDonePos = m_pSearchList[previousActionIndex].actionDonePos;
+								actionDoneWithCube = m_pSearchList[previousActionIndex].actionDoneWithCube;
 								interruptFlag = false; //wait the current action done before start the next action
 								break; //the most recent finish time is the time to start the next action
 							}
@@ -227,12 +237,15 @@ void alliance::findBestAction(int actionIndexIn)
 					}
 
 					//the current action finish time
-					finishTime = m_pRobots[robot].getActionDelayInSec((actionTypeType)act, currentTime, interruptFlag, &actionPath);
+					finishTime = m_pRobots[robot].estimateActionDelayInSec((actionTypeType)act, currentTime, interruptFlag, 
+						actionDonePos, actionDoneWithCube, &actionNewPos);
 					finishTime += previousFinishTime;
 
 					if (finishTime < bestFinishTime) {
 						bestFinishTime = finishTime;
 						bestFinishRobotIdx = robot;
+						bestRobotNewPos = actionNewPos;
+						bestRobotDoneWithCube = actionDoneWithCube;
 					}
 				}
 
@@ -244,6 +257,15 @@ void alliance::findBestAction(int actionIndexIn)
 					m_pSearchList[layerEndIndex].actionType = (actionTypeType)act;
 					m_pSearchList[layerEndIndex].previousIndex = prevIdx;
 					m_pSearchList[layerEndIndex].projectedFinishTime = bestFinishTime;
+					m_pSearchList[layerEndIndex].actionDonePos = bestRobotNewPos;
+
+					if (robot::isActionNeedCube((actionTypeType)act)) {
+						m_pSearchList[layerEndIndex].actionDoneWithCube = false;
+					}
+					else {
+						//action don't need a cube, pass cube flag to the next action
+						m_pSearchList[layerEndIndex].actionDoneWithCube = bestRobotDoneWithCube;
+					}
 
 					m_pSearchList[layerEndIndex].robotIndex = bestFinishRobotIdx;
 					updetedTreeFlag = true;
@@ -288,6 +310,8 @@ void alliance::findBestAction(int actionIndexIn)
 		previousActionIndex = bestScoreIdx;
 		previousFinishTime = 0;
 		interruptFlag = true;
+		actionDonePos = m_pRobots[robot].getPosition();
+		actionDoneWithCube = m_pRobots[robot].hasCube();
 
 		do {
 			//the previous action finish time
@@ -299,6 +323,9 @@ void alliance::findBestAction(int actionIndexIn)
 					//robot is lifted, not available for any other actions
 					previousFinishTime = CLIMB_END_TIME + 1;
 				}
+
+				actionDonePos = m_pSearchList[previousActionIndex].actionDonePos;
+				actionDoneWithCube = m_pSearchList[previousActionIndex].actionDoneWithCube;
 
 				interruptFlag = false; //It is not the first action of the current branch.
 				break; //the most recent finish time is the time to start the next action
@@ -318,7 +345,8 @@ void alliance::findBestAction(int actionIndexIn)
 			for (int act = startAction; act <= endRealAction; act++) {
 
 				//the current action finish time
-				finishTime = m_pRobots[robot].getActionDelayInSec((actionTypeType)act, previousFinishTime, interruptFlag, &actionPath);
+				finishTime = m_pRobots[robot].estimateActionDelayInSec((actionTypeType)act, previousFinishTime,
+					interruptFlag, actionDonePos, actionDoneWithCube, &actionNewPos);
 				finishTime += previousFinishTime;
 
 				if (finishTime >= CLIMB_END_TIME) {
@@ -334,6 +362,15 @@ void alliance::findBestAction(int actionIndexIn)
 					m_pSearchList[layerEndIndex].actionType = (actionTypeType)act;
 					m_pSearchList[layerEndIndex].previousIndex = prevIdx;
 					m_pSearchList[layerEndIndex].projectedFinishTime = finishTime;
+					m_pSearchList[layerEndIndex].actionDonePos = actionNewPos;
+
+					if (robot::isActionNeedCube((actionTypeType)act)) {
+						m_pSearchList[layerEndIndex].actionDoneWithCube = false;
+					}
+					else {
+						//action don't need a cube, pass cube flag to the next action
+						m_pSearchList[layerEndIndex].actionDoneWithCube = actionDoneWithCube;
+					}
 
 					m_pSearchList[layerEndIndex].robotIndex = robot;
 					layerEndIndex++;
@@ -491,11 +528,9 @@ int alliance::findBestScoreBranch(int startIdxIN, int stopIdxIn, int actionIndex
 			earliestIndex = actionChain[chainIndex].actionIndex;
 			lastFinishTime = m_pSearchList[earliestIndex].projectedFinishTime;
 
-			if (0 != m_testPlatForm.commitAction(m_pSearchList[earliestIndex].actionType,
-				m_pSearchList[earliestIndex].projectedFinishTime,
-				m_pSearchList[earliestIndex].robotIndex,
-				m_allianceType,
-				actionIndexIn)) {
+			m_testPlatForm.setRobotAction(&m_pSearchList[earliestIndex], m_allianceType, actionIndexIn);
+
+			if (0 != m_testPlatForm.commitAction(actionIndexIn)) {
 				isActionRejectedFlag = true;
 			}
 		}

@@ -6,11 +6,6 @@
 #include "config.h"
 #include "robot.h"
 
-typedef enum allianceType {
-	ALLIANCE_RED,
-	ALLIANCE_BLUE
-}allianceType;
-
 typedef enum structuresType {
 	RED_SWITCH_ZONE,
 	BLUE_SWITCH_ZONE,
@@ -195,7 +190,7 @@ public:
 
 	void setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
 
-	int commitAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
+	int commitAction(int indexIn);
 
 	int isGameTimeOver(void);
 	void getFinalScore(int *pRedScoreOut, int *pBlueScoreOut);
@@ -208,8 +203,11 @@ public:
 	//Note: cube will not block robot because it could be pushed out
 
 	bool findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
+	int pickUpCube(coordinateType positionIn, allianceType allianceIn);
 
 protected:
+	int updateOneAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
+
 	float findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
 		const rectangleObjectType *pMovingObjectIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
 
@@ -236,7 +234,6 @@ protected:
 		}
 	}
 
-	int pickUpCube(coordinateType positionIn, allianceType allianceIn);
 	bool tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn);
 };
 

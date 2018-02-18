@@ -174,6 +174,7 @@ void platform::configRedRobots(const robotConfigurationType config1In[NUMBER_OF_
 {
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		m_redRobots[i].setConfiguration(&config1In[i], this);
+		m_redRobots[i].setAllianceType(ALLIANCE_RED);
 	}
 	//set robot initial positions
 	m_redRobots[0].setPosition(config1In[0].sizeX / 2, config1In[0].sizeY * 2, 18);
@@ -184,7 +185,8 @@ void platform::configRedRobots(const robotConfigurationType config1In[NUMBER_OF_
 void platform::configBlueRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
 {
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_redRobots[i].setConfiguration(&config1In[i], this);
+		m_blueRobots[i].setConfiguration(&config1In[i], this);
+		m_blueRobots[i].setAllianceType(ALLIANCE_BLUE);
 	}
 	//set robot initial positions
 	m_blueRobots[0].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, config1In[0].sizeY * 2, 18);
@@ -221,6 +223,7 @@ bool platform::isRobotLifted(allianceType allianceIn, int robotIdxIn)
 void platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn)
 {
 	robot *pRobots;
+	int robotIdx = pActionListInOut->robotIndex;
 
 	if (allianceIn == ALLIANCE_RED) {
 		pRobots = m_redRobots;
@@ -229,78 +232,71 @@ void platform::setRobotAction(searchActionType *pActionListInOut, allianceType a
 		pRobots = m_blueRobots;
 	}
 
-	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		pRobots[i].takeAction(pActionListInOut[i].actionType, pActionListInOut[i].startTime, indexIn);
-		//update the projected finished time
-		pActionListInOut[i].projectedFinishTime = pRobots[i].getPlannedActionFinishTime();
-	}
+	pRobots[robotIdx].takeAction(pActionListInOut->actionType, pActionListInOut->startTime, indexIn);
+	//update the projected finished time just for sanity
+	pActionListInOut->projectedFinishTime = pRobots[robotIdx].getPlannedActionFinishTime();
 }
 
-int platform::commitAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn)
+int platform::commitAction(int indexIn)
 {
-	int liftRebotCount = 0;
-	int cubeIndex;
-	bool needCubeFlag;
-	const pendingActionType *pPlannedAction;
-	robot *pRobots;
-
-	if (allianceIn == ALLIANCE_RED) {
-		pRobots = m_redRobots;
-	}else{
-		pRobots = m_blueRobots;
-	}
-	pPlannedAction = pRobots[robotIndexIn].getPlannedAction();
-
-	needCubeFlag = robot::isActionNeedCube(actionIn);
-	if (needCubeFlag) {
-
-		if (pPlannedAction->actionType != actionIn) {
-			printf("ERROR: wrong action type or wrong robot\n");
-		}
-
-		if (pRobots[robotIndexIn].hasCube()) {
-			pRobots[robotIndexIn].dumpOneCube();
-		}
-		else {
-			if (pPlannedAction->path.pickUpCubeIndex != INVALID_IDX) {
-				cubeIndex = pickUpCube(pPlannedAction->path.turnPoints[pPlannedAction->path.pickUpCubeIndex], allianceIn);
-
-				if (cubeIndex == INVALID_IDX) {
-					printf("ERROR: pick up cube failed\n");
-				}
-				else {
-					pRobots[robotIndexIn].pickUpOneCube(cubeIndex);
-					pRobots[robotIndexIn].dumpOneCube();
-				}
-			}
-			else {
-				printf("ERROR: no pick up cube move but the action needs a cube\n");
-			}
-		}
-	}
-	else {
-		if (pPlannedAction->path.pickUpCubeIndex != INVALID_IDX) {
-			cubeIndex = pickUpCube(pPlannedAction->path.turnPoints[pPlannedAction->path.pickUpCubeIndex], allianceIn);
-
-			if (cubeIndex == INVALID_IDX) {
-				printf("ERROR: pick up cube failed\n");
-			}
-			else {
-				pRobots[robotIndexIn].pickUpOneCube(cubeIndex);
-			}
-		}
-	}
-
+	int updateActionResult = 0;
+	bool isActionDone;
+	float earliestFinishTime;
+	const pendingActionType *pPlannetAction;
+	actionTypeType actionType;
 
 	if (m_timeInSec >= CLIMB_END_TIME) {
-		return 0; //game is over, do nothing
+		return updateActionResult; //game is over, do nothing
 		//Note: assume that all robots are trying to climb at the last 30 sec.
 	}
-	if (timeIn >= CLIMB_END_TIME) {
+
+	earliestFinishTime = CLIMB_END_TIME + 1;
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		if (earliestFinishTime > m_redRobots[i].getPlannedActionFinishTime()) {
+			earliestFinishTime = m_redRobots[i].getPlannedActionFinishTime();
+		}
+		if (earliestFinishTime > m_blueRobots[i].getPlannedActionFinishTime()) {
+			earliestFinishTime = m_blueRobots[i].getPlannedActionFinishTime();
+		}
+	}
+
+	if (earliestFinishTime >= CLIMB_END_TIME) {
 		//skip the action and only update the game score
 		updateScore(CLIMB_END_TIME - m_timeInSec);
-		return 0;
+		return updateActionResult;
 	}
+
+	//run action of each robot
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		pPlannetAction = m_redRobots[i].getPlannedAction();
+		actionType = pPlannetAction->actionType;
+		isActionDone = m_redRobots[i].moveToNextTime(earliestFinishTime);
+		if (isActionDone) {
+			updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_RED, indexIn);
+		}
+
+		if (updateActionResult != 0) {
+			return updateActionResult;
+		}
+
+		pPlannetAction = m_blueRobots[i].getPlannedAction();
+		actionType = pPlannetAction->actionType;
+		isActionDone = m_blueRobots[i].moveToNextTime(earliestFinishTime);
+		if (isActionDone) {
+			updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_BLUE, indexIn);
+		}
+
+		if (updateActionResult != 0) {
+			return updateActionResult;
+		}
+	}
+
+	return updateActionResult;
+}
+
+int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn)
+{
+	int liftRebotCount = 0;
 
 	switch (actionIn) {
 	case CUBE_RED_OFFENCE_SWITCH:
@@ -508,8 +504,10 @@ int platform::commitAction(actionTypeType actionIn, float timeIn, int robotIndex
 		break;
 	case RED_ACTION_NONE:
 	case BLUE_ACTION_NONE:
-	default:
 		break; //no action, just time pass
+	default:
+		printf("ERROR: invalid action %d\n", actionIn);
+		break;
 	}
 
 	if (timeIn < m_timeInSec) {

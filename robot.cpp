@@ -82,102 +82,80 @@ bool robot::isActionNeedCube(actionTypeType actionIn)
 	}
 }
 
-int robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
+void robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
 {
-	rectangleObjectType stopPosition;
-	robotPathType newPath;
-	robotPathType oldPath;
-	int stopIndex;
 	float actionDleay;
-	bool oldActionHasCube;
-	bool interruptCurrentActionFlag;
+	bool hasCubeFlag = false;
+	bool interruptFlag = false;
 
-	if ((m_plannedAction.actionType == INVALID_ACTION) ||
-	    (m_plannedAction.projectedFinishTime <= timeIn)) {
-		//no pending action, just add the current action as the pending action and start it now
-
+	if (m_plannedAction.actionType != actionIn) {
+		//stop the current action and start a new action
 		m_plannedAction.actionType = actionIn;
 		m_plannedAction.startTime = timeIn;
 		m_plannedAction.actionIndex = indexIn;
 
-		actionDleay = getActionDelayInSec(actionIn, timeIn, false, &m_plannedAction.path);
-		m_plannedAction.projectedFinishTime = actionDleay;
-	}
-	else {
-		//find stop position at the current time
-		memcpy(&stopPosition, &m_state.pos, sizeof(stopPosition));
-
-		if (m_plannedAction.projectedFinishTime <= timeIn) {
-			interruptCurrentActionFlag = false; //current action is done
-		}
-		else {
-			interruptCurrentActionFlag = true;
-		}
-
-		//find if the stop position robot has a cube
-		stopIndex = findStopPosition(&m_state.pos.center, &m_plannedAction.path, timeIn, &stopPosition.center, &oldActionHasCube);
-
-		if (stopIndex != INVALID_IDX) {
-			//cut the last turn point short
-			m_plannedAction.path.turnPoints[stopIndex] = stopPosition.center;
-			//cut the number of path short
-			m_plannedAction.path.numberOfTurns = stopIndex + 1;
-		}
-
-		actionDleay = getActionDelayInSec(actionIn, timeIn, &stopPosition, oldActionHasCube, interruptCurrentActionFlag, &newPath);
-
-		//combine two paths to merge action
-		memcpy(&oldPath, &m_plannedAction.path, sizeof(oldPath));
-		if (combineTwoPathes(&oldPath, &newPath, &m_plannedAction.path) != 0) {
-			//path buffer overflow
-			return -1;
-		}
-
-		//update execution delay with updated cube and robot position
-		actionDleay = calculateDelayOnPath(&m_state.pos.center, &m_plannedAction.path);
-		m_plannedAction.actionType = actionIn;
-		m_plannedAction.actionIndex = indexIn;
-		m_plannedAction.projectedFinishTime = actionDleay + m_plannedAction.startTime;
-	}
-
-	return 0;
-}
-
-
-float robot::getActionDelayInSec(actionTypeType actionIn, float currentTimeIn, bool interruptFlagIn, robotPathType *pPathOut) const
-{
-	rectangleObjectType stopPosition;
-	bool hasCubeFlag = false;;
-	int stopIndex;
-
-	if ((m_plannedAction.actionType == INVALID_ACTION) ||
-		(m_plannedAction.projectedFinishTime <= currentTimeIn)) {
-
 		if (m_state.cubeIdx != INVALID_IDX) {
 			hasCubeFlag = true;
 		}
-		return getActionDelayInSec(actionIn, currentTimeIn, &m_state.pos, hasCubeFlag, interruptFlagIn, pPathOut);
-	}
-	else {
-		memcpy(&stopPosition, &m_state.pos, sizeof(stopPosition));
-		if (interruptFlagIn) {
-			stopIndex = findStopPosition(&m_state.pos.center, &m_plannedAction.path, currentTimeIn, &stopPosition.center, &hasCubeFlag);
-		}
-		//else the previous action is done, only care the current action
 
-		if (m_state.cubeIdx != INVALID_IDX) {
-			hasCubeFlag = true; //may have cube from the previous action, not before stop point
-		}
-
-		return getActionDelayInSec(actionIn, currentTimeIn, &m_state.pos, hasCubeFlag, interruptFlagIn, pPathOut);
+		actionDleay = getActionDelayInSecInternal(actionIn, timeIn, &m_state.pos, hasCubeFlag, interruptFlag, &m_plannedAction.path);
+		m_plannedAction.projectedFinishTime = timeIn + actionDleay;
 	}
+	//else, continue the current action, no change
 }
 
-float robot::getActionDelayInSec(actionTypeType actionIn, float currentTimeIn, 
+
+float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTimeIn, 
+	bool interruptFlagIn, coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn, coordinateType *pEndPosOut) const
+{
+	coordinateType stopPosition;
+	rectangleObjectType startPosition;
+	robotPathType plannedPath;
+	int cubeIndex;
+	bool hasCubeFlag = false;
+	bool giveUpCubeFlag = false;;
+	int stopIndex;
+	float delayOutput;
+
+	if (interruptFlagIn) {
+		if (m_plannedAction.actionType == actionIn) {
+			//no interrupt, continue the current task
+			if (m_plannedAction.projectedFinishTime <= currentTimeIn) {
+				printf("ERROR: pending task is already done, but not committed\n");
+			}
+			return m_plannedAction.projectedFinishTime - currentTimeIn;
+		}
+		else {
+			//stop the current task and start the new task
+			stopIndex = findStopPosition(&m_state.pos.center, &m_plannedAction.path, currentTimeIn, &stopPosition, &cubeIndex, &giveUpCubeFlag);
+		}
+
+		if ((m_state.cubeIdx != INVALID_IDX) || (cubeIndex != INVALID_IDX)) {
+			hasCubeFlag = true; //may have cube from the previous action or before stop point
+		}
+
+		delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &m_state.pos, hasCubeFlag, interruptFlagIn, &plannedPath);
+	}
+	else {
+		//start the task after the current task is done
+		memcpy(&startPosition, &m_state.pos, sizeof(startPosition));
+		startPosition.center = m_plannedAction.path.turnPoints[m_plannedAction.path.numberOfTurns - 1];
+
+		hasCubeFlag = lastActionCubeNotUsedFlagIn;
+
+		delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn, &plannedPath);
+		//only calculate the delay of the new action, old action delay will be added by the caller
+	}
+
+	*pEndPosOut = plannedPath.turnPoints[plannedPath.numberOfTurns - 1];
+	return delayOutput;
+}
+
+float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn, 
 	const rectangleObjectType *pStartPosIn,  bool hasCubeFlagIn, bool interruptFlagIn, robotPathType *pPathOut) const
 {
 	rectangleObjectType newPos;
-	float randomFactor = m_config.randomDelayFactor * ((float)rand() / (float)RAND_MAX);
+	float randomFactor = m_config.randomDelayFactor * (((float) rand() - RAND_MAX/2) / (float)RAND_MAX);
 	float actionDelay;
 	coordinateType destination;
 	bool isCubeNeeded;
@@ -216,9 +194,12 @@ float robot::getActionDelayInSec(actionTypeType actionIn, float currentTimeIn,
 	case PUSH_BLUE_LIFT_BUTTON:
 	case BLUE_ACTION_NONE:
 	case LIFT_ONE_BLUE_ROBOT:
-	default:
 		alliance = ALLIANCE_BLUE;
 		break;
+	default:
+		printf("ERROR: invalid action %d\n", actionIn);
+		break;
+
 	}
 
 	//because the robot always move along the wall, the destination point is
@@ -319,8 +300,7 @@ float robot::getActionDelayInSec(actionTypeType actionIn, float currentTimeIn,
 		actionDelay += m_config.liftRobotDelay;
 		break;
 	default:
-		//no robot action
-		actionDelay = 0;
+		printf("ERROR: invalid action %d\n", actionIn);
 		break;
 	}
 
@@ -425,8 +405,94 @@ float robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPat
 	return delay;
 }
 
+
+bool robot::moveToNextTime(float timeIn)
+{
+	int stopIdx;
+	float delay;
+	coordinateType newPosition;
+	int cubeIndex;
+	bool isActionDoneFlag = false;
+	bool giveUpCubeFlag = false;
+
+	isActionDoneFlag = false;
+	if (timeIn < m_plannedAction.startTime) {
+		printf("ERROR: robot action start too late\n");
+		return false; //action not started
+	}
+
+	delay = timeIn - m_plannedAction.startTime;
+
+	stopIdx = findStopPosition(&m_state.pos.center, &m_plannedAction.path, delay, &newPosition, &cubeIndex, &giveUpCubeFlag);
+
+	if (cubeIndex != INVALID_IDX) {
+		m_state.cubeIdx = cubeIndex;
+		m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+	}
+
+	m_state.pos.center = newPosition;
+
+	if (timeIn >= m_plannedAction.projectedFinishTime) {
+		//to avoid time drifting, force action done when it passed the original projected finish time
+		if (isActionNeedCube(m_plannedAction.actionType)) {
+			if (m_state.cubeIdx != INVALID_IDX) {
+				dumpOneCube();
+				isActionDoneFlag = true;
+			}
+		}
+		else {
+			isActionDoneFlag = true;
+		}
+		//no matter action is done or not, robot is idle.
+		m_plannedAction.actionType = INVALID_ACTION;
+		m_plannedAction.path.numberOfTurns = 0;
+		m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+	}
+	else if (giveUpCubeFlag) {
+		//the target cube is removed, give up the current action
+		m_plannedAction.actionType = INVALID_ACTION;
+		m_plannedAction.path.numberOfTurns = 0;
+		m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+	}
+	else {
+
+		if (stopIdx < m_plannedAction.path.numberOfTurns) {
+
+			for (int i = stopIdx; i < m_plannedAction.path.numberOfTurns; i++) {
+				m_plannedAction.path.turnPoints[i - stopIdx] = m_plannedAction.path.turnPoints[i];
+			}
+			m_plannedAction.startTime = timeIn;
+			m_plannedAction.path.numberOfTurns -= stopIdx;
+			if (m_plannedAction.path.pickUpCubeIndex != INVALID_IDX) {
+				if (m_plannedAction.path.pickUpCubeIndex >= stopIdx) {
+					m_plannedAction.path.pickUpCubeIndex -= stopIdx;
+				}
+				else {
+					if (cubeIndex != INVALID_IDX) {
+						//pick up cube is done, 
+						m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+					}
+					else {
+						printf("ERROR: internal logic error\n");
+					}
+				}
+			}
+			//else, do nothing, cube is not used here.
+		}
+		else {
+			//finished all turns, but, may need time to dump cube or lifting
+			m_plannedAction.path.numberOfTurns = 0;
+			m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+			m_plannedAction.startTime = timeIn;
+		}
+	}
+
+	return isActionDoneFlag;
+}
+
+
 int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, 
-	 float stopDelayIn, coordinateType *pStopPositionOut, bool *pHasCubFlagOut) const
+	 float stopDelayIn, coordinateType *pStopPositionOut, int *pCubeIndexOutt, bool *pGiveUpCubeFlag) const
 {
 	coordinateType startPos = *pStartIn;
 	int stopIndex = INVALID_IDX;
@@ -439,7 +505,8 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 	float accelaterationDuration;
 	float actualMoveTime;
 
-	*pHasCubFlagOut = false;
+	*pCubeIndexOutt = INVALID_IDX;
+	*pGiveUpCubeFlag = false;
 	for (int i = 0; i < pPathIn->numberOfTurns; i++) {
 		distance = (pPathIn->turnPoints[i].x - startPos.x) * (pPathIn->turnPoints[i].x - startPos.x);
 		distance += (pPathIn->turnPoints[i].y - startPos.y) * (pPathIn->turnPoints[i].y - startPos.y);
@@ -514,17 +581,26 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 			delay += m_config.pickUpCubeDelay;
 
 			if (delay >= stopDelayIn) {
+				//stop at cube position but no time to pick up the cube
 				pStopPositionOut->x = pPathIn->turnPoints[i].x;
 				pStopPositionOut->y = pPathIn->turnPoints[i].y;
+				stopIndex = i + 1;
 				break;
 			}
 			else {
-				*pHasCubFlagOut = true;
+				*pCubeIndexOutt = m_pPlatform->pickUpCube(pPathIn->turnPoints[i], m_allianceType);
+				if (*pCubeIndexOutt == INVALID_IDX) {
+					//cannot pick up cube at pick up position, likely, the cube is gone
+					//stop here to wait for the next command
+					pStopPositionOut->x = pPathIn->turnPoints[i].x;
+					pStopPositionOut->y = pPathIn->turnPoints[i].y;
+					stopIndex = i + 1;
+					*pGiveUpCubeFlag = true;
+					break;
+				}
 			}
 		}
 	}
 
 	return stopIndex;
 }
-
-

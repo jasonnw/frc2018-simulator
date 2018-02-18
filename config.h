@@ -48,6 +48,12 @@ typedef enum ownerShipType {
 	OWNED_BY_BLUE,
 }ownerShipType;
 
+typedef enum allianceType {
+	ALLIANCE_RED,
+	ALLIANCE_BLUE
+}allianceType;
+
+
 typedef enum vaultButtonStateType {
 	BUTTON_NOT_PUSH = 0,        // no button pushed, the initial state must be 0
 	BUTTON_PUSH = 1,            // the button is just pushed
