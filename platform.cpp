@@ -169,7 +169,7 @@ platform::platform()
 }
 
 
-
+//Robot object ID is from 18 to 23, should convert these IDs to an enum, JWJW
 void platform::configRedRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
 {
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -189,9 +189,9 @@ void platform::configBlueRobots(const robotConfigurationType config1In[NUMBER_OF
 		m_blueRobots[i].setAllianceType(ALLIANCE_BLUE);
 	}
 	//set robot initial positions
-	m_blueRobots[0].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, config1In[0].sizeY * 2, 18);
-	m_blueRobots[1].setPosition((288 * 2 + 72) - config1In[1].sizeX / 2, (264 + 48 * 2) / 2, 19);
-	m_blueRobots[2].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, (264 + 48 * 2) - config1In[0].sizeY * 2, 20);
+	m_blueRobots[0].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, config1In[0].sizeY * 2, 21);
+	m_blueRobots[1].setPosition((288 * 2 + 72) - config1In[1].sizeX / 2, (264 + 48 * 2) / 2, 22);
+	m_blueRobots[2].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, (264 + 48 * 2) - config1In[0].sizeY * 2, 23);
 }
 
 
@@ -982,19 +982,23 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 
 	bool collisionDetectedFlag;
 	const rectangleObjectType *pCollisionObject;
+	rectangleObjectType movingObject;
 	int turnPointIndex = 0;
 	float distance;
 	coordinateType startPoint;
+	coordinateType arroundPos;
+
+	memcpy(&movingObject, pMovingObjectIn, sizeof(movingObject));
 
 	//check if it is arrived 
-	if ((pMovingObjectIn->center.x == endPointIn.x) && (pMovingObjectIn->center.y == endPointIn.y)) {
+	if ((movingObject.center.x == endPointIn.x) && (movingObject.center.y == endPointIn.y)) {
 		pPathOut->numberOfTurns = 0;
 		pPathOut->totalDistance = 0;
 		return true;
 	}
 
 	//try the shortest path
-	collisionDetectedFlag = collisionWithAllOtherObjects(pMovingObjectIn, endPointIn, &pCollisionObject);
+	collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, endPointIn, &pCollisionObject);
 
 	if (!collisionDetectedFlag) {
 		//return the shortest path
@@ -1014,7 +1018,8 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	coordinateType upToWall1;
 	coordinateType upToWall2;
 	coordinateType oppositeWall;
-	bool isOppositeWallFlag = false;
+	bool retryGoToWallFlag = false;
+	bool aroundBlockingObjectFailedFlag;
 
 	if (endPointIn.y >= pMovingObjectIn->center.y) {
 		upToWall1.x = pMovingObjectIn->center.x;
@@ -1032,18 +1037,51 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	}
 
 	oppositeWall = upToWall2;
-	collisionDetectedFlag = collisionWithAllOtherObjects(pMovingObjectIn, upToWall1, &pCollisionObject);
+	collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, upToWall1, &pCollisionObject);
 	if (collisionDetectedFlag) {
-		//cannot go to the wall, try the opposite wall
-		oppositeWall = upToWall1;
-		upToWall1 = upToWall2;
-		isOppositeWallFlag = true;
+		aroundBlockingObjectFailedFlag = true;
+		if ((pCollisionObject->objectId >= 18) && (pCollisionObject->objectId <= 23)) {
+			//try move a little around the blocking robot
+			if (upToWall1.x > pCollisionObject->sizeX) {
+				arroundPos.x = upToWall1.x - (pCollisionObject->sizeX + ROBOT_TO_WALL_DISTANCE);
+			}
+			else {
+				arroundPos.x = upToWall1.x + pCollisionObject->sizeX + ROBOT_TO_WALL_DISTANCE;
+			}
+			arroundPos.y = pMovingObjectIn->center.y;
+
+			collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, arroundPos, &pCollisionObject);
+			if (!collisionDetectedFlag) {
+				aroundBlockingObjectFailedFlag = false;
+
+				if (turnPointIndex >= MAX_TURNS_ON_PATH) {
+					printf("ERROR, turning points buffer overflow\n");
+					return false;
+				}
+				pPathOut->turnPoints[turnPointIndex] = arroundPos;
+				turnPointIndex++;
+
+				movingObject.center = arroundPos;
+
+				//adjust x position of up to wall point
+				upToWall1.x = arroundPos.x;
+				retryGoToWallFlag = true;
+			}
+			//else, just go to the opposite wall
+		}
+
+		if(aroundBlockingObjectFailedFlag) {
+			//cannot go to the wall, try the opposite wall
+			oppositeWall = upToWall1;
+			upToWall1 = upToWall2;
+			retryGoToWallFlag = true;
+		}
 	}
 
 	for (int i = 0; i < MAX_WALL_TO_WALL_MOVES; i++) {
 
-		if (isOppositeWallFlag) {
-			collisionDetectedFlag = collisionWithAllOtherObjects(pMovingObjectIn, upToWall2, &pCollisionObject);
+		if (retryGoToWallFlag) {
+			collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, upToWall1, &pCollisionObject);
 			if (collisionDetectedFlag) {
 				return false; //cannot find a path to the opposite wall, give up
 			}
@@ -1056,36 +1094,30 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		}
 		pPathOut->turnPoints[turnPointIndex] = upToWall1;
 		turnPointIndex++;
+		movingObject.center = upToWall1;
 
 		//move the object along the wall
 		coordinateType alongWall;
-		rectangleObjectType newPosition;
-
-		newPosition.sizeX = pMovingObjectIn->sizeX;
-		newPosition.sizeY = pMovingObjectIn->sizeY;
-		newPosition.objectId = pMovingObjectIn->objectId;
-		newPosition.center = upToWall1;
-
 		alongWall.y = upToWall1.y;
 		alongWall.x = endPointIn.x;
 
 		//move as far as possible along the wall
 		do {
-			collisionDetectedFlag = collisionWithAllOtherObjects(&newPosition, alongWall, &pCollisionObject);
+			collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, alongWall, &pCollisionObject);
 
 			if (collisionDetectedFlag) {
-				if (alongWall.x > newPosition.center.x) {
-					alongWall.x = pCollisionObject->center.x - pCollisionObject->sizeX / 2 - newPosition.sizeX / 2;
+				if (alongWall.x > movingObject.center.x) {
+					alongWall.x = pCollisionObject->center.x - pCollisionObject->sizeX / 2 - movingObject.sizeX / 2;
 
-					if (alongWall.x <= newPosition.center.x + ROBOT_TO_WALL_DISTANCE) {
+					if (alongWall.x <= movingObject.center.x + ROBOT_TO_WALL_DISTANCE) {
 						//no move at all, give up
 						return false;
 					}
 				}
 				else {
-					alongWall.x = pCollisionObject->center.x + pCollisionObject->sizeX / 2 + newPosition.sizeX / 2;
+					alongWall.x = pCollisionObject->center.x + pCollisionObject->sizeX / 2 + movingObject.sizeX / 2;
 
-					if (alongWall.x >= newPosition.center.x - ROBOT_TO_WALL_DISTANCE) {
+					if (alongWall.x >= movingObject.center.x - ROBOT_TO_WALL_DISTANCE) {
 						//no move at all, give up
 						return false;
 					}
@@ -1095,8 +1127,8 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		} while (collisionDetectedFlag);
 
 		//check again if the direct path is OK
-		newPosition.center = alongWall;
-		collisionDetectedFlag = collisionWithAllOtherObjects(&newPosition, endPointIn, &pCollisionObject);
+		movingObject.center = alongWall;
+		collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, endPointIn, &pCollisionObject);
 
 		if (!collisionDetectedFlag) {
 			//success
@@ -1125,7 +1157,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 			return true;
 		}
 
-		//TODO, please confirm that blue switch is on the right side
+		//TODO, please confirm that blue switch is on the right side, JWJW
 		float rightMostPath = m_platformStructure.blueSwitchSouthPlate.center.x +
 			m_platformStructure.blueSwitchSouthPlate.sizeX / 2 +
 			m_platformStructure.bluePowerCubeZone.sizeX +
@@ -1181,12 +1213,13 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 
 		pPathOut->turnPoints[turnPointIndex] = alongWall;
 		turnPointIndex++;
+		movingObject.center = alongWall;
 
 		//goto the opposite wall
 		upToWall2 = oppositeWall;
 		oppositeWall = upToWall1;
 		upToWall1 = upToWall2;
-		isOppositeWallFlag = true;
+		retryGoToWallFlag = true;
 	}
 
 	//cannot find any path

@@ -315,9 +315,15 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 		actionDelay += m_config.pickUpCubeDelay;
 		newPos.center = path2Cube.turnPoints[path2Cube.numberOfTurns - 1];
 	}
+	else {
+		path2Cube.numberOfTurns = 0;
+		path2Cube.pickUpCubeIndex = INVALID_IDX;
+		path2Cube.totalDistance = 0;
+		path2Cube.turnPoints[0] = pStartPosIn->center;
+	}
 
 	//go to destination
-	if (m_pPlatform->findAvailablePath(&newPos, destination, false, &path2Destination)) {
+	if (!m_pPlatform->findAvailablePath(&newPos, destination, false, &path2Destination)) {
 		return CLIMB_END_TIME + 1; //task cannot be done
 	}
 
@@ -387,7 +393,7 @@ float robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPat
 
 		distance = (float)sqrt(distance);
 
-		if (distance >= m_config.accelerationDistance) {
+		if (distance >= m_config.accelerationDistance * 2) {
 			//high speed portion
 			delay += (distance - m_config.accelerationDistance) / m_config.maximumSpeed;
 			//acceleration portion
@@ -395,7 +401,7 @@ float robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPat
 		}
 		else {
 			maxmimuSpeed = (m_config.maximumSpeed * distance) / m_config.accelerationDistance;
-			delay += (distance * 2) / maxmimuSpeed;
+			delay += (distance * 2) / maxmimuSpeed; //actual speed is half of maximum speed
 		}
 
 		delay += m_config.turnDelay;
@@ -505,8 +511,10 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 	float accelaterationDuration;
 	float actualMoveTime;
 
+	*pStopPositionOut = m_state.pos.center;
 	*pCubeIndexOutt = INVALID_IDX;
 	*pGiveUpCubeFlag = false;
+
 	for (int i = 0; i < pPathIn->numberOfTurns; i++) {
 		distance = (pPathIn->turnPoints[i].x - startPos.x) * (pPathIn->turnPoints[i].x - startPos.x);
 		distance += (pPathIn->turnPoints[i].y - startPos.y) * (pPathIn->turnPoints[i].y - startPos.y);
