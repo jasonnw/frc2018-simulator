@@ -7,8 +7,6 @@
 #include "robot.h"
 #include "platform.h"
 
-const float MINMUM_TIME_RESOLUTION = (float) 0.1; //second
-
 robot::robot()
 {
 	memset(&m_config, 0, sizeof(m_config));
@@ -16,6 +14,7 @@ robot::robot()
 	
 	m_pPlatform = NULL;
 	m_plannedAction.actionType = INVALID_ACTION;
+	m_plannedAction.projectedFinishTime = CLIMB_END_TIME;
 }
 
 robot::~robot()
@@ -99,7 +98,16 @@ void robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
 		}
 
 		actionDleay = getActionDelayInSecInternal(actionIn, timeIn, &m_state.pos, hasCubeFlag, interruptFlag, &m_plannedAction.path);
-		m_plannedAction.projectedFinishTime = timeIn + actionDleay;
+		if (timeIn + actionDleay <= CLIMB_END_TIME) {
+			m_plannedAction.projectedFinishTime = timeIn + actionDleay;
+		}
+		else {
+			//give up the current action
+			m_plannedAction.actionType = m_allianceType == ALLIANCE_RED ? RED_ACTION_NONE : BLUE_ACTION_NONE;
+			m_plannedAction.startTime = timeIn;
+			m_plannedAction.actionIndex = indexIn;
+			m_plannedAction.projectedFinishTime = timeIn + MINMUM_TIME_RESOLUTION;
+		}
 	}
 	//else, continue the current action, no change
 }
@@ -147,7 +155,12 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 		//only calculate the delay of the new action, old action delay will be added by the caller
 	}
 
-	*pEndPosOut = plannedPath.turnPoints[plannedPath.numberOfTurns - 1];
+	if (plannedPath.numberOfTurns != 0) {
+		*pEndPosOut = plannedPath.turnPoints[plannedPath.numberOfTurns - 1];
+	}
+	else {
+		pEndPosOut->x = pEndPosOut->y = 0;
+	}
 	return delayOutput;
 }
 
@@ -166,6 +179,8 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 
 	actionDelay = randomFactor;
 	pPathOut->pickUpCubeIndex = INVALID_IDX;
+	pPathOut->numberOfTurns = 0;
+	pPathOut->totalDistance = 0;
 
 	//find alliance
 	alliance = ALLIANCE_BLUE;
@@ -322,7 +337,10 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 		path2Cube.turnPoints[0] = pStartPosIn->center;
 	}
 
-	//go to destination
+	//go to destination after pick up a cube
+	path2Destination.pickUpCubeIndex = INVALID_IDX;
+	path2Destination.numberOfTurns = 0;
+	path2Destination.totalDistance = 0;
 	if (!m_pPlatform->findAvailablePath(&newPos, destination, false, &path2Destination)) {
 		return CLIMB_END_TIME + 1; //task cannot be done
 	}

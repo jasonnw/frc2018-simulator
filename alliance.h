@@ -41,12 +41,12 @@ public:
 
 	void getBestAction(searchActionType *pActionOut)
 	{
-		memcpy(pActionOut, m_bestAction, sizeof(pendingActionType)*NUMBER_OF_ROBOTS);
+		memcpy(pActionOut, m_bestAction, sizeof(searchActionType)*NUMBER_OF_ROBOTS);
 	}
 
 protected:
 	void findBestAction(int actionIndexIn);
 	void resetSearchList(void);
-	int alliance::findBestScoreBranch(int startIdxIN, int stopIdxIn, int actionIndexIn, int *pBranchLengthOut);
+	int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndexIn, int *pBranchLengthOut);
 };
 

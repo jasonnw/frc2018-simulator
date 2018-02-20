@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 	gamePlatform.setState(&initState);
 	gamePlatform.setRedScore(initRedScore);
 	gamePlatform.setBlueScore(initBlueScore);
-	gamePlatform.setLogFIle(stdout);
+	gamePlatform.setLogFile(stdout);
 	gamePlatform.configRedRobots(RED_CONFIGURATION);
 	gamePlatform.configBlueRobots(RED_CONFIGURATION);
 

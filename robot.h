@@ -89,6 +89,7 @@ public:
 	{
 		setConfiguration(srcIn.getConfiguration(), NULL);
 		memcpy(&m_state, srcIn.getState(), sizeof(m_state));
+		memcpy(&m_plannedAction, srcIn.getPlannedAction(), sizeof(m_plannedAction));
 		return srcIn;
 	}
 

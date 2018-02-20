@@ -13,7 +13,7 @@ alliance::alliance()
 	//reset best action to an invalid time point
 	memset(m_bestAction, 0, sizeof(m_bestAction));
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_bestAction[i].actionType = RED_ACTION_NONE;
+		m_bestAction[i].actionType = INVALID_ACTION;
 		m_bestAction[i].projectedFinishTime = 0;
 	}
 	//Set action time as 0, platform will catch this error later  
@@ -96,6 +96,8 @@ void alliance::findBestAction(int actionIndexIn)
 	float bestFinishTime;
 	float finishTime;
 	float previousFinishTime;
+	float startTime;
+	float bestStartTime;
 
 	int bestFinishRobotIdx;
 	int layerStartIndex;
@@ -126,7 +128,7 @@ void alliance::findBestAction(int actionIndexIn)
 	//reset best action
 	memset(m_bestAction, 0, sizeof(m_bestAction));
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_bestAction[i].actionType = endAction;
+		m_bestAction[i].actionType = INVALID_ACTION;
 		m_bestAction[i].projectedFinishTime = currentTime;
 	}
 	//Set action time as 0, platform will catch this error later  
@@ -134,7 +136,7 @@ void alliance::findBestAction(int actionIndexIn)
 	//create the first action entry as the root of all actions
 	previousLayerStartIndex = 0;
 	previousLayerEndIndex = 1;
-	m_pSearchList[previousLayerStartIndex].actionType = endAction;
+	m_pSearchList[previousLayerStartIndex].actionType = INVALID_ACTION;
 	m_pSearchList[previousLayerStartIndex].projectedFinalScore = 0; //entry not used
 	m_pSearchList[previousLayerStartIndex].previousIndex = INVALID_IDX;
 	m_pSearchList[previousLayerStartIndex].projectedFinishTime = currentTime;
@@ -204,6 +206,7 @@ void alliance::findBestAction(int actionIndexIn)
 					interruptFlag = true;
 					actionDonePos = m_pRobots[robot].getPosition();
 					actionDoneWithCube = m_pRobots[robot].hasCube();
+					startTime = currentTime;
 
 					if (m_referencePlatForm.isRobotLifted(m_allianceType, robot) &&
 						(isRealActionFlag)) {
@@ -224,6 +227,7 @@ void alliance::findBestAction(int actionIndexIn)
 								}
 								actionDonePos = m_pSearchList[previousActionIndex].actionDonePos;
 								actionDoneWithCube = m_pSearchList[previousActionIndex].actionDoneWithCube;
+								startTime = m_pSearchList[previousActionIndex].projectedFinishTime;
 								interruptFlag = false; //wait the current action done before start the next action
 								break; //the most recent finish time is the time to start the next action
 							}
@@ -232,7 +236,7 @@ void alliance::findBestAction(int actionIndexIn)
 						} while (previousActionIndex != INVALID_IDX);
 
 						if (previousFinishTime == 0) {
-							previousFinishTime = m_referencePlatForm.getTime();
+							startTime = previousFinishTime = currentTime;
 						}
 					}
 
@@ -246,6 +250,7 @@ void alliance::findBestAction(int actionIndexIn)
 						bestFinishRobotIdx = robot;
 						bestRobotNewPos = actionNewPos;
 						bestRobotDoneWithCube = actionDoneWithCube;
+						bestStartTime = previousFinishTime;
 					}
 				}
 
@@ -253,11 +258,12 @@ void alliance::findBestAction(int actionIndexIn)
 				if (layerEndIndex >= m_maxSearchListSize) {
 					printf("Error: search list too small\n");
 				}
-				else {
+				else if (bestFinishTime < CLIMB_END_TIME) {
 					m_pSearchList[layerEndIndex].actionType = (actionTypeType)act;
 					m_pSearchList[layerEndIndex].previousIndex = prevIdx;
 					m_pSearchList[layerEndIndex].projectedFinishTime = bestFinishTime;
 					m_pSearchList[layerEndIndex].actionDonePos = bestRobotNewPos;
+					m_pSearchList[layerEndIndex].actionIndex = actionIndexIn;
 
 					if (robot::isActionNeedCube((actionTypeType)act)) {
 						m_pSearchList[layerEndIndex].actionDoneWithCube = false;
@@ -268,9 +274,12 @@ void alliance::findBestAction(int actionIndexIn)
 					}
 
 					m_pSearchList[layerEndIndex].robotIndex = bestFinishRobotIdx;
+					m_pSearchList[layerEndIndex].startTime = bestStartTime;
+					m_pSearchList[layerEndIndex].projectedFinalScore = INT32_MIN;
 					updetedTreeFlag = true;
 					layerEndIndex++;
 				}
+				//else, action is not possible, skip it
 			}
 		}
 
@@ -312,6 +321,7 @@ void alliance::findBestAction(int actionIndexIn)
 		interruptFlag = true;
 		actionDonePos = m_pRobots[robot].getPosition();
 		actionDoneWithCube = m_pRobots[robot].hasCube();
+		startTime = currentTime;
 
 		do {
 			//the previous action finish time
@@ -338,7 +348,7 @@ void alliance::findBestAction(int actionIndexIn)
 			continue; //a lifting action is planned, no action for this robot
 		}
 		if (previousFinishTime == 0) {
-			previousFinishTime = m_referencePlatForm.getTime();
+			startTime = previousFinishTime = currentTime;
 		}
 
 		for (int prevIdx = previousLayerStartIndex; prevIdx < previousLayerEndIndex; prevIdx++) {
@@ -363,6 +373,8 @@ void alliance::findBestAction(int actionIndexIn)
 					m_pSearchList[layerEndIndex].previousIndex = prevIdx;
 					m_pSearchList[layerEndIndex].projectedFinishTime = finishTime;
 					m_pSearchList[layerEndIndex].actionDonePos = actionNewPos;
+					m_pSearchList[layerEndIndex].startTime = previousFinishTime;
+					m_pSearchList[layerEndIndex].projectedFinalScore = INT32_MIN;
 
 					if (robot::isActionNeedCube((actionTypeType)act)) {
 						m_pSearchList[layerEndIndex].actionDoneWithCube = false;
@@ -373,6 +385,7 @@ void alliance::findBestAction(int actionIndexIn)
 					}
 
 					m_pSearchList[layerEndIndex].robotIndex = robot;
+					m_pSearchList[layerEndIndex].actionIndex = actionIndexIn;
 					layerEndIndex++;
 					updetedTreeFlag = true;
 				}
@@ -409,13 +422,13 @@ void alliance::findBestAction(int actionIndexIn)
 
 	//reset the output
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_bestAction[i].actionType = endAction; //no action
-		m_bestAction[i].startTime = m_referencePlatForm.getTime();
-		m_bestAction[i].projectedFinishTime = m_referencePlatForm.getTime() + 1;
+		m_bestAction[i].actionType = INVALID_ACTION;
+		m_bestAction[i].startTime = currentTime;
+		m_bestAction[i].projectedFinishTime = currentTime + 1;
 		m_bestAction[i].actionIndex = actionIndexIn;
 		m_bestAction[i].previousIndex = INVALID_IDX;
 		m_bestAction[i].projectedFinalScore = 0;
-		m_bestAction[i].robotIndex = 1;
+		m_bestAction[i].robotIndex = i;
 	}
 
 	if (searchFailedFlag) {
@@ -457,7 +470,7 @@ void alliance::resetSearchList(void)
 }
 
 
-int alliance::findBestScoreBranch(int startIdxIN, int stopIdxIn, int actionIndexIn, int *pBranchLengthOut)
+int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndexIn, int *pBranchLengthOut)
 {
 	actionChainType actionChain[MAXIMUM_PENDING_ACTIONS + NUMBER_OF_ROBOTS];
 
@@ -469,17 +482,20 @@ int alliance::findBestScoreBranch(int startIdxIN, int stopIdxIn, int actionIndex
 	int earliestIndex;
 	int chainIndex;
 	bool isActionRejectedFlag;
+	bool assignedActionFlag;
 	int previousActionIndex;
 	int pendingIdx;
+	int executedActionCount;
+	bool firstActionFlag[NUMBER_OF_ROBOTS];
 	int score, finalRedScore, finalBlueScore;
 
 	*pBranchLengthOut = 0;
 
 	//execute each action branch
-	for (int exeIdx = startIdxIN; exeIdx < stopIdxIn; exeIdx++) {
+	for (int exeIdx = startIdxIn; exeIdx < stopIdxIn; exeIdx++) {
 		//previousLayerStartIndex to previousLayerEndIndex is the list of actions on the last search step
 
-		//for each last step action, find out all MAXIMUM_PENDING_ACTIONS number of actions before it
+		//for each last step action, find out all actions before it
 		previousActionIndex = exeIdx;
 		pendingIdx = 0;
 		while (m_pSearchList[previousActionIndex].previousIndex != INVALID_IDX) {
@@ -500,38 +516,59 @@ int alliance::findBestScoreBranch(int startIdxIN, int stopIdxIn, int actionIndex
 
 		//run all "pending" number of actions in time order
 		m_testPlatForm = m_referencePlatForm;
-		m_testPlatForm.setLogFIle(m_pLogFIle);
+		m_testPlatForm.setLogFile(m_pLogFIle);
 		isActionRejectedFlag = false;
-		for (int i = pendingIdx-1; i >= 0; i--) {
-			earliestTime = CLIMB_END_TIME + 2;
-			//note: the initial value of earliest time must be later than the initial time of each action
-			earliestIndex = 0;
-			chainIndex = INVALID_IDX;
+		executedActionCount = 0;
 
-			//found the earliest action to execute
-			for (int j = pendingIdx - 1; j >= 0; j--) {
-				//actionChain is from root to future steps. If finished time is the same, favor the earlier step.
-				if ((m_pSearchList[actionChain[j].actionIndex].projectedFinishTime < earliestTime) &&
-					(actionChain[j].isActionExecutedFlag == 0)) {
-					chainIndex = j;
-					earliestTime = m_pSearchList[actionChain[j].actionIndex].projectedFinishTime;
+		for (int robot = 0; robot < NUMBER_OF_ROBOTS; robot++) {
+			firstActionFlag[robot] = true;
+		}
+
+		while (executedActionCount < pendingIdx) {
+			assignedActionFlag = false;
+			for (int robot = 0; robot < NUMBER_OF_ROBOTS; robot++) {
+				if (m_testPlatForm.hasPendingAction(robot, m_allianceType)) {
+					if (!firstActionFlag[robot]) {
+						//remaining action of the previous session could be interrupted.
+						assignedActionFlag= true;
+						continue;
+					}
+				}
+				earliestTime = CLIMB_END_TIME + 2;
+				//note: the initial value of earliest time must be later than the initial time of each action
+				earliestIndex = 0;
+				chainIndex = INVALID_IDX;
+
+				//found the earliest action to execute
+				for (int j = pendingIdx - 1; j >= 0; j--) {
+					//actionChain is from root to future steps. If finished time is the same, favor the earlier step.
+					if ((m_pSearchList[actionChain[j].actionIndex].projectedFinishTime < earliestTime) &&
+						(actionChain[j].isActionExecutedFlag == 0) && 
+						(m_pSearchList[actionChain[j].actionIndex].robotIndex == robot)) {
+						chainIndex = j;
+						earliestTime = m_pSearchList[actionChain[j].actionIndex].projectedFinishTime;
+					}
+				}
+
+				if (chainIndex == INVALID_IDX) {
+					//no action for this robot
+				}
+				else {
+					actionChain[chainIndex].isActionExecutedFlag = 1;
+					earliestIndex = actionChain[chainIndex].actionIndex;
+					lastFinishTime = m_pSearchList[earliestIndex].projectedFinishTime;
+
+					m_testPlatForm.setRobotAction(&m_pSearchList[earliestIndex], m_allianceType, actionIndexIn);
+					executedActionCount++;
+					assignedActionFlag = true;
+					firstActionFlag[robot] = false; //newly assigned action cannot be interrupted
 				}
 			}
-			//Note: even the action is created in step order, because some robots may finish an action 
-			//before the previous step is done. But, platform only accept input actions in time order.
-			//The loop above make sure always the earliest finish action is picked first and each action 
-			//is only executed once.
-			if (chainIndex == INVALID_IDX) {
-				printf("Error: cannot find an earliest action\n");
-			}
-			actionChain[chainIndex].isActionExecutedFlag = 1;
-			earliestIndex = actionChain[chainIndex].actionIndex;
-			lastFinishTime = m_pSearchList[earliestIndex].projectedFinishTime;
-
-			m_testPlatForm.setRobotAction(&m_pSearchList[earliestIndex], m_allianceType, actionIndexIn);
-
-			if (0 != m_testPlatForm.commitAction(actionIndexIn)) {
-				isActionRejectedFlag = true;
+			//after every robot take at most one action, execute all robots.
+			if (assignedActionFlag) {
+				if (0 != m_testPlatForm.commitAction(actionIndexIn)) {
+					isActionRejectedFlag = true;
+				}
 			}
 		}
 

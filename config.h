@@ -144,10 +144,12 @@ typedef struct robotPathType {
 	int pickUpCubeIndex; //the turning point to pick up a cube
 }robotPathType;
 
-const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 2; //minimum 2 blocks to own scale or switch
-const float ROBOT_TO_WALL_DISTANCE = 2;         //always 2 inches away from the wall
+const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 1; //minimum 2 blocks to own scale or switch
+const float ROBOT_TO_WALL_DISTANCE = 6;      //always 6 inches away from the wall
 
 //Game time in seconds
+const float MINMUM_TIME_RESOLUTION = (float) 0.1; //second
+
 const float COMPETITION_START_TIME = 0;                      //competition start time
 const float AUTONOMOUS_END_TIME = 15;						 // Autonomous session end time 
 const float COMPETITION_END_TIME = AUTONOMOUS_END_TIME + 135; //total competition time is 2m15sec
@@ -155,7 +157,7 @@ const float CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after compe
 															 //Note: To simplify the simulator, auto session result will be used to initialize the game state.
 															 //      Auto session time is excluded from game time. The game starts on COMPITATION_START_TIME
 //action search control parameters
-const int MAXIMUM_PENDING_ACTIONS = 6;                       //maximum number of look forward actions to search for the best move
+const int MAXIMUM_PENDING_ACTIONS = 4;                       //maximum number of look forward actions to search for the best move
 const int NUM_OF_POSSIBLE_ACTIONS = PUSH_RED_LIFT_BUTTON + 1;     //the number of possible actions per robot
 const int MIN_SCORE_CHECKING_STEP = 4;                       //start check if the action worth to continue
 const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold score to continue action search

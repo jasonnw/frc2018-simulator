@@ -220,6 +220,28 @@ bool platform::isRobotLifted(allianceType allianceIn, int robotIdxIn)
 	}
 }
 
+bool platform::hasPendingAction(int robotIndexIn, allianceType allianceIn)
+{
+	robot *pRobots;
+	const pendingActionType *pPlannedAction;
+
+	if (allianceIn == ALLIANCE_RED) {
+		pRobots = m_redRobots;
+	}
+	else {
+		pRobots = m_blueRobots;
+	}
+
+	pPlannedAction = pRobots[robotIndexIn].getPlannedAction();
+	if (pPlannedAction->actionType != INVALID_ACTION) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
 void platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn)
 {
 	robot *pRobots;
@@ -232,9 +254,12 @@ void platform::setRobotAction(searchActionType *pActionListInOut, allianceType a
 		pRobots = m_blueRobots;
 	}
 
-	pRobots[robotIdx].takeAction(pActionListInOut->actionType, pActionListInOut->startTime, indexIn);
-	//update the projected finished time just for sanity
+	pRobots[robotIdx].takeAction(pActionListInOut->actionType, m_timeInSec, indexIn);
+	//update the projected start and finished time
+	pActionListInOut->startTime = m_timeInSec;
 	pActionListInOut->projectedFinishTime = pRobots[robotIdx].getPlannedActionFinishTime();
+	//Note: pActionListInOut only has estimated start and stop time. After moves of other robots, the
+	//      start and finish time may change.
 }
 
 int platform::commitAction(int indexIn)
@@ -252,11 +277,15 @@ int platform::commitAction(int indexIn)
 
 	earliestFinishTime = CLIMB_END_TIME + 1;
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		if (earliestFinishTime > m_redRobots[i].getPlannedActionFinishTime()) {
-			earliestFinishTime = m_redRobots[i].getPlannedActionFinishTime();
+		if (hasPendingAction(i, ALLIANCE_RED)) {
+			if (earliestFinishTime > m_redRobots[i].getPlannedActionFinishTime()) {
+				earliestFinishTime = m_redRobots[i].getPlannedActionFinishTime();
+			}
 		}
-		if (earliestFinishTime > m_blueRobots[i].getPlannedActionFinishTime()) {
-			earliestFinishTime = m_blueRobots[i].getPlannedActionFinishTime();
+		if (hasPendingAction(i, ALLIANCE_BLUE)) {
+			if (earliestFinishTime > m_blueRobots[i].getPlannedActionFinishTime()) {
+				earliestFinishTime = m_blueRobots[i].getPlannedActionFinishTime();
+			}
 		}
 	}
 
@@ -270,24 +299,30 @@ int platform::commitAction(int indexIn)
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		pPlannetAction = m_redRobots[i].getPlannedAction();
 		actionType = pPlannetAction->actionType;
-		isActionDone = m_redRobots[i].moveToNextTime(earliestFinishTime);
-		if (isActionDone) {
-			updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_RED, indexIn);
-		}
+		if (actionType != INVALID_ACTION) {
+			isActionDone = m_redRobots[i].moveToNextTime(earliestFinishTime);
+			if (isActionDone) {
+				updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_RED, indexIn);
+			}
 
-		if (updateActionResult != 0) {
-			return updateActionResult;
+			if (updateActionResult != 0) {
+				//error message is printed in updateOneAction();
+				return updateActionResult;
+			}
 		}
 
 		pPlannetAction = m_blueRobots[i].getPlannedAction();
 		actionType = pPlannetAction->actionType;
-		isActionDone = m_blueRobots[i].moveToNextTime(earliestFinishTime);
-		if (isActionDone) {
-			updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_BLUE, indexIn);
-		}
+		if (actionType != INVALID_ACTION) {
+			isActionDone = m_blueRobots[i].moveToNextTime(earliestFinishTime);
+			if (isActionDone) {
+				updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_BLUE, indexIn);
+			}
 
-		if (updateActionResult != 0) {
-			return updateActionResult;
+			if (updateActionResult != 0) {
+				//error message is printed in updateOneAction();
+				return updateActionResult;
+			}
 		}
 	}
 
@@ -1107,7 +1142,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 
 			if (collisionDetectedFlag) {
 				if (alongWall.x > movingObject.center.x) {
-					alongWall.x = pCollisionObject->center.x - pCollisionObject->sizeX / 2 - movingObject.sizeX / 2;
+					alongWall.x = pCollisionObject->center.x - pCollisionObject->sizeX / 2 - movingObject.sizeX / 2 - ROBOT_TO_WALL_DISTANCE;
 
 					if (alongWall.x <= movingObject.center.x + ROBOT_TO_WALL_DISTANCE) {
 						//no move at all, give up
@@ -1115,7 +1150,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 					}
 				}
 				else {
-					alongWall.x = pCollisionObject->center.x + pCollisionObject->sizeX / 2 + movingObject.sizeX / 2;
+					alongWall.x = pCollisionObject->center.x + pCollisionObject->sizeX / 2 + movingObject.sizeX / 2 + ROBOT_TO_WALL_DISTANCE;
 
 					if (alongWall.x >= movingObject.center.x - ROBOT_TO_WALL_DISTANCE) {
 						//no move at all, give up

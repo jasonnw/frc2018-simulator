@@ -155,7 +155,7 @@ public:
 	void setTime(float timeIn) { m_timeInSec = timeIn; }
 	void setRedScore(int redScoreIn) { m_redScore = redScoreIn; }
 	void setBlueScore(int blueScoreIn) { m_blueScore = blueScoreIn; }
-	void setLogFIle(FILE *pFileIn) { m_pLogFIle = pFileIn; }
+	void setLogFile(FILE *pFileIn) { m_pLogFIle = pFileIn; }
 	void setCubes(const cubeStateType *pCubesIn) {
 		memcpy(m_cubes, pCubesIn, sizeof(cubeStateType)*MAX_CUBES);
 	}
@@ -196,6 +196,7 @@ public:
 	void getFinalScore(int *pRedScoreOut, int *pBlueScoreOut);
 	void logFinalScore(void);
 	bool isRobotLifted(allianceType allianceIn, int robotIdxIn);
+	bool hasPendingAction(int robotIndexIn, allianceType allianceIn);
 
 	//find a path to go around all static objects
 	bool findAvailablePath(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn, 
