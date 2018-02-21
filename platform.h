@@ -63,6 +63,7 @@ typedef struct cubeSearchRangeType
 {
 	int startIdx;
 	int endIdx;
+	bool allCubeSameFlag;
 }cubeSearchRangeType;
 
 
@@ -188,9 +189,10 @@ public:
 
 	void removeCube(int cubeIdxIn) { m_cubes[cubeIdxIn].availbleFlag = false; }
 
-	void setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
+	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
 
 	int commitAction(int indexIn);
+	bool hasPendingActions(void);
 
 	int isGameTimeOver(void);
 	void getFinalScore(int *pRedScoreOut, int *pBlueScoreOut);

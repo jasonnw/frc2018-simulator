@@ -149,8 +149,12 @@ int main(int argc, char** argv)
 		blueAlliance.getBestAction(blueAction);
 
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-			gamePlatform.setRobotAction(&redAction[i], ALLIANCE_RED, actionCounter);
-			gamePlatform.setRobotAction(&blueAction[i], ALLIANCE_BLUE, actionCounter);
+			if ((redAction[i].actionType != INVALID_ACTION) && (redAction[i].actionType != RED_ACTION_NONE)) {
+				gamePlatform.setRobotAction(&redAction[i], ALLIANCE_RED, actionCounter);
+			}
+			if ((blueAction[i].actionType != INVALID_ACTION) && (blueAction[i].actionType != BLUE_ACTION_NONE)) {
+				gamePlatform.setRobotAction(&blueAction[i], ALLIANCE_BLUE, actionCounter);
+			}
 		}
 
 		if (0 != gamePlatform.commitAction(actionCounter)) {

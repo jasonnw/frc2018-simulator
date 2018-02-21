@@ -165,6 +165,8 @@ const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold sco
 
 const float PICK_UP_CUBE_DISTANCE = 4 * 12;
 
+const float LARGEST_ROBOT_SIZE = 4 * 12;
+
 //robot delay configurations in number of second
 const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {

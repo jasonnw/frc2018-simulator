@@ -140,12 +140,12 @@ platform::platform()
 
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
 		m_cubes[i].availbleFlag = true;
-		m_cubes[i].position.x = 196 + 6;
+		m_cubes[i].position.x = 196 + 6 + 30;
 		m_cubes[i].position.y = (float) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + i * 24);
 	}
 	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
 		m_cubes[i].availbleFlag = true;
-		m_cubes[i].position.x = (288 * 2 + 72) - 196 - 6;
+		m_cubes[i].position.x = (288 * 2 + 72) - 196 - 6 - 30;
 		m_cubes[i].position.y = (float)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + i * 24);
 	}
 	for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
@@ -242,8 +242,9 @@ bool platform::hasPendingAction(int robotIndexIn, allianceType allianceIn)
 }
 
 
-void platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn)
+int platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn)
 {
+	int rvalue;
 	robot *pRobots;
 	int robotIdx = pActionListInOut->robotIndex;
 
@@ -254,12 +255,32 @@ void platform::setRobotAction(searchActionType *pActionListInOut, allianceType a
 		pRobots = m_blueRobots;
 	}
 
-	pRobots[robotIdx].takeAction(pActionListInOut->actionType, m_timeInSec, indexIn);
+	rvalue = pRobots[robotIdx].takeAction(pActionListInOut->actionType, m_timeInSec, indexIn);
 	//update the projected start and finished time
 	pActionListInOut->startTime = m_timeInSec;
 	pActionListInOut->projectedFinishTime = pRobots[robotIdx].getPlannedActionFinishTime();
 	//Note: pActionListInOut only has estimated start and stop time. After moves of other robots, the
 	//      start and finish time may change.
+
+	return rvalue;
+}
+
+bool platform::hasPendingActions(void)
+{
+	bool hasPendingAction = false;
+
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		if (m_redRobots[i].hasPendingAction()) {
+			hasPendingAction = true;
+			break;
+		}
+		if (m_blueRobots[i].hasPendingAction()) {
+			hasPendingAction = true;
+			break;
+		}
+	}
+
+	return hasPendingAction;
 }
 
 int platform::commitAction(int indexIn)
@@ -326,6 +347,8 @@ int platform::commitAction(int indexIn)
 		}
 	}
 
+	//success
+	m_timeInSec = earliestFinishTime;
 	return updateActionResult;
 }
 
@@ -784,9 +807,6 @@ void platform::updateScore(float secondsIn)
 		m_state.redLiftButton = BUTTON_NOT_PUSH;
 		m_state.blueLiftButton = BUTTON_NOT_PUSH;
 	}
-
-	//update game time
-	m_timeInSec += secondsIn;
 }
 
 void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn)
@@ -916,7 +936,7 @@ float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endS
 		//It is a simple implementation, the number of turns is not counted.
 
 		if (isAllCubeSameFlag) {
-			break; //all the cubes are the same, find available one is enough
+			break; //all the cubes are the same, try one of them is enough
 		}
 	}
 
@@ -924,15 +944,15 @@ float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endS
 }
 
 const cubeSearchRangeType redCubeSearchRange[] =
-{	{ CUBE_BY_RED_SWITCH , CUBE_BY_RED_POWER_ZONE },  //cubes by switch
-	{ CUBE_BY_RED_POWER_ZONE , CUBE_BY_BLUE_POWER_ZONE },  //CUBE BY POWER ZONE
-	{ CUBE_BY_RED_EXCHANGE_ZONE , CUBE_BY_BLUE_EXCHANGE_ZONE }   //CUBE BY EXCHANGE ZONE
+{	{ CUBE_BY_RED_SWITCH , CUBE_BY_RED_POWER_ZONE, false },  //cubes by switch
+	{ CUBE_BY_RED_POWER_ZONE , CUBE_BY_BLUE_POWER_ZONE, true },  //CUBE BY POWER ZONE
+	{ CUBE_BY_RED_EXCHANGE_ZONE , CUBE_BY_BLUE_EXCHANGE_ZONE, true }   //CUBE BY EXCHANGE ZONE
 };
 
 const cubeSearchRangeType blueCubeSearchRange[] =
-{	{ CUBE_BY_RED_SWITCH , CUBE_BY_RED_POWER_ZONE },  //cubes by switch
-	{ CUBE_BY_BLUE_POWER_ZONE , CUBE_BY_RED_EXCHANGE_ZONE },  //CUBE BY POWER ZONE
-	{ CUBE_BY_BLUE_EXCHANGE_ZONE , CUBE_LAST }   //CUBE BY EXCHANGE ZONE
+{	{ CUBE_BY_RED_SWITCH , CUBE_BY_RED_POWER_ZONE, false },  //cubes by switch
+	{ CUBE_BY_BLUE_POWER_ZONE , CUBE_BY_RED_EXCHANGE_ZONE, true },  //CUBE BY POWER ZONE
+	{ CUBE_BY_BLUE_EXCHANGE_ZONE , CUBE_LAST, true }   //CUBE BY EXCHANGE ZONE
 };
 
 const float DISTANCE_OUT_OF_RANGE = 1000000;
@@ -945,21 +965,28 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 	//search power zone and exchange zone
 	if (allianceIn == ALLIANCE_RED) {
 		for (int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
-			shortestPath = findOneCube(shortestPath, redCubeSearchRange[i].startIdx, redCubeSearchRange[i].endIdx, true,
-				pMovingObjectIn, pCubeOut, pPathOut);
+			shortestPath = findOneCube(shortestPath, redCubeSearchRange[i].startIdx, redCubeSearchRange[i].endIdx, 
+				redCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, pCubeOut, pPathOut);
 
 		}
 	}
 	else {
 		for (int i = 0; i < sizeof(blueCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
-			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[i].startIdx, blueCubeSearchRange[i].endIdx, true,
-				pMovingObjectIn, pCubeOut, pPathOut);
+			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[i].startIdx, blueCubeSearchRange[i].endIdx,
+				blueCubeSearchRange[i].allCubeSameFlag,	pMovingObjectIn, pCubeOut, pPathOut);
 
 		}
 	}
 
 	if (shortestPath >= DISTANCE_OUT_OF_RANGE) {
 		return false;
+	}
+
+	if (pPathOut->numberOfTurns == 0) {
+		//pick up cube without moving
+		pPathOut->numberOfTurns = 1;
+		pPathOut->totalDistance = 0;
+		pPathOut->turnPoints[0] = pMovingObjectIn->center;
 	}
 
 	//the last turn point is the point to pick up a cube
@@ -1196,21 +1223,21 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		float rightMostPath = m_platformStructure.blueSwitchSouthPlate.center.x +
 			m_platformStructure.blueSwitchSouthPlate.sizeX / 2 +
 			m_platformStructure.bluePowerCubeZone.sizeX +
-			ROBOT_TO_WALL_DISTANCE;
+			LARGEST_ROBOT_SIZE/2 + ROBOT_TO_WALL_DISTANCE;
 		float secondRightPath = m_platformStructure.scaleSouthPlate.center.x +
 			m_platformStructure.scaleSouthPlate.sizeX / 2 +
-			ROBOT_TO_WALL_DISTANCE;
+			LARGEST_ROBOT_SIZE / 2 + ROBOT_TO_WALL_DISTANCE;
 		float thirdRightPath = m_platformStructure.scaleSouthPlate.center.x -
 			m_platformStructure.scaleSouthPlate.sizeX / 2 -
-			ROBOT_TO_WALL_DISTANCE;
-		float forthRightPath = m_platformStructure.blueSwitchSouthPlate.center.x +
-			m_platformStructure.blueSwitchSouthPlate.sizeX / 2 +
-			m_platformStructure.bluePowerCubeZone.sizeX +
-			ROBOT_TO_WALL_DISTANCE;
+			LARGEST_ROBOT_SIZE / 2 - ROBOT_TO_WALL_DISTANCE;
+		float forthRightPath = m_platformStructure.redSwitchSouthPlate.center.x -
+			m_platformStructure.redSwitchSouthPlate.sizeX / 2 -
+			m_platformStructure.redPowerCubeZone.sizeX -
+			LARGEST_ROBOT_SIZE / 2 - ROBOT_TO_WALL_DISTANCE;
 
 		//else, adjust along the wall to the next opening between alongWall and upToWall1
 		if (alongWall.x > upToWall1.x) {
-
+			//go to right as much as possible
 			if ((alongWall.x >= rightMostPath) && (upToWall1.x <= rightMostPath)) {
 				alongWall.x = rightMostPath;
 			}
@@ -1225,19 +1252,19 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 			}
 		}
 		else {
-			if ((alongWall.x >= forthRightPath) && (upToWall1.x <= forthRightPath)) {
+			//go to left as much as possible
+			if ((alongWall.x <= forthRightPath) && (upToWall1.x >= forthRightPath)) {
 				alongWall.x = forthRightPath;
 			}
-			else if ((alongWall.x >= thirdRightPath) && (upToWall1.x <= thirdRightPath)) {
+			else if ((alongWall.x <= thirdRightPath) && (upToWall1.x >= thirdRightPath)) {
 				alongWall.x = thirdRightPath;
 			}
-			else if ((alongWall.x >= secondRightPath) && (upToWall1.x <= secondRightPath)) {
+			else if ((alongWall.x <= secondRightPath) && (upToWall1.x >= secondRightPath)) {
 				alongWall.x = secondRightPath;
 			}
 			else {
 				alongWall.x = rightMostPath;
 			}
-
 		}
 
 		//save the path along the wall
@@ -1254,6 +1281,9 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		upToWall2 = oppositeWall;
 		oppositeWall = upToWall1;
 		upToWall1 = upToWall2;
+
+		//same x but opposite y
+		upToWall1.x = movingObject.center.x;
 		retryGoToWallFlag = true;
 	}
 

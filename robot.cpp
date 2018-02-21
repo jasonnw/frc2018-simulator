@@ -81,7 +81,7 @@ bool robot::isActionNeedCube(actionTypeType actionIn)
 	}
 }
 
-void robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
+int robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
 {
 	float actionDleay;
 	bool hasCubeFlag = false;
@@ -107,9 +107,12 @@ void robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
 			m_plannedAction.startTime = timeIn;
 			m_plannedAction.actionIndex = indexIn;
 			m_plannedAction.projectedFinishTime = timeIn + MINMUM_TIME_RESOLUTION;
+			return -1;
 		}
 	}
 	//else, continue the current action, no change
+
+	return 0;
 }
 
 
@@ -534,6 +537,32 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 	*pGiveUpCubeFlag = false;
 
 	for (int i = 0; i < pPathIn->numberOfTurns; i++) {
+		if (i == pPathIn->pickUpCubeIndex) {
+			delay += m_config.pickUpCubeDelay;
+
+			if ((delay > stopDelayIn) && (i!= 0)) {
+				break;
+			}else {
+				//if the first action is cube, because of inaccuracy of delay calculation, 
+				//just pick up the cube no matter the delay is enough or not
+				stopIndex = i;
+				*pCubeIndexOutt = m_pPlatform->pickUpCube(pPathIn->turnPoints[i], m_allianceType);
+				if (*pCubeIndexOutt == INVALID_IDX) {
+					//cannot pick up cube at pick up position, likely, the cube is gone
+					//stop here to wait for the next command
+					pStopPositionOut->x = pPathIn->turnPoints[i].x;
+					pStopPositionOut->y = pPathIn->turnPoints[i].y;
+					*pGiveUpCubeFlag = true;
+					break;
+				}
+				else {
+					if (delay >= stopDelayIn) {
+						break;
+					}
+				}
+			}
+		}
+
 		distance = (pPathIn->turnPoints[i].x - startPos.x) * (pPathIn->turnPoints[i].x - startPos.x);
 		distance += (pPathIn->turnPoints[i].y - startPos.y) * (pPathIn->turnPoints[i].y - startPos.y);
 
@@ -601,30 +630,6 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 			pStopPositionOut->x = pPathIn->turnPoints[i].x;
 			pStopPositionOut->y = pPathIn->turnPoints[i].y;
 			break; //stop here
-		}
-
-		if (i == pPathIn->pickUpCubeIndex) {
-			delay += m_config.pickUpCubeDelay;
-
-			if (delay >= stopDelayIn) {
-				//stop at cube position but no time to pick up the cube
-				pStopPositionOut->x = pPathIn->turnPoints[i].x;
-				pStopPositionOut->y = pPathIn->turnPoints[i].y;
-				stopIndex = i + 1;
-				break;
-			}
-			else {
-				*pCubeIndexOutt = m_pPlatform->pickUpCube(pPathIn->turnPoints[i], m_allianceType);
-				if (*pCubeIndexOutt == INVALID_IDX) {
-					//cannot pick up cube at pick up position, likely, the cube is gone
-					//stop here to wait for the next command
-					pStopPositionOut->x = pPathIn->turnPoints[i].x;
-					pStopPositionOut->y = pPathIn->turnPoints[i].y;
-					stopIndex = i + 1;
-					*pGiveUpCubeFlag = true;
-					break;
-				}
-			}
 		}
 	}
 

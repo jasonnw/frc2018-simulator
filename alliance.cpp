@@ -558,17 +558,34 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 					earliestIndex = actionChain[chainIndex].actionIndex;
 					lastFinishTime = m_pSearchList[earliestIndex].projectedFinishTime;
 
-					m_testPlatForm.setRobotAction(&m_pSearchList[earliestIndex], m_allianceType, actionIndexIn);
+					if (0 != m_testPlatForm.setRobotAction(&m_pSearchList[earliestIndex], m_allianceType, actionIndexIn)) {
+						isActionRejectedFlag = true;
+					}
 					executedActionCount++;
 					assignedActionFlag = true;
 					firstActionFlag[robot] = false; //newly assigned action cannot be interrupted
 				}
 			}
 			//after every robot take at most one action, execute all robots.
-			if (assignedActionFlag) {
+			if ((assignedActionFlag) && (!isActionRejectedFlag)) {
 				if (0 != m_testPlatForm.commitAction(actionIndexIn)) {
 					isActionRejectedFlag = true;
+					break;
 				}
+			}
+			else if(isActionRejectedFlag) {
+				break; //no reason to continue
+			}
+			else {
+				printf("ERROR: not all tasks are done but no task to execute\n");
+			}
+		}
+
+		//finish all pending actions
+		while ((!isActionRejectedFlag) && (m_testPlatForm.hasPendingActions())) {
+			if (0 != m_testPlatForm.commitAction(actionIndexIn)) {
+				isActionRejectedFlag = true;
+				break;
 			}
 		}
 
