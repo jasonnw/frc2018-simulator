@@ -96,6 +96,7 @@ int main(int argc, char** argv)
 	Point redStart, redEnd;
 	Point blueStart, blueEnd;
 	int actionCounter;
+	int newActionCount;
 	FILE *pRedActionLog = NULL;
 	FILE *pBlueActionLog = NULL;
 	errno_t errCode;
@@ -148,12 +149,15 @@ int main(int argc, char** argv)
 		redAlliance.getBestAction(redAction);
 		blueAlliance.getBestAction(blueAction);
 
+		newActionCount = 0;
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 			if ((redAction[i].actionType != INVALID_ACTION) && (redAction[i].actionType != RED_ACTION_NONE)) {
 				gamePlatform.setRobotAction(&redAction[i], ALLIANCE_RED, actionCounter);
+				newActionCount++;
 			}
 			if ((blueAction[i].actionType != INVALID_ACTION) && (blueAction[i].actionType != BLUE_ACTION_NONE)) {
 				gamePlatform.setRobotAction(&blueAction[i], ALLIANCE_BLUE, actionCounter);
+				newActionCount++;
 			}
 		}
 
@@ -161,8 +165,18 @@ int main(int argc, char** argv)
 			printf("Error: Action is rejected\n");
 		}
 
-		redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
-		blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
+		if (newActionCount == 0) {
+			//finish all pending actions and stop
+			while (gamePlatform.hasPendingActions()) {
+				if (0 != gamePlatform.commitAction(actionCounter)) {
+					printf("Error: Pending action is rejected\n");
+				}
+			}
+		}
+		else {
+			redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
+			blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
+		}
 
 		//update the score display
 		redEnd.x = blueEnd.x = POINTS_PER_SECOND * (int) floor(gamePlatform.getTime() + 0.5);
@@ -174,7 +188,7 @@ int main(int argc, char** argv)
 		redStart = redEnd;
 		blueStart = blueEnd;
 		actionCounter++;
-	} while (!gamePlatform.isGameTimeOver());
+	} while ((!gamePlatform.isGameTimeOver()) && (newActionCount!=0));
 
 	if (pRedActionLog != NULL) {
 		fclose(pRedActionLog);

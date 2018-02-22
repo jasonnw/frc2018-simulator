@@ -325,6 +325,11 @@ int platform::commitAction(int indexIn)
 			if (isActionDone) {
 				updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_RED, indexIn);
 			}
+			else {
+				if (m_redRobots[i].getPlannedActionFinishTime() <= earliestFinishTime) {
+					logAction(actionType, earliestFinishTime, i, indexIn, false);
+				}
+			}
 
 			if (updateActionResult != 0) {
 				//error message is printed in updateOneAction();
@@ -338,6 +343,11 @@ int platform::commitAction(int indexIn)
 			isActionDone = m_blueRobots[i].moveToNextTime(earliestFinishTime);
 			if (isActionDone) {
 				updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_BLUE, indexIn);
+			}
+			else {
+				if (m_blueRobots[i].getPlannedActionFinishTime() <= earliestFinishTime) {
+					logAction(actionType, earliestFinishTime, i, indexIn, false);
+				}
 			}
 
 			if (updateActionResult != 0) {
@@ -572,7 +582,7 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		printf("Error, time reverse, from %3.2f to %3.2f\n", m_timeInSec, timeIn);
 	}
 	updateScore(timeIn - m_timeInSec);
-	logAction(actionIn, timeIn, robotIndexIn, indexIn);
+	logAction(actionIn, timeIn, robotIndexIn, indexIn, true);
 	return 0;
 }
 
@@ -809,7 +819,7 @@ void platform::updateScore(float secondsIn)
 	}
 }
 
-void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn)
+void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn, bool successFlagIn)
 {
 	if (m_pLogFIle == NULL) {
 		return;
@@ -899,7 +909,13 @@ void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 		fprintf(m_pLogFIle, "unknown action (ERROR)");
 		break;
 	}
-	fprintf(m_pLogFIle, ", red score %d, blue score %d\n", getRedScore(), getBlueScore());
+
+	if (successFlagIn) {
+		fprintf(m_pLogFIle, ", red score %d, blue score %d\n", getRedScore(), getBlueScore());
+	}
+	else {
+		fprintf(m_pLogFIle, " (failed)\n");
+	}
 }
 
 void platform::logFinalScore(void)

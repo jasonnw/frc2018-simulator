@@ -219,7 +219,7 @@ protected:
 		vaultButtonStateType forceVaultButtonIn, vaultButtonStateType boostVaultButtonIn,
 		int vaultBlockSelectionIn, ownerShipType newOnerShipIn, ownerShipType *pOwnerShipInOut);
 
-	void logAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn);
+	void logAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn, bool successFlagIn);
 
 	bool collisionWithAllOtherObjects(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn, const rectangleObjectType **pCollisionObjectOut);
 

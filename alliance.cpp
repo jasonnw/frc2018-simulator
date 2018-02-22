@@ -448,8 +448,12 @@ void alliance::findBestAction(int actionIndexIn)
 
 			if (earliestRobotTime[m_pSearchList[previousActionIndex].robotIndex] >= m_pSearchList[previousActionIndex].projectedFinishTime) {
 				//if finished time is the same, favor the action closer to root to match the score testing sequence above.
-				memcpy(&m_bestAction[m_pSearchList[previousActionIndex].robotIndex], &m_pSearchList[previousActionIndex], sizeof(searchActionType));
-				earliestRobotTime[m_pSearchList[previousActionIndex].robotIndex] = m_pSearchList[previousActionIndex].projectedFinishTime;
+				if ((m_pSearchList[previousActionIndex].actionType != INVALID_ACTION) &&
+					(m_pSearchList[previousActionIndex].actionType != RED_ACTION_NONE) &&
+					(m_pSearchList[previousActionIndex].actionType != BLUE_ACTION_NONE)) {
+					memcpy(&m_bestAction[m_pSearchList[previousActionIndex].robotIndex], &m_pSearchList[previousActionIndex], sizeof(searchActionType));
+					earliestRobotTime[m_pSearchList[previousActionIndex].robotIndex] = m_pSearchList[previousActionIndex].projectedFinishTime;
+				}
 			}
 
 			if (m_pSearchList[previousActionIndex].previousIndex == INVALID_IDX) {
