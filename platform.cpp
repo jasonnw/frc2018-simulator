@@ -146,7 +146,7 @@ platform::platform()
 	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position.x = (288 * 2 + 72) - 196 - 6 - 30;
-		m_cubes[i].position.y = (float)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + i * 24);
+		m_cubes[i].position.y = (float)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_BLUE_SWITCH) * 24);
 	}
 	for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
 		m_cubes[i].availbleFlag = true;
@@ -267,20 +267,20 @@ int platform::setRobotAction(searchActionType *pActionListInOut, allianceType al
 
 bool platform::hasPendingActions(void)
 {
-	bool hasPendingAction = false;
+	bool hasPendingActionFlag = false;
 
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		if (m_redRobots[i].hasPendingAction()) {
-			hasPendingAction = true;
+		if (hasPendingAction(i, ALLIANCE_RED)) {
+			hasPendingActionFlag = true;
 			break;
 		}
-		if (m_blueRobots[i].hasPendingAction()) {
-			hasPendingAction = true;
+		if (hasPendingAction(i, ALLIANCE_BLUE)) {
+			hasPendingActionFlag = true;
 			break;
 		}
 	}
 
-	return hasPendingAction;
+	return hasPendingActionFlag;
 }
 
 int platform::commitAction(int indexIn)

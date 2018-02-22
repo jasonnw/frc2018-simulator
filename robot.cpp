@@ -150,7 +150,12 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 	else {
 		//start the task after the current task is done
 		memcpy(&startPosition, &m_state.pos, sizeof(startPosition));
-		startPosition.center = m_plannedAction.path.turnPoints[m_plannedAction.path.numberOfTurns - 1];
+		if (m_plannedAction.path.numberOfTurns != 0) {
+			startPosition.center = m_plannedAction.path.turnPoints[m_plannedAction.path.numberOfTurns - 1];
+		}
+		else {
+			startPosition.center = m_state.pos.center;
+		}
 
 		hasCubeFlag = lastActionCubeNotUsedFlagIn;
 
@@ -331,7 +336,12 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 		}
 
 		actionDelay += m_config.pickUpCubeDelay;
-		newPos.center = path2Cube.turnPoints[path2Cube.numberOfTurns - 1];
+		if (path2Cube.numberOfTurns != 0) {
+			newPos.center = path2Cube.turnPoints[path2Cube.numberOfTurns - 1];
+		}
+		else {
+			newPos.center = m_state.pos.center;
+		}
 	}
 	else {
 		path2Cube.numberOfTurns = 0;
@@ -421,8 +431,11 @@ float robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPat
 			delay += ((m_config.accelerationDistance * 2) * 2) / m_config.maximumSpeed;
 		}
 		else {
-			maxmimuSpeed = (m_config.maximumSpeed * distance) / m_config.accelerationDistance;
-			delay += (distance * 2) / maxmimuSpeed; //actual speed is half of maximum speed
+			if (distance > 0) {
+				maxmimuSpeed = (m_config.maximumSpeed * distance) / m_config.accelerationDistance;
+				delay += (distance * 2) / maxmimuSpeed; //actual speed is half of maximum speed
+			}
+			//else, delay += 0;
 		}
 
 		delay += m_config.turnDelay;
@@ -577,9 +590,15 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 			accelaterationDuration = m_config.accelerationDistance * 2 / m_config.maximumSpeed;
 		}
 		else {
-			maxmimumSpeed = (m_config.maximumSpeed * distance) / m_config.accelerationDistance;
-			turnPointDelay = (distance * 2) / maxmimumSpeed; //average speed is half of the maximum speed
-			accelaterationDuration = turnPointDelay / 2;
+			if (distance > 0) {
+				maxmimumSpeed = (m_config.maximumSpeed * distance) / m_config.accelerationDistance;
+				turnPointDelay = (distance * 2) / maxmimumSpeed; //average speed is half of the maximum speed
+				accelaterationDuration = turnPointDelay / 2;
+			}
+			else {
+				turnPointDelay = 0;
+				accelaterationDuration = 0;
+			}
 		}
 
 		delay += turnPointDelay;
@@ -592,33 +611,44 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 			//find the actual point to stop
 			timeDifference = delay - stopDelayIn;
 
-			if (timeDifference <= accelaterationDuration) {
-				//stop at deceleration portion, the actual distance is timeDifference shorter to reach the next turn point
-				stopDistance = distance - (m_config.maximumSpeed / 2) * timeDifference * timeDifference / accelaterationDuration;
-			}
-			else {
-				if (timeDifference <= turnPointDelay / 2) {
-					//stop at maximum speed portion
-					stopDistance = distance - (timeDifference - accelaterationDuration) * m_config.maximumSpeed - m_config.accelerationDistance;
+			if (accelaterationDuration > 0) {
+				if (timeDifference <= accelaterationDuration) {
+					//stop at deceleration portion, the actual distance is timeDifference shorter to reach the next turn point
+					stopDistance = distance - (m_config.maximumSpeed / 2) * timeDifference * timeDifference / accelaterationDuration;
 				}
-				else if (timeDifference > turnPointDelay / 2) {
-
-					if (timeDifference <= turnPointDelay - accelaterationDuration) {
+				else {
+					if (timeDifference <= turnPointDelay / 2) {
 						//stop at maximum speed portion
 						stopDistance = distance - (timeDifference - accelaterationDuration) * m_config.maximumSpeed - m_config.accelerationDistance;
 					}
-					else {
-						//stop at acceleration portion
-						actualMoveTime = timeDifference - (turnPointDelay - accelaterationDuration);
-						stopDistance = (m_config.maximumSpeed / 2) * actualMoveTime * actualMoveTime / accelaterationDuration;
-					}
+					else if (timeDifference > turnPointDelay / 2) {
 
+						if (timeDifference <= turnPointDelay - accelaterationDuration) {
+							//stop at maximum speed portion
+							stopDistance = distance - (timeDifference - accelaterationDuration) * m_config.maximumSpeed - m_config.accelerationDistance;
+						}
+						else {
+							//stop at acceleration portion
+							actualMoveTime = timeDifference - (turnPointDelay - accelaterationDuration);
+							stopDistance = (m_config.maximumSpeed / 2) * actualMoveTime * actualMoveTime / accelaterationDuration;
+						}
+
+					}
 				}
+			}
+			else {
+				stopDistance = 0;
 			}
 
 			//find the stop point by distance
-			pStopPositionOut->x = startPos.x + (pPathIn->turnPoints[i].x - startPos.x) * stopDistance / distance;
-			pStopPositionOut->y = startPos.y + (pPathIn->turnPoints[i].y - startPos.y) * stopDistance / distance;
+			if (distance > 0) {
+				pStopPositionOut->x = startPos.x + (pPathIn->turnPoints[i].x - startPos.x) * stopDistance / distance;
+				pStopPositionOut->y = startPos.y + (pPathIn->turnPoints[i].y - startPos.y) * stopDistance / distance;
+			}
+			else {
+				pStopPositionOut->x = startPos.x;
+				pStopPositionOut->y = startPos.y;
+			}
 
 			break; //stop here
 		}

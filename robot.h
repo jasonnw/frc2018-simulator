@@ -76,16 +76,6 @@ public:
 		m_allianceType = allianceTypeIn;
 	}
 
-	bool hasPendingAction(void) const
-	{
-		if (m_plannedAction.actionType == INVALID_ACTION) {
-			return false;
-		}
-		else {
-			return true;
-		}
-	}
-
 	void setConfiguration(const robotConfigurationType *pConfigIn, platform *pPlatform);
 	void setPosition(float xIn, float yIn, int objectIdIn);
 	void setPlatformAndCube(platform *pPlatform, int cubeIdxIn);
