@@ -184,6 +184,16 @@ public:
 		return srcIn;
 	}
 
+	void finishAllPendingActions(int actionIndexIn)
+	{
+		//finish all pending actions and stop
+		while (hasPendingActions()) {
+			if (0 != commitAction(actionIndexIn)) {
+				printf("Error: Pending action is rejected\n");
+			}
+		}
+	}
+
 	void configRedRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS]);
 	void configBlueRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS]);
 

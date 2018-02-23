@@ -151,11 +151,13 @@
   <ItemGroup>
     <ClInclude Include="alliance.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="displayPlatform.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="robot.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="alliance.cpp" />
+    <ClCompile Include="displayPlatform.cpp" />
     <ClCompile Include="platform.cpp" />
     <ClCompile Include="robot.cpp" />
     <ClCompile Include="simulator.cpp" />

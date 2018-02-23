@@ -167,11 +167,7 @@ int main(int argc, char** argv)
 
 		if (newActionCount == 0) {
 			//finish all pending actions and stop
-			while (gamePlatform.hasPendingActions()) {
-				if (0 != gamePlatform.commitAction(actionCounter)) {
-					printf("Error: Pending action is rejected\n");
-				}
-			}
+			gamePlatform.finishAllPendingActions(actionCounter);
 		}
 		else {
 			redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
