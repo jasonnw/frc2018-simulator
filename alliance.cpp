@@ -204,7 +204,7 @@ void alliance::findBestAction(int actionIndexIn)
 					previousActionIndex = prevIdx;
 					previousFinishTime = 0;
 					interruptFlag = true;
-					actionDonePos = m_pRobots[robot].getPosition();
+					actionDonePos = m_pRobots[robot].getPosition()->center;
 					actionDoneWithCube = m_pRobots[robot].hasCube();
 					startTime = currentTime;
 
@@ -319,7 +319,7 @@ void alliance::findBestAction(int actionIndexIn)
 		previousActionIndex = bestScoreIdx;
 		previousFinishTime = 0;
 		interruptFlag = true;
-		actionDonePos = m_pRobots[robot].getPosition();
+		actionDonePos = m_pRobots[robot].getPosition()->center;
 		actionDoneWithCube = m_pRobots[robot].hasCube();
 		startTime = currentTime;
 
@@ -492,6 +492,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 	int executedActionCount;
 	bool firstActionFlag[NUMBER_OF_ROBOTS];
 	int score, finalRedScore, finalBlueScore;
+	float earliestFinishTime;
 
 	*pBranchLengthOut = 0;
 
@@ -572,7 +573,8 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 			}
 			//after every robot take at most one action, execute all robots.
 			if ((assignedActionFlag) && (!isActionRejectedFlag)) {
-				if (0 != m_testPlatForm.commitAction(actionIndexIn)) {
+				earliestFinishTime = m_testPlatForm.getEarliestFinishTime();
+				if (0 != m_testPlatForm.commitAction(earliestFinishTime, actionIndexIn)) {
 					isActionRejectedFlag = true;
 					break;
 				}
@@ -587,7 +589,8 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 
 		//finish all pending actions
 		while ((!isActionRejectedFlag) && (m_testPlatForm.hasPendingActions())) {
-			if (0 != m_testPlatForm.commitAction(actionIndexIn)) {
+			earliestFinishTime = m_testPlatForm.getEarliestFinishTime();
+			if (0 != m_testPlatForm.commitAction(earliestFinishTime, actionIndexIn)) {
 				isActionRejectedFlag = true;
 				break;
 			}

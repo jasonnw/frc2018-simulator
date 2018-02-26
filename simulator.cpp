@@ -5,8 +5,10 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <windows.h>
 
 #include "alliance.h"
+#include "displayPlatform.h"
 
 using namespace cv;
 using namespace std;
@@ -36,6 +38,8 @@ Mat image(IMAGE_RESOLUSION_y, IMAGE_RESOLUSION_X, CV_8UC3, Scalar(0, 0, 0));
 alliance redAlliance;
 alliance blueAlliance;
 platform gamePlatform;
+displayPlatform showPlatform;
+actionMessageType message[2];
 
 #ifndef _MSC_VER
 //missing definitions of MS visual studio unique code
@@ -51,6 +55,27 @@ static errno_t fopen_s(FILE** pFile, const char *filename,  const char *mode)
 	}
 }
 #endif
+
+static DWORD WINAPI displayThreadEntry(LPVOID lpParameter)
+{
+	int returnVal;
+	int actionCount = 0;
+
+	showPlatform.setState(&initState);
+	showPlatform.setRedScore(initRedScore);
+	showPlatform.setBlueScore(initBlueScore);
+	showPlatform.setLogFile(NULL);
+	showPlatform.configRedRobots(RED_CONFIGURATION);
+	showPlatform.configBlueRobots(BLUE_CONFIGURATION);
+
+	showPlatform.drawPlatform(1000);
+	do {
+		returnVal = showPlatform.updatePlatform(actionCount);
+		actionCount++;
+	} while (returnVal == 0);
+
+	return 0;
+}
 
 static void initDisplay(void)
 {
@@ -89,10 +114,14 @@ static void initDisplay(void)
 	}
 }
 
+
 int main(int argc, char** argv)
 {
 	searchActionType redAction[NUMBER_OF_ROBOTS];
 	searchActionType blueAction[NUMBER_OF_ROBOTS];
+	//two message buffers to delay the output message by 1 for last message detection
+	int frontMessageIdx, backMessageIdx;
+
 	Point redStart, redEnd;
 	Point blueStart, blueEnd;
 	int actionCounter;
@@ -100,6 +129,7 @@ int main(int argc, char** argv)
 	FILE *pRedActionLog = NULL;
 	FILE *pBlueActionLog = NULL;
 	errno_t errCode;
+	float earliestFinishTime;
 
 	if (argc != 3) {
 		printf("usage: simulator [redActionLogFileName blueActionLogFileName]\n");
@@ -113,6 +143,10 @@ int main(int argc, char** argv)
 		}
 	}
 
+	DWORD threadID;
+	HANDLE threadHandle = CreateThread(0, 0, displayThreadEntry, NULL, 0, &threadID);
+
+
 	initDisplay();
 
 	//initialization
@@ -121,7 +155,7 @@ int main(int argc, char** argv)
 	gamePlatform.setBlueScore(initBlueScore);
 	gamePlatform.setLogFile(stdout);
 	gamePlatform.configRedRobots(RED_CONFIGURATION);
-	gamePlatform.configBlueRobots(RED_CONFIGURATION);
+	gamePlatform.configBlueRobots(BLUE_CONFIGURATION);
 
 	redAlliance.initAlliance(ALLIANCE_RED, NULL, RED_CONFIGURATION, gamePlatform);
 	blueAlliance.initAlliance(ALLIANCE_BLUE, NULL, BLUE_CONFIGURATION, gamePlatform);
@@ -149,19 +183,70 @@ int main(int argc, char** argv)
 		redAlliance.getBestAction(redAction);
 		blueAlliance.getBestAction(blueAction);
 
+		for (int i = 0; i < 2; i++) {
+			message[i].actionIndex = actionCounter;
+			message[i].alliance = ALLIANCE_BLUE;
+			message[i].commitActionFlag = false;
+			message[i].quitFlag = false;
+		}
+
 		newActionCount = 0;
+		frontMessageIdx = 0;
+		backMessageIdx = -1;
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+
+			//send the previous message out
+			if (backMessageIdx == frontMessageIdx) {
+				showPlatform.sendAction(&message[backMessageIdx]);
+				backMessageIdx ^= 1;
+			}
+
 			if ((redAction[i].actionType != INVALID_ACTION) && (redAction[i].actionType != RED_ACTION_NONE)) {
 				gamePlatform.setRobotAction(&redAction[i], ALLIANCE_RED, actionCounter);
 				newActionCount++;
+
+				memcpy(&message[frontMessageIdx].action, &redAction[i], sizeof(searchActionType));
+				if (backMessageIdx == -1) {
+					backMessageIdx = frontMessageIdx;
+				}
+				frontMessageIdx ^= 1;
 			}
+
+			if (backMessageIdx == frontMessageIdx) {
+				showPlatform.sendAction(&message[backMessageIdx]);
+				backMessageIdx ^= 1;
+			}
+
 			if ((blueAction[i].actionType != INVALID_ACTION) && (blueAction[i].actionType != BLUE_ACTION_NONE)) {
 				gamePlatform.setRobotAction(&blueAction[i], ALLIANCE_BLUE, actionCounter);
 				newActionCount++;
+
+				memcpy(&message[frontMessageIdx].action, &blueAction[i], sizeof(searchActionType));
+				if (backMessageIdx == -1) {
+					backMessageIdx = frontMessageIdx;
+				}
+				frontMessageIdx ^= 1;
+			}
+			if (backMessageIdx == frontMessageIdx) {
+				showPlatform.sendAction(&message[backMessageIdx]);
+				backMessageIdx ^= 1;
 			}
 		}
 
-		if (0 != gamePlatform.commitAction(actionCounter)) {
+		//send the last message
+		if (newActionCount != 0) {
+			message[backMessageIdx].commitActionFlag = true;
+			showPlatform.sendAction(&message[backMessageIdx]);
+		}
+		else {
+			//send quit command
+			message[backMessageIdx].quitFlag = true;
+			message[backMessageIdx].commitActionFlag = true;
+			showPlatform.sendAction(&message[backMessageIdx]);
+		}
+
+		earliestFinishTime = gamePlatform.getEarliestFinishTime();
+		if (0 != gamePlatform.commitAction(earliestFinishTime, actionCounter)) {
 			printf("Error: Action is rejected\n");
 		}
 
@@ -200,9 +285,12 @@ int main(int argc, char** argv)
 	redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getRedScore();
 	blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getBlueScore();
 
-	//final display of score board
-	imshow("FRC 2018 Game Simulation", image);
+	//stop display
+	WaitForSingleObject(threadHandle, INFINITE);
+	CloseHandle(threadHandle);
 
+	//final display of score board
+	imshow("FRC 2018 Game Result", image);
 	waitKey(0);
 	return 0;
 }

@@ -1,7 +1,15 @@
 #pragma once
 
 #include <windows.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <iostream>
+
 #include "platform.h"
+
+using namespace cv;
+using namespace std;
 
 template <class T> class messageQueue {
 private:
@@ -28,12 +36,19 @@ public:
 		if (m_pQueueBuffer != NULL) {
 			m_queueSize = qSizeIn;
 			*pErrorOut = 0;
+			InitializeCriticalSection(&m_bufferLock);
+			InitializeConditionVariable(&m_senderCondVar);
+			InitializeConditionVariable(&m_recieverCondVar);
+		}
+		else {
+			*pErrorOut = -1;
 		}
 	}
 	~messageQueue()
 	{
 		if (m_pQueueBuffer != NULL) {
 			free(m_pQueueBuffer);
+			DeleteCriticalSection(&m_bufferLock);
 		}
 	}
 
@@ -144,6 +159,7 @@ public:
 
 		if ((readIndex > m_writeIdx) && (m_writeWrapAroundFlag == false)) {
 			//Q is empty
+			LeaveCriticalSection(&m_bufferLock);
 			return -1;
 		}
 		else {
@@ -155,31 +171,46 @@ public:
 			return 0;
 		}
 	}
-
-
 };
 
 const int MESSAGE_QUEUE_DEPTH = 20;
+const int PLATFORM_RESOLUSION_X = 1280;
+const int PLATFORM_RESOLUSION_y = 720;
+
 
 typedef struct actionMessageType {
 	searchActionType action;
+	allianceType alliance;
 	int actionIndex;
 	bool commitActionFlag;
+	bool quitFlag;
 }actionMessageType;
 
 
-class displayPlatform :
-	public platform
+class displayPlatform :	public platform
 {
 private:
 	messageQueue <actionMessageType> *m_pQueue;
+	Mat *m_pPlatform;
+	rectangleObjectType m_redRobotsOldPos[NUMBER_OF_ROBOTS];
+	rectangleObjectType m_blueRobotsOldPos[NUMBER_OF_ROBOTS];
 
 public:
 	displayPlatform();
 	~displayPlatform();
 
-	void submiteActionCommand(const actionMessageType *pActionIn);
 
+	int updatePlatform(int actionIndexIn);
+	//receive message and update platform state
 
+	int sendAction(const actionMessageType *pActionIn);
+	void drawPlatform(int delayIn);
+
+protected:
+	void playTotheNextTime(float nextTimeIn, int actionIndexIn, float delayIn);
+	void drwaObject(const rectangleObjectType *pObjectIn);
+	void drawField(void);
+	Point coordinateToPoint(float xIn, float yIn);
+	void updateField(void);
 };
 

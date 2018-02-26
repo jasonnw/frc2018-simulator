@@ -56,9 +56,9 @@ public:
 		return &m_state;
 	}
 
-	coordinateType getPosition(void) const
+	const rectangleObjectType *getPosition(void) const
 	{
-		return m_state.pos.center;
+		return &m_state.pos;
 	}
 
 	const pendingActionType *getPlannedAction(void) const
@@ -74,6 +74,12 @@ public:
 	void setAllianceType(allianceType allianceTypeIn)
 	{
 		m_allianceType = allianceTypeIn;
+		if (m_allianceType == ALLIANCE_RED) {
+			m_state.pos.color = { 0, 0, 180 };
+		}
+		else {
+			m_state.pos.color = { 180, 0, 0 };
+		}
 	}
 
 	void setConfiguration(const robotConfigurationType *pConfigIn, platform *pPlatform);
@@ -90,6 +96,7 @@ public:
 		setConfiguration(srcIn.getConfiguration(), NULL);
 		memcpy(&m_state, srcIn.getState(), sizeof(m_state));
 		memcpy(&m_plannedAction, srcIn.getPlannedAction(), sizeof(m_plannedAction));
+
 		return srcIn;
 	}
 

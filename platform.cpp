@@ -34,36 +34,42 @@ platform::platform()
 	m_platformStructure.blueExchangeZone.center.y = (264 + 48 * 2) / 2 - 12 - 24;
 	m_platformStructure.blueExchangeZone.sizeX = 36;
 	m_platformStructure.blueExchangeZone.sizeY = 48;
+	m_platformStructure.blueExchangeZone.color = { 100, 10, 10 };
 
 	m_platformStructure.blueLiftZone.objectId = 2;
 	m_platformStructure.blueLiftZone.center.x = (float) ((288 * 2 + 72) - 261.74);
 	m_platformStructure.blueLiftZone.center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.blueLiftZone.sizeX = (float) ((288 * 2 + 72)/2 - 261.74);
 	m_platformStructure.blueLiftZone.sizeY = 9 * 12;
+	m_platformStructure.blueLiftZone.color = { 100, 0, 0 };
 
 	m_platformStructure.bluePlatformZone.objectId = 3;
 	m_platformStructure.bluePlatformZone.center.x = (288 * 2 + 72) - 196;
 	m_platformStructure.bluePlatformZone.center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.bluePlatformZone.sizeX = (288 * 2 + 72) / 2 - 196;
 	m_platformStructure.bluePlatformZone.sizeY = 9 * 12;
+	m_platformStructure.bluePlatformZone.color = { 100, 10, 10 };
 
 	m_platformStructure.bluePowerCubeZone.objectId = 4;
 	m_platformStructure.bluePowerCubeZone.center.x = (288 * 2 + 72) - 98 - 42 / 2;
 	m_platformStructure.bluePowerCubeZone.center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.bluePowerCubeZone.sizeX = 42;
 	m_platformStructure.bluePowerCubeZone.sizeY = 45;
+	m_platformStructure.bluePowerCubeZone.color = { 100, 0, 0 };
 
 	m_platformStructure.blueSwitchNorthPlate.objectId = 5;
 	m_platformStructure.blueSwitchNorthPlate.center.x = (288 * 2 + 72) - 140 - 56 / 2;
 	m_platformStructure.blueSwitchNorthPlate.center.y = (264 + 48 * 2) / 2 + 6 * 12;
 	m_platformStructure.blueSwitchNorthPlate.sizeX = 4 * 12;
 	m_platformStructure.blueSwitchNorthPlate.sizeY = 3 * 12;
+	m_platformStructure.blueSwitchNorthPlate.color = { 100, 10, 10 };
 
 	m_platformStructure.blueSwitchSouthPlate.objectId = 6;
 	m_platformStructure.blueSwitchSouthPlate.center.x = (288 * 2 + 72) - 140 - 56 / 2;
 	m_platformStructure.blueSwitchSouthPlate.center.y = (264 + 48 * 2) / 2 - 6 * 12;
 	m_platformStructure.blueSwitchSouthPlate.sizeX = 4 * 12;
 	m_platformStructure.blueSwitchSouthPlate.sizeY = 3 * 12;
+	m_platformStructure.blueSwitchSouthPlate.color = { 100, 0, 0 };
 
 	m_platformStructure.eastWall = (288 * 2 + 72);
 	m_platformStructure.northWall = (264 + 48 * 2);
@@ -74,48 +80,56 @@ platform::platform()
 	m_platformStructure.redExchangeZone.center.y = (264 + 48 * 2) / 2 + 12 + 24;
 	m_platformStructure.redExchangeZone.sizeX = 36;
 	m_platformStructure.redExchangeZone.sizeY = 48;
+	m_platformStructure.redExchangeZone.color = { 10, 10, 100 };
 
 	m_platformStructure.redLiftZone.objectId = 8;
 	m_platformStructure.redLiftZone.center.x = (float) 261.74;
 	m_platformStructure.redLiftZone.center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.redLiftZone.sizeX = (float)((288 * 2 + 72) / 2 - 261.74);
 	m_platformStructure.redLiftZone.sizeY = 9 * 12;
+	m_platformStructure.redLiftZone.color = { 0, 0, 100 };
 
 	m_platformStructure.redPlatformZone.objectId = 9;
 	m_platformStructure.redPlatformZone.center.x = 196;
 	m_platformStructure.redPlatformZone.center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.redPlatformZone.sizeX = (288 * 2 + 72) / 2 - 196;
 	m_platformStructure.redPlatformZone.sizeY = 9 * 12;
+	m_platformStructure.redPlatformZone.color = { 10, 10, 100 };
 
 	m_platformStructure.redPowerCubeZone.objectId = 10;
 	m_platformStructure.redPowerCubeZone.center.x = 98 + 42 / 2;
 	m_platformStructure.redPowerCubeZone.center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.redPowerCubeZone.sizeX = 42;
 	m_platformStructure.redPowerCubeZone.sizeY = 45;
+	m_platformStructure.redPowerCubeZone.color = { 0, 0, 100 };
 
 	m_platformStructure.redSwitchNorthPlate.objectId = 11;
 	m_platformStructure.redSwitchNorthPlate.center.x = 140 + 56 / 2;
 	m_platformStructure.redSwitchNorthPlate.center.y = (264 + 48 * 2) / 2 + 6 * 12;
 	m_platformStructure.redSwitchNorthPlate.sizeX = 4 * 12;
 	m_platformStructure.redSwitchNorthPlate.sizeY = 3 * 12;
+	m_platformStructure.redSwitchNorthPlate.color = { 10, 10, 100 };
 
 	m_platformStructure.redSwitchSouthPlate.objectId = 12;
 	m_platformStructure.redSwitchSouthPlate.center.x = 140 + 56 / 2;
 	m_platformStructure.redSwitchSouthPlate.center.y = (264 + 48 * 2) / 2 - 6 * 12;
 	m_platformStructure.redSwitchSouthPlate.sizeX = 4 * 12;
 	m_platformStructure.redSwitchSouthPlate.sizeY = 3 * 12;
+	m_platformStructure.redSwitchSouthPlate.color = { 0, 0, 100 };
 
 	m_platformStructure.scaleNorthPlate.objectId = 13;
 	m_platformStructure.scaleNorthPlate.center.x = (288 * 2 + 72) / 2;
 	m_platformStructure.scaleNorthPlate.center.y = (264 + 48 * 2) / 2 + (15 * 12 / 2);
 	m_platformStructure.scaleNorthPlate.sizeX = 4 * 12;
 	m_platformStructure.scaleNorthPlate.sizeY = 3 * 12;
+	m_platformStructure.scaleNorthPlate.color = { 10, 10, 100 };
 
 	m_platformStructure.scaleSouthPlate.objectId = 14;
 	m_platformStructure.scaleSouthPlate.center.x = (288 * 2 + 72) / 2;
 	m_platformStructure.scaleSouthPlate.center.y = (264 + 48 * 2) / 2 - (15 * 12 / 2);
 	m_platformStructure.scaleSouthPlate.sizeX = 4 * 12;
 	m_platformStructure.scaleSouthPlate.sizeY = 3 * 12;
+	m_platformStructure.scaleSouthPlate.color = { 0, 0, 100 };
 
 	m_platformStructure.southWall = 0;
 	m_platformStructure.westWall = 0;
@@ -125,18 +139,21 @@ platform::platform()
 	m_platformStructure.structures[RED_SWITCH_ZONE].center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.structures[RED_SWITCH_ZONE].sizeX = 4 * 12 + 8;
 	m_platformStructure.structures[RED_SWITCH_ZONE].sizeY = 12 * 12 + 9.5;
+	m_platformStructure.structures[RED_SWITCH_ZONE].color = { 10, 10, 100 };
 
 	m_platformStructure.structures[BLUE_SWITCH_ZONE].objectId = 16;
 	m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x = (288 * 2 + 72) - 140 - 56 / 2;
 	m_platformStructure.structures[BLUE_SWITCH_ZONE].center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX = 4 * 12 + 8;
 	m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY = 12 * 12 + 9.5;
+	m_platformStructure.structures[BLUE_SWITCH_ZONE].color = { 100, 10, 10 };
 
 	m_platformStructure.structures[SCALE_ZONE].objectId = 17;
 	m_platformStructure.structures[SCALE_ZONE].center.x = (288 * 2 + 72) / 2;
 	m_platformStructure.structures[SCALE_ZONE].center.y = (264 + 48 * 2) / 2;
 	m_platformStructure.structures[SCALE_ZONE].sizeX = 4 * 12;
 	m_platformStructure.structures[SCALE_ZONE].sizeY = 15 * 12;
+	m_platformStructure.structures[SCALE_ZONE].color = { 100, 100, 100 };
 
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
 		m_cubes[i].availbleFlag = true;
@@ -283,18 +300,9 @@ bool platform::hasPendingActions(void)
 	return hasPendingActionFlag;
 }
 
-int platform::commitAction(int indexIn)
+float platform::getEarliestFinishTime(void)
 {
-	int updateActionResult = 0;
-	bool isActionDone;
 	float earliestFinishTime;
-	const pendingActionType *pPlannetAction;
-	actionTypeType actionType;
-
-	if (m_timeInSec >= CLIMB_END_TIME) {
-		return updateActionResult; //game is over, do nothing
-		//Note: assume that all robots are trying to climb at the last 30 sec.
-	}
 
 	earliestFinishTime = CLIMB_END_TIME + 1;
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -309,7 +317,23 @@ int platform::commitAction(int indexIn)
 			}
 		}
 	}
+	return earliestFinishTime;
+}
 
+int platform::commitAction(float nextTimeIn, int indexIn)
+{
+	int updateActionResult = 0;
+	bool isActionDone;
+	float earliestFinishTime;
+	const pendingActionType *pPlannetAction;
+	actionTypeType actionType;
+
+	if (m_timeInSec >= CLIMB_END_TIME) {
+		return updateActionResult; //game is over, do nothing
+		//Note: assume that all robots are trying to climb at the last 30 sec.
+	}
+
+	earliestFinishTime = nextTimeIn;
 	if (earliestFinishTime >= CLIMB_END_TIME) {
 		//skip the action and only update the game score
 		updateScore(CLIMB_END_TIME - m_timeInSec);

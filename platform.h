@@ -78,14 +78,15 @@ private:
 	int m_liftBlueRobotIndex;
 	FILE *m_pLogFIle;
 
-	platformLayoutType m_platformStructure;
-
 	cubeStateType m_cubes[MAX_CUBES];
 	//6 cubes by each switch
 	//10 cubes at each power cube zone
 	//unlimited cubes at exchange zone
 	//constructor will put cube to the start position;
 
+
+protected:
+	platformLayoutType m_platformStructure;
 	robot m_redRobots[NUMBER_OF_ROBOTS];
 	robot m_blueRobots[NUMBER_OF_ROBOTS];
 
@@ -186,9 +187,12 @@ public:
 
 	void finishAllPendingActions(int actionIndexIn)
 	{
+		float earliestFinishTime;
+
 		//finish all pending actions and stop
 		while (hasPendingActions()) {
-			if (0 != commitAction(actionIndexIn)) {
+			earliestFinishTime = getEarliestFinishTime();
+			if (0 != commitAction(earliestFinishTime, actionIndexIn)) {
 				printf("Error: Pending action is rejected\n");
 			}
 		}
@@ -201,7 +205,8 @@ public:
 
 	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
 
-	int commitAction(int indexIn);
+	float platform::getEarliestFinishTime(void);
+	int commitAction(float nextTimeIn, int indexIn);
 	bool hasPendingActions(void);
 
 	int isGameTimeOver(void);

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 //configuration of scale and switches transmitted by the Field Management System
 const bool RED_NORTH_SWITCH_FLAG = true;
@@ -21,6 +24,7 @@ typedef struct rectangleObjectType {
 	float sizeX;
 	float sizeY;
 	int objectId; //a unique ID for each object on the field
+	cv::Scalar color;
 }rectangleObjectType;
 
 typedef struct  cubeStateType
@@ -157,7 +161,7 @@ const float CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after compe
 															 //Note: To simplify the simulator, auto session result will be used to initialize the game state.
 															 //      Auto session time is excluded from game time. The game starts on COMPITATION_START_TIME
 //action search control parameters
-const int MAXIMUM_PENDING_ACTIONS = 5;                       //maximum number of look forward actions to search for the best move
+const int MAXIMUM_PENDING_ACTIONS = 4;                       //maximum number of look forward actions to search for the best move
 const int NUM_OF_POSSIBLE_ACTIONS = PUSH_RED_LIFT_BUTTON + 1;     //the number of possible actions per robot
 const int MIN_SCORE_CHECKING_STEP = 4;                       //start check if the action worth to continue
 const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold score to continue action search
