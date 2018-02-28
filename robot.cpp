@@ -127,6 +127,9 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 	bool giveUpCubeFlag = false;;
 	int stopIndex;
 	float delayOutput;
+	float turnPointDelayChange;
+
+	memcpy(&startPosition, &m_state.pos, sizeof(startPosition));
 
 	if (interruptFlagIn) {
 		if (m_plannedAction.actionType == actionIn) {
@@ -138,18 +141,20 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 		}
 		else {
 			//stop the current task and start the new task
-			stopIndex = findStopPosition(&m_state.pos.center, &m_plannedAction.path, currentTimeIn, &stopPosition, &cubeIndex, &giveUpCubeFlag);
-		}
+			stopIndex = findStopPosition(&startPosition.center, &m_plannedAction.path, currentTimeIn, &stopPosition,
+				&cubeIndex, &turnPointDelayChange, &giveUpCubeFlag);
 
-		if ((m_state.cubeIdx != INVALID_IDX) || (cubeIndex != INVALID_IDX)) {
-			hasCubeFlag = true; //may have cube from the previous action or before stop point
-		}
+			if ((m_state.cubeIdx != INVALID_IDX) || (cubeIndex != INVALID_IDX)) {
+				hasCubeFlag = true; //may have cube from the previous action or before stop point
+			}
 
-		delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &m_state.pos, hasCubeFlag, interruptFlagIn, &plannedPath);
+			//switch to the new action
+			startPosition.center = stopPosition;
+			delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn, &plannedPath);
+		}
 	}
 	else {
 		//start the task after the current task is done
-		memcpy(&startPosition, &m_state.pos, sizeof(startPosition));
 		if (m_plannedAction.path.numberOfTurns != 0) {
 			startPosition.center = m_plannedAction.path.turnPoints[m_plannedAction.path.numberOfTurns - 1];
 		}
@@ -331,11 +336,10 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 
 	//pick up a cube
 	if (isCubeNeeded) {
-		if(!m_pPlatform->findTheClosestCube(&newPos, alliance, &pCube, &path2Cube)) {
+		if(!m_pPlatform->findTheClosestCube(&newPos, alliance, m_config.turnDelay, m_config.inOutTakeDelay, &pCube, &path2Cube)) {
 			return CLIMB_END_TIME + 1; //task cannot be done
 		}
 
-		actionDelay += m_config.pickUpCubeDelay;
 		if (path2Cube.numberOfTurns != 0) {
 			newPos.center = path2Cube.turnPoints[path2Cube.numberOfTurns - 1];
 		}
@@ -348,14 +352,20 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 		path2Cube.pickUpCubeIndex = INVALID_IDX;
 		path2Cube.totalDistance = 0;
 		path2Cube.turnPoints[0] = pStartPosIn->center;
+		path2Cube.turnPointDelay[0] = 0;
+		path2Cube.initialSpeed = 0;
 	}
 
 	//go to destination after pick up a cube
 	path2Destination.pickUpCubeIndex = INVALID_IDX;
 	path2Destination.numberOfTurns = 0;
 	path2Destination.totalDistance = 0;
-	if (!m_pPlatform->findAvailablePath(&newPos, destination, false, &path2Destination)) {
+	if (!m_pPlatform->findAvailablePath(&newPos, destination, false, m_config.turnDelay, &path2Destination)) {
 		return CLIMB_END_TIME + 1; //task cannot be done
+	}
+
+	if ((dumpCubeFlag) && (path2Destination.numberOfTurns != 0)) {
+		path2Destination.turnPointDelay[path2Destination.numberOfTurns - 1] += m_config.inOutTakeDelay;
 	}
 
 	//combine pick up cube path and destination path
@@ -364,10 +374,6 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 	}
 
 	actionDelay += calculateDelayOnPath(&pStartPosIn->center, pPathOut);
-
-	if (dumpCubeFlag) {
-		actionDelay += m_config.dumpCubeDelay;
-	}
 
 	//return delay must not be 0
 	if (MINMUM_TIME_RESOLUTION > actionDelay) {
@@ -388,14 +394,17 @@ int robot::combineTwoPathes(const robotPathType *pPath1In, const robotPathType *
 	pPathOut->pickUpCubeIndex = pPath1In->pickUpCubeIndex;
 
 	pPathOut->totalDistance = pPath1In->totalDistance + pPath2In->totalDistance;
+	pPathOut->initialSpeed = 0;
 	for (int i = 0; i < pPath1In->numberOfTurns; i++) {
 		pPathOut->pickUpCubeIndex = pPathOut->numberOfTurns;
 		pPathOut->turnPoints[pPathOut->numberOfTurns] = pPath1In->turnPoints[i];
+		pPathOut->turnPointDelay[pPathOut->numberOfTurns] = pPath1In->turnPointDelay[i];
 		pPathOut->numberOfTurns++;
 	}
 
 	for (int i = 0; i < pPath2In->numberOfTurns; i++) {
 		pPathOut->turnPoints[pPathOut->numberOfTurns] = pPath2In->turnPoints[i];
+		pPathOut->turnPointDelay[pPathOut->numberOfTurns] = pPath2In->turnPointDelay[i];
 		pPathOut->numberOfTurns++;
 	}
 
@@ -411,34 +420,59 @@ int robot::combineTwoPathes(const robotPathType *pPath1In, const robotPathType *
 	return 0;
 }
 
+
+float robot::getLineDelay(coordinateType startPoint, coordinateType endPoint, float maximumSpeedIn, float accelerationDistanceIn) const
+{
+	float distance;
+	float delay;
+
+	distance = (endPoint.x - startPoint.x) * (endPoint.x - startPoint.x);
+	distance += (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y);
+
+	distance = (float)sqrt(distance);
+	delay = distance / maximumSpeedIn; //simple delay calculation without acceleration
+
+	return delay;
+}
+
+float robot::runFromePointToPoint(coordinateType startPoint, coordinateType endPoint, 
+	float initialSpeedIn, float maximumSpeedIn, float accelerationDistanceIn,
+	float durationIn, coordinateType *pStopPointOut, bool *pIsFinishedFlagOut) const
+{
+	float finishDuration;
+	float distance;
+	float totalDistance;
+
+	finishDuration = getLineDelay(startPoint, endPoint, maximumSpeedIn, accelerationDistanceIn);
+	if (finishDuration <= durationIn) {
+		//stop at the end point
+		*pIsFinishedFlagOut = true;
+		*pStopPointOut = endPoint;
+		return durationIn - finishDuration;
+	}
+	else {
+		totalDistance = (endPoint.x - startPoint.x) * (endPoint.x - startPoint.x);
+		totalDistance += (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y);
+
+		distance = maximumSpeedIn * durationIn;
+		*pIsFinishedFlagOut = false;
+
+		pStopPointOut->x = startPoint.x + ((endPoint.x - startPoint.x) * distance) / totalDistance;
+		pStopPointOut->y = startPoint.y + ((endPoint.y - startPoint.y) * distance) / totalDistance;
+		return 0;
+	}
+}
+
+
 float robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const
 {
 	float delay = 0;
 	coordinateType startPos = *pStartIn;
-	float distance;
-	float maxmimuSpeed;
 
 	for (int i = 0; i < pPathIn->numberOfTurns; i++) {
-		distance = (pPathIn->turnPoints[i].x - startPos.x) * (pPathIn->turnPoints[i].x - startPos.x);
-		distance += (pPathIn->turnPoints[i].y - startPos.y) * (pPathIn->turnPoints[i].y - startPos.y);
+		delay += getLineDelay(startPos, pPathIn->turnPoints[i], m_config.maximumSpeed, m_config.accelerationDistance);
 
-		distance = (float)sqrt(distance);
-
-		if (distance >= m_config.accelerationDistance * 2) {
-			//high speed portion
-			delay += (distance - m_config.accelerationDistance) / m_config.maximumSpeed;
-			//acceleration portion
-			delay += ((m_config.accelerationDistance * 2) * 2) / m_config.maximumSpeed;
-		}
-		else {
-			if (distance > 0) {
-				maxmimuSpeed = (m_config.maximumSpeed * distance) / m_config.accelerationDistance;
-				delay += (distance * 2) / maxmimuSpeed; //actual speed is half of maximum speed
-			}
-			//else, delay += 0;
-		}
-
-		delay += m_config.turnDelay;
+		delay += pPathIn->turnPointDelay[i];
 		startPos = pPathIn->turnPoints[i];
 	}
 
@@ -450,6 +484,7 @@ bool robot::moveToNextTime(float timeIn)
 {
 	int stopIdx;
 	float delay;
+	float turnPointDelayChange;
 	coordinateType newPosition;
 	int cubeIndex;
 	bool isActionDoneFlag = false;
@@ -463,7 +498,7 @@ bool robot::moveToNextTime(float timeIn)
 
 	delay = timeIn - m_plannedAction.startTime;
 
-	stopIdx = findStopPosition(&m_state.pos.center, &m_plannedAction.path, delay, &newPosition, &cubeIndex, &giveUpCubeFlag);
+	stopIdx = findStopPosition(&m_state.pos.center, &m_plannedAction.path, delay, &newPosition, &cubeIndex, &turnPointDelayChange, &giveUpCubeFlag);
 
 	if (cubeIndex != INVALID_IDX) {
 		m_state.cubeIdx = cubeIndex;
@@ -479,6 +514,7 @@ bool robot::moveToNextTime(float timeIn)
 				dumpOneCube();
 				isActionDoneFlag = true;
 			}
+			//else, action abort, likely pick up cube failed
 		}
 		else {
 			isActionDoneFlag = true;
@@ -496,11 +532,23 @@ bool robot::moveToNextTime(float timeIn)
 	}
 	else {
 
-		if (stopIdx < m_plannedAction.path.numberOfTurns) {
+		if (stopIdx != INVALID_IDX) {
 
-			for (int i = stopIdx; i < m_plannedAction.path.numberOfTurns; i++) {
-				m_plannedAction.path.turnPoints[i - stopIdx] = m_plannedAction.path.turnPoints[i];
+			if (stopIdx <= m_plannedAction.path.numberOfTurns - 1) {
+
+				for (int i = stopIdx; i < m_plannedAction.path.numberOfTurns; i++) {
+					m_plannedAction.path.turnPoints[i - stopIdx] = m_plannedAction.path.turnPoints[i];
+					m_plannedAction.path.turnPointDelay[i - stopIdx] = m_plannedAction.path.turnPointDelay[i];
+
+					if (i == stopIdx) {
+						m_plannedAction.path.turnPointDelay[i - stopIdx] -= turnPointDelayChange;
+					}
+				}
 			}
+			else {
+				printf("ERROR, stop index is too big\n");
+			}
+
 			m_plannedAction.startTime = timeIn;
 			m_plannedAction.path.numberOfTurns -= stopIdx;
 			if (m_plannedAction.path.pickUpCubeIndex != INVALID_IDX) {
@@ -519,12 +567,8 @@ bool robot::moveToNextTime(float timeIn)
 			}
 			//else, do nothing, cube is not used here.
 		}
-		else {
-			//finished all turns, but, may need time to dump cube or lifting
-			m_plannedAction.path.numberOfTurns = 0;
-			m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
-			m_plannedAction.startTime = timeIn;
-		}
+		//else .
+		//stop before the first turn point, update start point is done, do nothing
 	}
 
 	return isActionDoneFlag;
@@ -532,134 +576,51 @@ bool robot::moveToNextTime(float timeIn)
 
 
 int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, 
-	 float stopDelayIn, coordinateType *pStopPositionOut, int *pCubeIndexOutt, bool *pGiveUpCubeFlag) const
+	 float stopDelayIn, coordinateType *pStopPositionOut, int *pCubeIndexOut, float *tpTrnPointDelayChangeOut, bool *pGiveUpCubeFlag) const
 {
 	coordinateType startPos = *pStartIn;
 	int stopIndex = INVALID_IDX;
-	float delay = 0;
-	float turnPointDelay;
-	float distance;
-	float stopDistance;
-	float timeDifference;
-	float maxmimumSpeed;
-	float accelaterationDuration;
-	float actualMoveTime;
+	bool taskFinishedFlag;
+	float totalDelay = 0;
+	float delay;
 
 	*pStopPositionOut = m_state.pos.center;
-	*pCubeIndexOutt = INVALID_IDX;
+	*pCubeIndexOut = INVALID_IDX;
 	*pGiveUpCubeFlag = false;
+	*tpTrnPointDelayChangeOut = 0;
 
 	for (int i = 0; i < pPathIn->numberOfTurns; i++) {
-		if (i == pPathIn->pickUpCubeIndex) {
-			delay += m_config.pickUpCubeDelay;
 
-			if ((delay > stopDelayIn) && (i!= 0)) {
-				break;
-			}else {
-				//if the first action is cube, because of inaccuracy of delay calculation, 
-				//just pick up the cube no matter the delay is enough or not
-				stopIndex = i;
-				*pCubeIndexOutt = m_pPlatform->pickUpCube(pPathIn->turnPoints[i], m_allianceType);
-				if (*pCubeIndexOutt == INVALID_IDX) {
-					//cannot pick up cube at pick up position, likely, the cube is gone
-					//stop here to wait for the next command
-					pStopPositionOut->x = pPathIn->turnPoints[i].x;
-					pStopPositionOut->y = pPathIn->turnPoints[i].y;
-					*pGiveUpCubeFlag = true;
-					break;
-				}
-				else {
-					if (delay >= stopDelayIn) {
-						break;
-					}
-				}
-			}
+		delay = getLineDelay(startPos, pPathIn->turnPoints[i], m_config.maximumSpeed, m_config.accelerationDistance);
+		if (totalDelay + delay >= stopDelayIn) {
+			runFromePointToPoint(startPos, pPathIn->turnPoints[i], 0, m_config.maximumSpeed, m_config.accelerationDistance, 
+				stopDelayIn - totalDelay, pStopPositionOut, &taskFinishedFlag);
+			break;
 		}
 
-		distance = (pPathIn->turnPoints[i].x - startPos.x) * (pPathIn->turnPoints[i].x - startPos.x);
-		distance += (pPathIn->turnPoints[i].y - startPos.y) * (pPathIn->turnPoints[i].y - startPos.y);
+		//else, 
+		totalDelay += delay;
 
-		distance = (float)sqrt(distance);
-		startPos = pPathIn->turnPoints[i];
-
-		if (distance >= m_config.accelerationDistance) {
-			//high speed portion
-			turnPointDelay = (distance - m_config.accelerationDistance) / m_config.maximumSpeed;
-			//acceleration portion
-			turnPointDelay += ((m_config.accelerationDistance * 2) * 2) / m_config.maximumSpeed;
-			accelaterationDuration = m_config.accelerationDistance * 2 / m_config.maximumSpeed;
-		}
-		else {
-			if (distance > 0) {
-				maxmimumSpeed = (m_config.maximumSpeed * distance) / m_config.accelerationDistance;
-				turnPointDelay = (distance * 2) / maxmimumSpeed; //average speed is half of the maximum speed
-				accelaterationDuration = turnPointDelay / 2;
-			}
-			else {
-				turnPointDelay = 0;
-				accelaterationDuration = 0;
-			}
-		}
-
-		delay += turnPointDelay;
-
-		if (delay > stopDelayIn) {
-			if (turnPointDelay < delay - stopDelayIn) {
-				printf("ERROR, it should stop at the previous turn point\n");
-			}
-
-			//find the actual point to stop
-			timeDifference = delay - stopDelayIn;
-
-			if (accelaterationDuration > 0) {
-				if (timeDifference <= accelaterationDuration) {
-					//stop at deceleration portion, the actual distance is timeDifference shorter to reach the next turn point
-					stopDistance = distance - (m_config.maximumSpeed / 2) * timeDifference * timeDifference / accelaterationDuration;
-				}
-				else {
-					if (timeDifference <= turnPointDelay / 2) {
-						//stop at maximum speed portion
-						stopDistance = distance - (timeDifference - accelaterationDuration) * m_config.maximumSpeed - m_config.accelerationDistance;
-					}
-					else if (timeDifference > turnPointDelay / 2) {
-
-						if (timeDifference <= turnPointDelay - accelaterationDuration) {
-							//stop at maximum speed portion
-							stopDistance = distance - (timeDifference - accelaterationDuration) * m_config.maximumSpeed - m_config.accelerationDistance;
-						}
-						else {
-							//stop at acceleration portion
-							actualMoveTime = timeDifference - (turnPointDelay - accelaterationDuration);
-							stopDistance = (m_config.maximumSpeed / 2) * actualMoveTime * actualMoveTime / accelaterationDuration;
-						}
-
-					}
-				}
-			}
-			else {
-				stopDistance = 0;
-			}
-
-			//find the stop point by distance
-			if (distance > 0) {
-				pStopPositionOut->x = startPos.x + (pPathIn->turnPoints[i].x - startPos.x) * stopDistance / distance;
-				pStopPositionOut->y = startPos.y + (pPathIn->turnPoints[i].y - startPos.y) * stopDistance / distance;
-			}
-			else {
-				pStopPositionOut->x = startPos.x;
-				pStopPositionOut->y = startPos.y;
-			}
-
-			break; //stop here
-		}
-
-		delay += m_config.turnDelay;
+		delay = pPathIn->turnPointDelay[i];
 		stopIndex = i;
 
-		if (delay >= stopDelayIn) {
-			pStopPositionOut->x = pPathIn->turnPoints[i].x;
-			pStopPositionOut->y = pPathIn->turnPoints[i].y;
-			break; //stop here
+		if (totalDelay + delay > stopDelayIn) {
+			*pStopPositionOut = pPathIn->turnPoints[i];
+			*tpTrnPointDelayChangeOut = stopDelayIn - totalDelay;
+			break;
+		}
+
+		//else,
+		totalDelay += delay;
+		if (i == pPathIn->pickUpCubeIndex) {
+			*pCubeIndexOut = m_pPlatform->pickUpCube(pPathIn->turnPoints[i], m_allianceType);
+			if (*pCubeIndexOut == INVALID_IDX) {
+				//cannot pick up cube at pick up position, likely, the cube is gone
+				//stop here to wait for the next command
+				*pStopPositionOut = pPathIn->turnPoints[i];
+				*pGiveUpCubeFlag = true;
+				break;
+			}
 		}
 	}
 

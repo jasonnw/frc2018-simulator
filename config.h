@@ -39,8 +39,7 @@ typedef struct robotConfigurationType {
 	float sizeY;
 	float randomDelayFactor;
 	float liftRobotDelay;
-	float pickUpCubeDelay;
-	float dumpCubeDelay;
+	float inOutTakeDelay;
 	float turnDelay;
 	float maximumSpeed;
 	float accelerationDistance;
@@ -143,6 +142,8 @@ const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 8;
 
 typedef struct robotPathType {
 	coordinateType turnPoints[MAX_TURNS_ON_PATH];
+	float turnPointDelay[MAX_TURNS_ON_PATH];
+	float initialSpeed;
 	float totalDistance;
 	int numberOfTurns;  //the number of turns on the path.
 	int pickUpCubeIndex; //the turning point to pick up a cube
@@ -174,15 +175,15 @@ const float LARGEST_ROBOT_SIZE = 4 * 12;
 //robot delay configurations in number of second
 const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17*12, /*max speed*/ 2*12 /*acceleration distance*/ },
-	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17*12, /*max speed*/ 2*12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 const robotConfigurationType BLUE_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up cube*/ 2.0, /*dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 3 * 12, 3 * 12, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 
 //initialize game setting after auto session is done

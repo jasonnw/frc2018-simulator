@@ -115,9 +115,17 @@ protected:
 	int combineTwoPathes(const robotPathType *pPath1In, const robotPathType *pPath2In, robotPathType *pPathOut) const;
 	float calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const;
 	int findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, float stopDelayIn,
-		coordinateType *pStopPositionOut, int *pCubeIndexOutt, bool *pGiveUpCubeFlag) const;
+		coordinateType *pStopPositionOut, int *pCubeIndexOut, float *tpTrnPointDelayChangeOut, bool *pGiveUpCubeFlag) const;
+
 	float getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn, const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn,
 		bool interruptFlagIn, robotPathType *pPathOut) const;
+
+
+	//TODO, apply motion profile with following functions, JWJW
+	float getLineDelay(coordinateType startPoint, coordinateType endPoint, float maximumSpeedIn, float accelerationDistanceIn) const;
+	float runFromePointToPoint(coordinateType startPoint, coordinateType endPoint, 
+		float initialSpeedIn, float maximumSpeedIn, float accelerationDistanceIn,
+		float durationIn, coordinateType *pStopPointOut, bool *pIsFinishedFlagOut) const;
 
 };
 

@@ -66,6 +66,72 @@ typedef struct cubeSearchRangeType
 	bool allCubeSameFlag;
 }cubeSearchRangeType;
 
+const int MAXIMUM_STACK_SIZE = 64;
+
+template <class T> class dataStack {
+private:
+	T m_stackBuffer[MAXIMUM_STACK_SIZE];
+	int m_pushPopIdx;  //the next buffer index 
+
+public:
+	dataStack(void)
+	{
+		reset(void);
+	}
+	~dataStack(void)
+	{
+	}
+
+	bool isStackEmpty(void)
+	{
+		if (m_pushPopIdx == 0) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	bool isStackFull(void)
+	{
+		if (m_pushPopIdx >= MAXIMUM_STACK_SIZE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+
+	void push(const T *pMessageIn)
+	{
+		if (m_pushPopIdx >= MAXIMUM_STACK_SIZE) {
+			return;
+		}
+		//else
+		memcpy(&m_stackBuffer[m_pushPopIdx], pMessageIn, sizeof(T));
+		m_pushPopIdx++;
+		return;
+	}
+
+	void pop(T* pMessageOut)
+	{
+		if (m_pushPopIdx == 0) {
+			return;
+		}
+		//else
+		memcpy(pMessageOut, &m_stackBuffer[m_pushPopIdx-1], sizeof(T));
+		m_pushPopIdx--;
+		return;
+	}
+
+	void reset(void)
+	{
+		m_pushPopIdx = 0;
+	}
+};
+
+
 
 class platform
 {
@@ -205,7 +271,7 @@ public:
 
 	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
 
-	float platform::getEarliestFinishTime(void);
+	float getEarliestFinishTime(void);
 	int commitAction(float nextTimeIn, int indexIn);
 	bool hasPendingActions(void);
 
@@ -217,17 +283,19 @@ public:
 
 	//find a path to go around all static objects
 	bool findAvailablePath(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn, 
-		bool isTargetACubeIn, robotPathType *pPathOut);
+		bool isTargetACubeIn, float robotTurnDelayIn, robotPathType *pPathOut);
 	//Note: cube will not block robot because it could be pushed out
 
-	bool findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
+	bool findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, 
+		float robotTurnDelayIn, float robotCubeDelayIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
 	int pickUpCube(coordinateType positionIn, allianceType allianceIn);
 
 protected:
 	int updateOneAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
 
 	float findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
-		const rectangleObjectType *pMovingObjectIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
+		const rectangleObjectType *pMovingObjectIn, float robotTurnDelayIn, float robotCubeDelayIn, 
+		cubeStateType **pCubeOut, robotPathType *pPathOut);
 
 	void updateScore(float secondsIn);
 	int updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,

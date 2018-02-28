@@ -955,7 +955,8 @@ void platform::logFinalScore(void)
 }
 
 float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
-	const rectangleObjectType *pMovingObjectIn, cubeStateType **pCubeOut, robotPathType *pPathOut)
+	const rectangleObjectType *pMovingObjectIn, float robotTurnDelayIn, float robotCubeDelayIn,
+	cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
 	float shortestPath = shortestPathIn;
 	robotPathType nextPath;
@@ -966,7 +967,10 @@ float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endS
 			continue;
 		}
 
-		if (findAvailablePath(pMovingObjectIn, m_cubes[i].position, true, &nextPath)) {
+		if (findAvailablePath(pMovingObjectIn, m_cubes[i].position, true, robotTurnDelayIn, &nextPath)) {
+			if (nextPath.numberOfTurns != 0) {
+				nextPath.turnPointDelay[nextPath.numberOfTurns - 1] += robotCubeDelayIn;
+			}
 			if (shortestPath > nextPath.totalDistance) {
 				memcpy(pPathOut, &nextPath, sizeof(robotPathType));
 				*pCubeOut =  &m_cubes[i];
@@ -996,7 +1000,9 @@ const cubeSearchRangeType blueCubeSearchRange[] =
 };
 
 const float DISTANCE_OUT_OF_RANGE = 1000000;
-bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, cubeStateType **pCubeOut, robotPathType *pPathOut)
+bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, 
+	float robotTurnDelayIn, float robotCubeDelayIn,
+	cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
 	float shortestPath = DISTANCE_OUT_OF_RANGE;
 
@@ -1006,14 +1012,14 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 	if (allianceIn == ALLIANCE_RED) {
 		for (int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
 			shortestPath = findOneCube(shortestPath, redCubeSearchRange[i].startIdx, redCubeSearchRange[i].endIdx, 
-				redCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, pCubeOut, pPathOut);
+				redCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
 
 		}
 	}
 	else {
 		for (int i = 0; i < sizeof(blueCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
 			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[i].startIdx, blueCubeSearchRange[i].endIdx,
-				blueCubeSearchRange[i].allCubeSameFlag,	pMovingObjectIn, pCubeOut, pPathOut);
+				blueCubeSearchRange[i].allCubeSameFlag,	pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
 
 		}
 	}
@@ -1026,7 +1032,9 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 		//pick up cube without moving
 		pPathOut->numberOfTurns = 1;
 		pPathOut->totalDistance = 0;
+		pPathOut->initialSpeed = 0;
 		pPathOut->turnPoints[0] = pMovingObjectIn->center;
+		pPathOut->turnPointDelay[0] = 0; //no delay after turn point is arrived
 	}
 
 	//the last turn point is the point to pick up a cube
@@ -1070,7 +1078,7 @@ bool  platform::tryPickOneCube(coordinateType robotPosIn, coordinateType cubePos
 
 
 bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
-	bool isTargetACubeIn, robotPathType *pPathOut)
+	bool isTargetACubeIn, float robotTurnDelayIn, robotPathType *pPathOut)
 {
 	//scan all static objects to find out a shortest path to the end point
 
@@ -1090,6 +1098,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	coordinateType startPoint;
 	coordinateType arroundPos;
 
+	pPathOut->initialSpeed = 0;
 	memcpy(&movingObject, pMovingObjectIn, sizeof(movingObject));
 
 	//check if it is arrived 
@@ -1105,6 +1114,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	if (!collisionDetectedFlag) {
 		//return the shortest path
 		pPathOut->turnPoints[turnPointIndex] = endPointIn;
+		pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
 		turnPointIndex++;
 		pPathOut->numberOfTurns = turnPointIndex;
 		distance = (endPointIn.x - pMovingObjectIn->center.x)*(endPointIn.x - pMovingObjectIn->center.x) +
@@ -1161,6 +1171,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 					return false;
 				}
 				pPathOut->turnPoints[turnPointIndex] = arroundPos;
+				pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
 				turnPointIndex++;
 
 				movingObject.center = arroundPos;
@@ -1195,6 +1206,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 			return false;
 		}
 		pPathOut->turnPoints[turnPointIndex] = upToWall1;
+		pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
 		turnPointIndex++;
 		movingObject.center = upToWall1;
 
@@ -1240,8 +1252,10 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 			}
 
 			pPathOut->turnPoints[turnPointIndex] = alongWall;
+			pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
 			turnPointIndex++;
 			pPathOut->turnPoints[turnPointIndex] = endPointIn;
+			pPathOut->turnPointDelay[turnPointIndex] = 0;
 			turnPointIndex++;
 			pPathOut->numberOfTurns = turnPointIndex;
 
@@ -1314,6 +1328,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		}
 
 		pPathOut->turnPoints[turnPointIndex] = alongWall;
+		pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
 		turnPointIndex++;
 		movingObject.center = alongWall;
 
@@ -1365,7 +1380,8 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 }
 
 
-bool platform::collisionDectection(const rectangleObjectType *pStillObjectIn, const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn)
+bool platform::collisionDectection(const rectangleObjectType *pStillObjectIn, 
+	const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn)
 {
 	float mLeftX, mTopY, mBottomY, mRightX;
 	float sLeftX, sTopY, sBottomY, sRightX;

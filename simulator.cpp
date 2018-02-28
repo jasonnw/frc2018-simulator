@@ -34,7 +34,7 @@ const int SCORES_PER_LABEL = 20;
 const int POINTS_PER_SCORE = 2;
 
 //global objects
-Mat image(IMAGE_RESOLUSION_y, IMAGE_RESOLUSION_X, CV_8UC3, Scalar(0, 0, 0));
+Mat gameScore(IMAGE_RESOLUSION_y, IMAGE_RESOLUSION_X, CV_8UC3, Scalar(0, 0, 0));
 alliance redAlliance;
 alliance blueAlliance;
 platform gamePlatform;
@@ -86,31 +86,31 @@ static void initDisplay(void)
 	Point xEnd = Point(MAXIMUM_X, ORIGIN_Y);
 	Point yEnd = Point(ORIGIN_X, MAXIMUM_Y);
 
-	line(image,	start, xEnd, coordinateColor, 1, 8);
-	line(image, start, yEnd, coordinateColor, 1, 8);
+	line(gameScore,	start, xEnd, coordinateColor, 1, 8);
+	line(gameScore, start, yEnd, coordinateColor, 1, 8);
 
-	putText(image, "Time", cvPoint(MAXIMUM_X - 70, ORIGIN_Y + 30),
+	putText(gameScore, "Time", cvPoint(MAXIMUM_X - 70, ORIGIN_Y + 30),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
 
-	putText(image, "Score", cvPoint(5, MAXIMUM_Y),
+	putText(gameScore, "Score", cvPoint(5, MAXIMUM_Y),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
 
 	for (int i = 0; i < 18; i++) {
 		sprintf_s(numberString, "%d", i*SECONDS_PER_LABEL);
-		putText(image, numberString, cvPoint(36 + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, 700),
+		putText(gameScore, numberString, cvPoint(36 + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, 700),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
 
 		Point x0 = Point(ORIGIN_X + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, 680);
 		Point x1 = Point(ORIGIN_X + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, 675);
-		line(image,	x0, x1, coordinateColor, 1, 8);
+		line(gameScore,	x0, x1, coordinateColor, 1, 8);
 
 		sprintf_s(numberString, "%d", i*SCORES_PER_LABEL);
-		putText(image, numberString, cvPoint(5, 680 - i * SCORES_PER_LABEL*POINTS_PER_SCORE),
+		putText(gameScore, numberString, cvPoint(5, 680 - i * SCORES_PER_LABEL*POINTS_PER_SCORE),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
 
 		Point y0 = Point(ORIGIN_X, ORIGIN_Y - i * SCORES_PER_LABEL*POINTS_PER_SCORE);
 		Point y1 = Point(ORIGIN_X+5, ORIGIN_Y - i * SCORES_PER_LABEL*POINTS_PER_SCORE);
-		line(image, y0, y1, coordinateColor, 1, 8);
+		line(gameScore, y0, y1, coordinateColor, 1, 8);
 	}
 }
 
@@ -263,8 +263,8 @@ int main(int argc, char** argv)
 		redEnd.x = blueEnd.x = POINTS_PER_SECOND * (int) floor(gamePlatform.getTime() + 0.5);
 		redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getRedScore();
 		blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getBlueScore();
-		line(image,	redStart, redEnd, redColor, 3, 8);
-		line(image, blueStart, blueEnd, blueColor, 3, 8);
+		line(gameScore,	redStart, redEnd, redColor, 3, 8);
+		line(gameScore, blueStart, blueEnd, blueColor, 3, 8);
 
 		redStart = redEnd;
 		blueStart = blueEnd;
@@ -290,7 +290,7 @@ int main(int argc, char** argv)
 	CloseHandle(threadHandle);
 
 	//final display of score board
-	imshow("FRC 2018 Game Result", image);
+	imshow("FRC 2018 Game Result", gameScore);
 	waitKey(0);
 	return 0;
 }

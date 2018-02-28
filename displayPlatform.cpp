@@ -55,7 +55,7 @@ int displayPlatform::sendAction(const actionMessageType *pActionIn)
 	}
 
 	//block on message Q
-	m_pQueue->puch(pActionIn);
+	m_pQueue->send(pActionIn);
 	return 0;
 }
 
@@ -74,7 +74,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 	quitFlag = false;
 	do {
 		commitMessageFlag = false;
-		if (0 == m_pQueue->tryPop(&message)) {
+		if (0 == m_pQueue->tryReceive(&message)) {
 			commitMessageFlag = message.commitActionFlag;
 			quitFlag = message.quitFlag;
 			if (!quitFlag) {

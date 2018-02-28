@@ -79,7 +79,7 @@ public:
 	}
 
 
-	void puch(const T *pMessageIn)
+	void send(const T *pMessageIn)
 	{
 		EnterCriticalSection(&m_bufferLock);
 
@@ -101,7 +101,7 @@ public:
 		WakeConditionVariable(&m_senderCondVar);
 	}
 
-	void pop(T* pMessageOut)
+	void receive(T* pMessageOut)
 	{
 		EnterCriticalSection(&m_bufferLock);
 		int readIndex = m_readIdx + 1;
@@ -123,7 +123,7 @@ public:
 		WakeConditionVariable(&m_recieverCondVar);
 	}
 
-	int tryPuch(const T *pMessageIn)
+	int trySend(const T *pMessageIn)
 	{
 		EnterCriticalSection(&m_bufferLock);
 
@@ -147,7 +147,7 @@ public:
 		}
 	}
 
-	int tryPop(T* pMessageOut)
+	int tryReceive(T* pMessageOut)
 	{
 		EnterCriticalSection(&m_bufferLock);
 		int readIndex = m_readIdx + 1;
@@ -176,7 +176,6 @@ public:
 const int MESSAGE_QUEUE_DEPTH = 20;
 const int PLATFORM_RESOLUSION_X = 1280;
 const int PLATFORM_RESOLUSION_y = 720;
-
 
 typedef struct actionMessageType {
 	searchActionType action;
