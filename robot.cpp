@@ -453,6 +453,7 @@ float robot::runFromePointToPoint(coordinateType startPoint, coordinateType endP
 	else {
 		totalDistance = (endPoint.x - startPoint.x) * (endPoint.x - startPoint.x);
 		totalDistance += (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y);
+		totalDistance = (float) sqrt(totalDistance);
 
 		distance = maximumSpeedIn * durationIn;
 		*pIsFinishedFlagOut = false;

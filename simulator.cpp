@@ -206,6 +206,7 @@ int main(int argc, char** argv)
 				newActionCount++;
 
 				memcpy(&message[frontMessageIdx].action, &redAction[i], sizeof(searchActionType));
+				message[frontMessageIdx].alliance = ALLIANCE_RED;
 				if (backMessageIdx == -1) {
 					backMessageIdx = frontMessageIdx;
 				}
@@ -222,6 +223,7 @@ int main(int argc, char** argv)
 				newActionCount++;
 
 				memcpy(&message[frontMessageIdx].action, &blueAction[i], sizeof(searchActionType));
+				message[frontMessageIdx].alliance = ALLIANCE_BLUE;
 				if (backMessageIdx == -1) {
 					backMessageIdx = frontMessageIdx;
 				}

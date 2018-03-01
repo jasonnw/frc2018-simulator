@@ -352,6 +352,7 @@ int platform::commitAction(float nextTimeIn, int indexIn)
 			else {
 				if (m_redRobots[i].getPlannedActionFinishTime() <= earliestFinishTime) {
 					logAction(actionType, earliestFinishTime, i, indexIn, false);
+					updateActionResult = -1;
 				}
 			}
 

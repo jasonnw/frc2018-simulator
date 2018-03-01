@@ -6,7 +6,7 @@ const float ORIGION_POINT_X = 10;
 const float ORIGION_POINT_Y = 710;
 const float PIXELS_PER_INCH = (float) 1.9;
 const cv::Scalar wallColor = { 128, 128, 128 };
-const float FRAME_DELAY_IN_MS = 100;
+const float FRAME_DELAY_IN_MS = 16;
 
 displayPlatform::displayPlatform()
 {
@@ -123,7 +123,7 @@ void displayPlatform::playTotheNextTime(float nextTimeIn, int actionIndexIn, flo
 
 	//last action
 	if (0 != commitAction(nextTimeIn, actionIndexIn)) {
-		printf("ERROR, cannot display the last action");
+		printf("ERROR, cannot display the last action \n");
 	}
 	updateField();
 	drawPlatform((int)floor(frameDelay * 1000));

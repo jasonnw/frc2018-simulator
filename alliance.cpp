@@ -87,7 +87,6 @@ void alliance::syncLocalPlatform(const platform &platformIn, int actionIndexIn)
 //try all possible actions,
 void alliance::findBestAction(int actionIndexIn)
 {
-	platform testPlatForm;
 	bool searchFailedFlag;
 
 	int previousActionIndex;
@@ -146,8 +145,8 @@ void alliance::findBestAction(int actionIndexIn)
 	searchFailedFlag = false;
 	bestScoreIdx = 0;
 	//project the final score if no action is taken
-	testPlatForm = m_referencePlatForm;
-	testPlatForm.getFinalScore(&projectedRedScore, &projectedBlueScore);
+	m_testPlatForm = m_referencePlatForm;
+	m_testPlatForm.getFinalScore(&projectedRedScore, &projectedBlueScore);
 	projectedScore = (m_allianceType == ALLIANCE_RED) ? projectedRedScore - projectedBlueScore : projectedBlueScore - projectedRedScore;
 
 	//build the search list
