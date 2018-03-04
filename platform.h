@@ -142,6 +142,7 @@ private:
 	int m_blueScore;
 	int m_liftRedRobotIndex;
 	int m_liftBlueRobotIndex;
+	int m_debugCounter;
 	FILE *m_pLogFIle;
 
 	cubeStateType m_cubes[MAX_CUBES];
@@ -219,6 +220,9 @@ public:
 		return m_platformStructure.blueLiftZone.center;
 	}
 
+	int getRedLiftRobotIndex(void) const { return m_liftRedRobotIndex; }
+	int getBlueLiftRobotIndex(void) const { return m_liftBlueRobotIndex; }
+
 	void setState(const platformStateType *pStateIn) { memcpy(&m_state, pStateIn,  sizeof(m_state)); }
 	void setTime(float timeIn) { m_timeInSec = timeIn; }
 	void setRedScore(int redScoreIn) { m_redScore = redScoreIn; }
@@ -227,6 +231,10 @@ public:
 	void setCubes(const cubeStateType *pCubesIn) {
 		memcpy(m_cubes, pCubesIn, sizeof(cubeStateType)*MAX_CUBES);
 	}
+
+	void setRedLiftRobotIndex(int idxIn) { m_liftRedRobotIndex = idxIn; }
+	void setBlueLiftRobotIndex(int idxIn) { m_liftBlueRobotIndex = idxIn; }
+
 	void setRedRobots(const robot *pRobotsIn) {
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 			m_redRobots[i] = pRobotsIn[i];
@@ -247,18 +255,20 @@ public:
 		setCubes(srcIn.getCubes());
 		setRedRobots(srcIn.getRedRobots());
 		setBlueRobots(srcIn.getBlueRobots());
+		setRedLiftRobotIndex(srcIn.getRedLiftRobotIndex());
+		setBlueLiftRobotIndex(srcIn.getBlueLiftRobotIndex());
 
 		return srcIn;
 	}
 
-	void finishAllPendingActions(int actionIndexIn)
+	void finishAllPendingActions(int actionIndexIn, allianceType activeAllianceIn)
 	{
 		float earliestFinishTime;
 
 		//finish all pending actions and stop
 		while (hasPendingActions()) {
 			earliestFinishTime = getEarliestFinishTime();
-			if (0 != commitAction(earliestFinishTime, actionIndexIn)) {
+			if (0 != commitAction(earliestFinishTime, actionIndexIn, activeAllianceIn)) {
 				printf("Error: Pending action is rejected\n");
 			}
 		}
@@ -272,7 +282,7 @@ public:
 	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
 
 	float getEarliestFinishTime(void);
-	int commitAction(float nextTimeIn, int indexIn);
+	int commitAction(float nextTimeIn, int indexIn, allianceType activeAllianceIn);
 	bool hasPendingActions(void);
 
 	int isGameTimeOver(void);
@@ -320,6 +330,6 @@ protected:
 		}
 	}
 
-	bool tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn);
+	bool tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn, bool cubeAvailableFlagIn);
 };
 

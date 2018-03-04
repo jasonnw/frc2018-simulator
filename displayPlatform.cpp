@@ -114,7 +114,7 @@ void displayPlatform::playTotheNextTime(float nextTimeIn, int actionIndexIn, flo
 
 	for (float i = currentTime; i < nextTimeIn; i += frameDelay)
 	{
-		if (0 != commitAction(i, actionIndexIn)) {
+		if (0 != commitAction(i, actionIndexIn, INVALID_ALLIANCE)) {
 			printf("ERROR, cannot display invalid action");
 		}
 		updateField();
@@ -122,7 +122,7 @@ void displayPlatform::playTotheNextTime(float nextTimeIn, int actionIndexIn, flo
 	}
 
 	//last action
-	if (0 != commitAction(nextTimeIn, actionIndexIn)) {
+	if (0 != commitAction(nextTimeIn, actionIndexIn, INVALID_ALLIANCE)) {
 		printf("ERROR, cannot display the last action \n");
 	}
 	updateField();

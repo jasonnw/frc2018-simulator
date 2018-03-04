@@ -47,6 +47,6 @@ public:
 protected:
 	void findBestAction(int actionIndexIn);
 	void resetSearchList(void);
-	int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndexIn, int *pBranchLengthOut);
+	int findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndexIn, int *pBranchLengthOut);
 };
 

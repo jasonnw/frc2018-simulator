@@ -52,12 +52,6 @@ void robot::dumpOneCube(void)
 	m_state.cubeIdx = INVALID_IDX;
 }
 
-void  robot::pickUpOneCube(int cubeIdxIn)
-{
-	m_state.cubeIdx = cubeIdxIn;
-	m_pPlatform->removeCube(cubeIdxIn);
-}
-
 bool robot::isActionNeedCube(actionTypeType actionIn)
 {
 	switch (actionIn) {
@@ -74,12 +68,49 @@ bool robot::isActionNeedCube(actionTypeType actionIn)
 	case CUBE_BLUE_BOOST_VAULT:
 	case CUBE_BLUE_LIFT_VAULT:
 		return true;
-	case LIFT_ONE_RED_ROBOT:
-	case LIFT_ONE_BLUE_ROBOT:
 	default:
 		return false;
 	}
 }
+
+bool robot::isAutonomousAction(actionTypeType actionIn)
+{
+	switch (actionIn) {
+	case CUBE_RED_OFFENCE_SWITCH:
+	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_SCALE:
+	case CUBE_BLUE_OFFENCE_SWITCH:
+	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_SCALE:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool robot::isHumanPlayerAction(actionTypeType actionIn)
+{
+	switch (actionIn) {
+	case CUBE_RED_OFFENCE_SWITCH:
+	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_SCALE:
+	case CUBE_RED_FORCE_VAULT:
+	case CUBE_RED_BOOST_VAULT:
+	case CUBE_RED_LIFT_VAULT:
+	case LIFT_ONE_RED_ROBOT:
+	case CUBE_BLUE_OFFENCE_SWITCH:
+	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_SCALE:
+	case CUBE_BLUE_FORCE_VAULT:
+	case CUBE_BLUE_BOOST_VAULT:
+	case CUBE_BLUE_LIFT_VAULT:
+	case LIFT_ONE_BLUE_ROBOT:
+		return false;
+	default:
+		return true;
+	}
+}
+
 
 int robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
 {
@@ -206,7 +237,6 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 	case CUBE_RED_LIFT_VAULT:
 	case PUSH_RED_FORCE_BUTTON:
 	case PUSH_RED_BOOST_BUTTON:
-	case PUSH_RED_LIFT_BUTTON:
 	case RED_ACTION_NONE:
 	case LIFT_ONE_RED_ROBOT:
 		alliance = ALLIANCE_RED;
@@ -219,7 +249,6 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 	case CUBE_BLUE_BOOST_VAULT:
 	case PUSH_BLUE_FORCE_BUTTON:
 	case PUSH_BLUE_BOOST_BUTTON:
-	case PUSH_BLUE_LIFT_BUTTON:
 	case BLUE_ACTION_NONE:
 	case LIFT_ONE_BLUE_ROBOT:
 		alliance = ALLIANCE_BLUE;
@@ -308,10 +337,8 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 		break;
 	case PUSH_RED_FORCE_BUTTON:
 	case PUSH_RED_BOOST_BUTTON:
-	case PUSH_RED_LIFT_BUTTON:
 	case PUSH_BLUE_FORCE_BUTTON:
 	case PUSH_BLUE_BOOST_BUTTON:
-	case PUSH_BLUE_LIFT_BUTTON:
 	case RED_ACTION_NONE:
 	case BLUE_ACTION_NONE:
 		//no move
@@ -481,20 +508,23 @@ float robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPat
 }
 
 
-bool robot::moveToNextTime(float timeIn)
+actionResultType robot::moveToNextTime(float timeIn)
 {
+	actionResultType returnResult;
 	int stopIdx;
 	float delay;
 	float turnPointDelayChange;
 	coordinateType newPosition;
+	actionTypeType actionType;
 	int cubeIndex;
-	bool isActionDoneFlag = false;
 	bool giveUpCubeFlag = false;
 
-	isActionDoneFlag = false;
+	returnResult = ACTION_IN_PROGRESS;
+	actionType = m_plannedAction.actionType; //save a copy of action type
+
 	if (timeIn < m_plannedAction.startTime) {
 		printf("ERROR: robot action start too late\n");
-		return false; //action not started
+		return ACTION_START_ERROR; //action not started
 	}
 
 	delay = timeIn - m_plannedAction.startTime;
@@ -510,51 +540,52 @@ bool robot::moveToNextTime(float timeIn)
 
 	if (timeIn >= m_plannedAction.projectedFinishTime) {
 		//to avoid time drifting, force action done when it passed the original projected finish time
-		if (isActionNeedCube(m_plannedAction.actionType)) {
+		if (isActionNeedCube(actionType)) {
 			if (m_state.cubeIdx != INVALID_IDX) {
 				dumpOneCube();
-				isActionDoneFlag = true;
+				returnResult = ACTION_DONE;
+				m_plannedAction.actionType = INVALID_ACTION;
+				m_plannedAction.path.numberOfTurns = 0;
+				m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
 			}
-			//else, action abort, likely pick up cube failed
+			else {
+				//action failed, likely pick up cube failed
+				//reschedule the task
+				m_plannedAction.actionType = INVALID_ACTION;
+				if (0 != takeAction(actionType, timeIn, -1)) {
+					returnResult = ACTION_TIME_OUT;
+					m_plannedAction.actionType = INVALID_ACTION;
+					m_plannedAction.path.numberOfTurns = 0;
+					m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+				}
+			}
 		}
 		else {
-			isActionDoneFlag = true;
+			returnResult = ACTION_DONE;
+			m_plannedAction.actionType = INVALID_ACTION;
+			m_plannedAction.path.numberOfTurns = 0;
+			m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
 		}
-		//no matter action is done or not, robot is idle.
-		m_plannedAction.actionType = INVALID_ACTION;
-		m_plannedAction.path.numberOfTurns = 0;
-		m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
 	}
 	else if (giveUpCubeFlag) {
-		//the target cube is removed, give up the current action
+		//action failed, likely pick up cube failed
+		//reschedule the task
 		m_plannedAction.actionType = INVALID_ACTION;
-		m_plannedAction.path.numberOfTurns = 0;
-		m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+		if (0 != takeAction(actionType, timeIn, -1)) {
+			returnResult = ACTION_TIME_OUT;
+			m_plannedAction.actionType = INVALID_ACTION;
+			m_plannedAction.path.numberOfTurns = 0;
+			m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+		}
 	}
 	else {
 
 		if (stopIdx != INVALID_IDX) {
-
-			if (stopIdx <= m_plannedAction.path.numberOfTurns - 1) {
-
-				for (int i = stopIdx; i < m_plannedAction.path.numberOfTurns; i++) {
-					m_plannedAction.path.turnPoints[i - stopIdx] = m_plannedAction.path.turnPoints[i];
-					m_plannedAction.path.turnPointDelay[i - stopIdx] = m_plannedAction.path.turnPointDelay[i];
-
-					if (i == stopIdx) {
-						m_plannedAction.path.turnPointDelay[i - stopIdx] -= turnPointDelayChange;
-					}
-				}
-			}
-			else {
-				printf("ERROR, stop index is too big\n");
-			}
-
-			m_plannedAction.startTime = timeIn;
-			m_plannedAction.path.numberOfTurns -= stopIdx;
 			if (m_plannedAction.path.pickUpCubeIndex != INVALID_IDX) {
 				if (m_plannedAction.path.pickUpCubeIndex >= stopIdx) {
 					m_plannedAction.path.pickUpCubeIndex -= stopIdx;
+					//Note: if stopIdx is 0, will update the robot position to the first turn point but 
+					//      also kept the first turn point and turn point delay
 				}
 				else {
 					if (cubeIndex != INVALID_IDX) {
@@ -566,13 +597,29 @@ bool robot::moveToNextTime(float timeIn)
 					}
 				}
 			}
-			//else, do nothing, cube is not used here.
+			//else, do nothing, no need to pick up a cube for this action.
+
+			if (stopIdx <= m_plannedAction.path.numberOfTurns - 1) {
+				for (int i = stopIdx; i < m_plannedAction.path.numberOfTurns; i++) {
+					m_plannedAction.path.turnPoints[i - stopIdx] = m_plannedAction.path.turnPoints[i];
+					m_plannedAction.path.turnPointDelay[i - stopIdx] = m_plannedAction.path.turnPointDelay[i];
+
+					if ((i == stopIdx) && (m_plannedAction.path.turnPointDelay[i - stopIdx] >= turnPointDelayChange)) {
+						m_plannedAction.path.turnPointDelay[i - stopIdx] -= turnPointDelayChange;
+					}
+				}
+			}
+			else {
+				printf("ERROR, internal error, stop index is too big\n");
+			}
+			m_plannedAction.startTime = timeIn;
+			m_plannedAction.path.numberOfTurns -= stopIdx;
 		}
 		//else .
 		//stop before the first turn point, update start point is done, do nothing
 	}
 
-	return isActionDoneFlag;
+	return returnResult;
 }
 
 
@@ -601,6 +648,7 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 
 		//else, 
 		totalDelay += delay;
+		startPos = pPathIn->turnPoints[i];
 
 		delay = pPathIn->turnPointDelay[i];
 		stopIndex = i;

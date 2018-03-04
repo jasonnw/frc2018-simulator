@@ -248,13 +248,13 @@ int main(int argc, char** argv)
 		}
 
 		earliestFinishTime = gamePlatform.getEarliestFinishTime();
-		if (0 != gamePlatform.commitAction(earliestFinishTime, actionCounter)) {
+		if (0 != gamePlatform.commitAction(earliestFinishTime, actionCounter, INVALID_ALLIANCE)) {
 			printf("Error: Action is rejected\n");
 		}
 
 		if (newActionCount == 0) {
 			//finish all pending actions and stop
-			gamePlatform.finishAllPendingActions(actionCounter);
+			gamePlatform.finishAllPendingActions(actionCounter, INVALID_ALLIANCE);
 		}
 		else {
 			redAlliance.syncLocalPlatform(gamePlatform, actionCounter);

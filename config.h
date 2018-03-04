@@ -52,6 +52,7 @@ typedef enum ownerShipType {
 }ownerShipType;
 
 typedef enum allianceType {
+	INVALID_ALLIANCE,
 	ALLIANCE_RED,
 	ALLIANCE_BLUE
 }allianceType;
@@ -84,7 +85,6 @@ typedef enum actionTypeType {
 	RED_ACTION_NONE,
 	PUSH_RED_FORCE_BUTTON,
 	PUSH_RED_BOOST_BUTTON,
-	PUSH_RED_LIFT_BUTTON,
 	CUBE_BLUE_OFFENCE_SWITCH = 100, //blue team starts here to search the best action
 	CUBE_BLUE_DEFENCE_SWITCH,
 	CUBE_BLUE_SCALE,
@@ -95,7 +95,6 @@ typedef enum actionTypeType {
 	BLUE_ACTION_NONE,
 	PUSH_BLUE_FORCE_BUTTON,
 	PUSH_BLUE_BOOST_BUTTON,
-	PUSH_BLUE_LIFT_BUTTON,
 	INVALID_ACTION
 }actionTypeType;
 
@@ -163,7 +162,7 @@ const float CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after compe
 															 //      Auto session time is excluded from game time. The game starts on COMPITATION_START_TIME
 //action search control parameters
 const int MAXIMUM_PENDING_ACTIONS = 4;                       //maximum number of look forward actions to search for the best move
-const int NUM_OF_POSSIBLE_ACTIONS = PUSH_RED_LIFT_BUTTON + 1;     //the number of possible actions per robot
+const int NUM_OF_POSSIBLE_ACTIONS = PUSH_RED_BOOST_BUTTON + 1;     //the number of possible actions per robot
 const int MIN_SCORE_CHECKING_STEP = 4;                       //start check if the action worth to continue
 const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold score to continue action search
 //Note: SEARCH_GIVEUP_THRESHOLD controls action search speed and quality. Smaller SEARCH_GIVEUP_THRESHOLD will make search slower but may find the best action.

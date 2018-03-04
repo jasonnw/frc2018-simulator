@@ -17,6 +17,7 @@ platform::platform()
 	m_pLogFIle = NULL;
 	m_liftRedRobotIndex = INVALID_IDX;
 	m_liftBlueRobotIndex = INVALID_IDX;
+	m_debugCounter = 0;
 
 	//give each robot access with the platform
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -158,7 +159,7 @@ platform::platform()
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position.x = 196 + 6 + 30;
-		m_cubes[i].position.y = (float) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + i * 24);
+		m_cubes[i].position.y = (float) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_RED_SWITCH) * 24);
 	}
 	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
 		m_cubes[i].availbleFlag = true;
@@ -320,17 +321,26 @@ float platform::getEarliestFinishTime(void)
 	return earliestFinishTime;
 }
 
-int platform::commitAction(float nextTimeIn, int indexIn)
+int platform::commitAction(float nextTimeIn, int indexIn, allianceType activeAllianceIn)
 {
 	int updateActionResult = 0;
-	bool isActionDone;
+	actionResultType actionResult;
 	float earliestFinishTime;
 	const pendingActionType *pPlannetAction;
 	actionTypeType actionType;
+	allianceType passiveAlliance;
 
 	if (m_timeInSec >= CLIMB_END_TIME) {
 		return updateActionResult; //game is over, do nothing
 		//Note: assume that all robots are trying to climb at the last 30 sec.
+	}
+
+	passiveAlliance = INVALID_ALLIANCE;
+	if (activeAllianceIn == ALLIANCE_RED) {
+		passiveAlliance = ALLIANCE_BLUE;
+	}
+	else if (activeAllianceIn == ALLIANCE_BLUE) {
+		passiveAlliance = ALLIANCE_RED;
 	}
 
 	earliestFinishTime = nextTimeIn;
@@ -345,19 +355,36 @@ int platform::commitAction(float nextTimeIn, int indexIn)
 		pPlannetAction = m_redRobots[i].getPlannedAction();
 		actionType = pPlannetAction->actionType;
 		if (actionType != INVALID_ACTION) {
-			isActionDone = m_redRobots[i].moveToNextTime(earliestFinishTime);
-			if (isActionDone) {
+			actionResult = m_redRobots[i].moveToNextTime(earliestFinishTime);
+
+			switch(actionResult) {
+			case ACTION_TIME_OUT:
+				//give up the action and do nothing
+				logAction(actionType, earliestFinishTime, i, indexIn, false);
+				break;
+			case ACTION_DONE:
 				updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_RED, indexIn);
-			}
-			else {
+				//action done log is printed inside updateOneAction()
+				break;
+			case ACTION_IN_PROGRESS:
+				//check if action passed due time
 				if (m_redRobots[i].getPlannedActionFinishTime() <= earliestFinishTime) {
 					logAction(actionType, earliestFinishTime, i, indexIn, false);
 					updateActionResult = -1;
 				}
+				break;
+			case ACTION_FAILED:
+			case ACTION_START_ERROR:
+			default:
+				logAction(actionType, earliestFinishTime, i, indexIn, false);
+				updateActionResult = -1;
+				break;
 			}
 
 			if (updateActionResult != 0) {
-				//error message is printed in updateOneAction();
+				if (passiveAlliance == ALLIANCE_RED) {
+					printf("ERROR, passive red alliance error is not expected\n");
+				}
 				return updateActionResult;
 			}
 		}
@@ -365,18 +392,36 @@ int platform::commitAction(float nextTimeIn, int indexIn)
 		pPlannetAction = m_blueRobots[i].getPlannedAction();
 		actionType = pPlannetAction->actionType;
 		if (actionType != INVALID_ACTION) {
-			isActionDone = m_blueRobots[i].moveToNextTime(earliestFinishTime);
-			if (isActionDone) {
+			actionResult = m_blueRobots[i].moveToNextTime(earliestFinishTime);
+
+			switch (actionResult) {
+			case ACTION_TIME_OUT:
+				//give up the action and do nothing
+				logAction(actionType, earliestFinishTime, i, indexIn, false);
+				break;
+			case ACTION_DONE:
 				updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_BLUE, indexIn);
-			}
-			else {
+				//action done log is printed inside updateOneAction()
+				break;
+			case ACTION_IN_PROGRESS:
+				//check if action passed due time
 				if (m_blueRobots[i].getPlannedActionFinishTime() <= earliestFinishTime) {
 					logAction(actionType, earliestFinishTime, i, indexIn, false);
+					updateActionResult = -1;
 				}
+				break;
+			case ACTION_FAILED:
+			case ACTION_START_ERROR:
+			default:
+				logAction(actionType, earliestFinishTime, i, indexIn, false);
+				updateActionResult = -1;
+				break;
 			}
 
 			if (updateActionResult != 0) {
-				//error message is printed in updateOneAction();
+				if (passiveAlliance == ALLIANCE_BLUE) {
+					printf("ERROR, passive blue alliance error is not expected\n");
+				}
 				return updateActionResult;
 			}
 		}
@@ -384,6 +429,7 @@ int platform::commitAction(float nextTimeIn, int indexIn)
 
 	//success
 	m_timeInSec = earliestFinishTime;
+	m_debugCounter++;
 	return updateActionResult;
 }
 
@@ -436,6 +482,16 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		else {
 			m_redScore += 5;
 		}
+
+		if ((m_state.liftRedBlockCount == 3) &&
+			(liftRebotCount < NUMBER_OF_ROBOTS)) {
+
+			if (m_state.redLiftButton == BUTTON_NOT_PUSH) {
+				m_state.redLiftButton = BUTTON_PUSH;
+				m_state.liftRedButtonPushBlockCount = m_state.liftRedBlockCount;
+			}
+		}
+
 		break;
 	case PUSH_RED_FORCE_BUTTON:
 		if (timeIn <= AUTONOMOUS_END_TIME) {
@@ -461,23 +517,6 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 			return -1;
 		}
 	break;
-	case PUSH_RED_LIFT_BUTTON:
-		for (int i = 0; i < NUMBER_OF_ROBOTS; i++)
-			liftRebotCount += (m_state.redLiftFlag[i] == true);
-
-		if ((m_state.liftRedBlockCount < 3) ||
-			(liftRebotCount >= NUMBER_OF_ROBOTS) ||
-			(m_timeInSec < COMPETITION_END_TIME)) {
-			return -1;
-		}else if (m_state.redLiftButton == BUTTON_NOT_PUSH) {
-			m_state.redLiftButton = BUTTON_PUSH;
-			m_state.liftRedButtonPushBlockCount = m_state.liftRedBlockCount;
-
-		}
-		else {
-			return -1;
-		}
-		break;
 	case LIFT_ONE_RED_ROBOT:
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++)
 			liftRebotCount += (m_state.redLiftFlag[i] == true);
@@ -489,7 +528,7 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		}
 
 		if ((m_state.redLiftFlag[robotIndexIn]) ||
-			(m_timeInSec < COMPETITION_END_TIME)) {
+			(timeIn < COMPETITION_END_TIME)) {
 			return -1;
 		}
 		m_liftRedRobotIndex = robotIndexIn;
@@ -539,6 +578,15 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		else {
 			m_blueScore += 5;
 		}
+
+		if ((m_state.liftBlueBlockCount >= 3) &&
+			(liftRebotCount < NUMBER_OF_ROBOTS)) {
+
+			if (m_state.blueLiftButton == BUTTON_NOT_PUSH) {
+				m_state.blueLiftButton = BUTTON_PUSH;
+				m_state.liftBlueButtonPushBlockCount = m_state.liftBlueBlockCount;
+			}
+		}
 		break;
 	case PUSH_BLUE_FORCE_BUTTON:
 		if (timeIn <= AUTONOMOUS_END_TIME) {
@@ -564,22 +612,6 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 			return -1;
 		}
 		break;
-	case PUSH_BLUE_LIFT_BUTTON:
-		for (int i = 0; i < NUMBER_OF_ROBOTS; i++)
-			liftRebotCount += (m_state.blueLiftFlag[i] == true);
-
-		if ((m_state.liftBlueBlockCount < 3) ||
-			(liftRebotCount >= NUMBER_OF_ROBOTS) ||
-			(m_timeInSec < COMPETITION_END_TIME)) {
-			return -1;
-		}else if (m_state.blueLiftButton == BUTTON_NOT_PUSH) {
-			m_state.blueLiftButton = BUTTON_PUSH;
-			m_state.liftBlueButtonPushBlockCount = m_state.liftBlueBlockCount;
-		}
-		else {
-			return -1;
-		}
-		break;
 	case LIFT_ONE_BLUE_ROBOT:
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++)
 			liftRebotCount += (m_state.blueLiftFlag[i] == true);
@@ -590,7 +622,7 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		}
 
 		if ((m_state.blueLiftFlag[robotIndexIn]) ||
-		    (m_timeInSec < COMPETITION_END_TIME)) {
+		    (timeIn < COMPETITION_END_TIME)) {
 			return -1;
 		}
 		m_liftBlueRobotIndex = robotIndexIn;
@@ -858,7 +890,6 @@ void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 	case CUBE_RED_LIFT_VAULT:
 	case PUSH_RED_FORCE_BUTTON:
 	case PUSH_RED_BOOST_BUTTON:
-	case PUSH_RED_LIFT_BUTTON:
 	case LIFT_ONE_RED_ROBOT:
 	case RED_ACTION_NONE:
 		fprintf(m_pLogFIle, "%d. Time %3.2f (sec), Red alliance robot[%d]: ", indexIn, timeIn, robotIndexIn);
@@ -871,7 +902,6 @@ void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 	case CUBE_BLUE_LIFT_VAULT:
 	case PUSH_BLUE_FORCE_BUTTON:
 	case PUSH_BLUE_BOOST_BUTTON:
-	case PUSH_BLUE_LIFT_BUTTON:
 	case LIFT_ONE_BLUE_ROBOT:
 	case BLUE_ACTION_NONE:
 		fprintf(m_pLogFIle, "%d. Time %3.2f (sec), Blue alliance robot[%d]: ", indexIn, timeIn, robotIndexIn);
@@ -917,10 +947,6 @@ void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 	case PUSH_RED_BOOST_BUTTON:
 	case PUSH_BLUE_BOOST_BUTTON:
 		fprintf(m_pLogFIle, "push boost vault button");
-		break;
-	case PUSH_RED_LIFT_BUTTON:
-	case PUSH_BLUE_LIFT_BUTTON:
-		fprintf(m_pLogFIle, "push lift vault button");
 		break;
 	case LIFT_ONE_RED_ROBOT:
 	case LIFT_ONE_BLUE_ROBOT:
@@ -1006,22 +1032,33 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 	cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
 	float shortestPath = DISTANCE_OUT_OF_RANGE;
+	int cubeListSize = sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType);
 
 	pPathOut->numberOfTurns = 0;
 
 	//search power zone and exchange zone
 	if (allianceIn == ALLIANCE_RED) {
-		for (int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
+		for (int i = 0; i < cubeListSize - 1; i++) {
 			shortestPath = findOneCube(shortestPath, redCubeSearchRange[i].startIdx, redCubeSearchRange[i].endIdx, 
 				redCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
 
 		}
+		//exchange zone
+		if (m_timeInSec >= AUTONOMOUS_END_TIME) {
+			shortestPath = findOneCube(shortestPath, redCubeSearchRange[cubeListSize - 1].startIdx, redCubeSearchRange[cubeListSize - 1].endIdx,
+				redCubeSearchRange[cubeListSize - 1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
+		}
 	}
 	else {
-		for (int i = 0; i < sizeof(blueCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
+		for (int i = 0; i < cubeListSize - 1; i++) {
 			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[i].startIdx, blueCubeSearchRange[i].endIdx,
-				blueCubeSearchRange[i].allCubeSameFlag,	pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
+				blueCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
 
+		}
+		//exchange zone
+		if (m_timeInSec >= AUTONOMOUS_END_TIME) {
+			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[cubeListSize - 1].startIdx, blueCubeSearchRange[cubeListSize - 1].endIdx,
+				blueCubeSearchRange[cubeListSize - 1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
 		}
 	}
 
@@ -1047,29 +1084,35 @@ int platform::pickUpCube(coordinateType positionIn, allianceType allianceIn)
 {
 	if (allianceIn == ALLIANCE_RED) {
 		for (int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
-			if (tryPickOneCube(positionIn, m_cubes[i].position) ){
-				return i;
+			for (int j = redCubeSearchRange[i].startIdx; j < redCubeSearchRange[i].endIdx; j++) {
+				if (tryPickOneCube(positionIn, m_cubes[j].position, m_cubes[j].availbleFlag)) {
+					m_cubes[j].availbleFlag = false;
+					return j;
+				}
 			}
 		}
 	}
 	else {
 		for (int i = 0; i < sizeof(blueCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
-			if (tryPickOneCube(positionIn, m_cubes[i].position)) {
-				return i;
+			for (int j = blueCubeSearchRange[i].startIdx; j < blueCubeSearchRange[i].endIdx; j++) {
+				if (tryPickOneCube(positionIn, m_cubes[j].position, m_cubes[j].availbleFlag)) {
+					m_cubes[j].availbleFlag = false;
+					return j;
+				}
 			}
 		}
 	}
 	return INVALID_IDX;
 }
 
-bool  platform::tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn)
+bool  platform::tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn, bool cubeAvailableFlagIn)
 {
 	float distance;
 
 	distance = (robotPosIn.x - cubePosIn.x) * (robotPosIn.x - cubePosIn.x) + (robotPosIn.y - cubePosIn.y) * (robotPosIn.y - cubePosIn.y);
 	distance = (float) sqrt(distance);
 
-	if (distance <= PICK_UP_CUBE_DISTANCE) {
+	if ((distance <= PICK_UP_CUBE_DISTANCE) && (cubeAvailableFlagIn)) {
 		return true;
 	}
 	else {
@@ -1197,7 +1240,8 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		if (retryGoToWallFlag) {
 			collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, upToWall1, &pCollisionObject);
 			if (collisionDetectedFlag) {
-				return false; //cannot find a path to the opposite wall, give up
+				//must find a better way to solve it, JWJW
+				//return false; //cannot find a path to the opposite wall, give up
 			}
 		}
 
@@ -1225,16 +1269,16 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 					alongWall.x = pCollisionObject->center.x - pCollisionObject->sizeX / 2 - movingObject.sizeX / 2 - ROBOT_TO_WALL_DISTANCE;
 
 					if (alongWall.x <= movingObject.center.x + ROBOT_TO_WALL_DISTANCE) {
-						//no move at all, give up
-						return false;
+						//no move at all, ignore collision and continue
+						break;
 					}
 				}
 				else {
 					alongWall.x = pCollisionObject->center.x + pCollisionObject->sizeX / 2 + movingObject.sizeX / 2 + ROBOT_TO_WALL_DISTANCE;
 
 					if (alongWall.x >= movingObject.center.x - ROBOT_TO_WALL_DISTANCE) {
-						//no move at all, give up
-						return false;
+						//no move at all, ignore collision and continue
+						break;
 					}
 
 				}
@@ -1343,8 +1387,28 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		retryGoToWallFlag = true;
 	}
 
-	//cannot find any path
-	return false;
+	//cannot find any path, ignore collision and directly go to the end point
+	if (turnPointIndex >= MAX_TURNS_ON_PATH) {
+		printf("ERROR, turning points buffer overflow\n");
+		return false;
+	}
+	pPathOut->turnPoints[turnPointIndex] = endPointIn;
+	pPathOut->turnPointDelay[turnPointIndex] = 0;
+	turnPointIndex++;
+	pPathOut->numberOfTurns = turnPointIndex;
+
+	startPoint = pMovingObjectIn->center;
+	pPathOut->totalDistance = 0;
+
+	for (int p = 0; p < turnPointIndex; p++) {
+
+		distance = (pPathOut->turnPoints[p].x - startPoint.x)*(pPathOut->turnPoints[p].x - startPoint.x) +
+			(pPathOut->turnPoints[p].y - startPoint.y)*(pPathOut->turnPoints[p].y - startPoint.y);
+
+		pPathOut->totalDistance += (float)sqrt(distance);
+	}
+
+	return true;
 }
 
 bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,

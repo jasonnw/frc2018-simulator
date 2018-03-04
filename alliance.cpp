@@ -105,6 +105,7 @@ void alliance::findBestAction(int actionIndexIn)
 	int previousLayerEndIndex;
 
 	int bestScoreIdx;
+	int newBestScoreIdx;
 	int projectedRedScore, projectedBlueScore, projectedScore;
 
 	int numPendingAction;
@@ -119,9 +120,10 @@ void alliance::findBestAction(int actionIndexIn)
 
 	coordinateType bestRobotNewPos;
 	bool bestRobotDoneWithCube;
+	bool noNewActionFlag;
 
 	actionTypeType startAction = (m_allianceType == ALLIANCE_RED) ? CUBE_RED_OFFENCE_SWITCH : CUBE_BLUE_OFFENCE_SWITCH;
-	actionTypeType endAction = (m_allianceType == ALLIANCE_RED) ? PUSH_RED_LIFT_BUTTON : PUSH_BLUE_LIFT_BUTTON;
+	actionTypeType endAction = (m_allianceType == ALLIANCE_RED) ? PUSH_RED_BOOST_BUTTON : PUSH_BLUE_BOOST_BUTTON;
 	actionTypeType endRealAction = (m_allianceType == ALLIANCE_RED) ? RED_ACTION_NONE : BLUE_ACTION_NONE;
 
 	//reset best action
@@ -171,28 +173,12 @@ void alliance::findBestAction(int actionIndexIn)
 
 			for (int act = startAction; act <= endAction; act++) {
 
-				//find out if the action is a real robot moving action
-				switch (act) {
-				case CUBE_RED_OFFENCE_SWITCH:
-				case CUBE_RED_DEFENCE_SWITCH:
-				case CUBE_RED_SCALE:
-				case CUBE_RED_FORCE_VAULT:
-				case CUBE_RED_BOOST_VAULT:
-				case CUBE_RED_LIFT_VAULT:
-				case LIFT_ONE_RED_ROBOT:
-				case CUBE_BLUE_OFFENCE_SWITCH:
-				case CUBE_BLUE_DEFENCE_SWITCH:
-				case CUBE_BLUE_SCALE:
-				case CUBE_BLUE_FORCE_VAULT:
-				case CUBE_BLUE_BOOST_VAULT:
-				case CUBE_BLUE_LIFT_VAULT:
-				case LIFT_ONE_BLUE_ROBOT:
-					isRealActionFlag = true;
-					break;
-				default:
-					isRealActionFlag = false;
-					break;
+				if ((!robot::isAutonomousAction((actionTypeType)act)) && (currentTime <= AUTONOMOUS_END_TIME)) {
+					continue;
 				}
+
+				//find out if the action is a real robot moving action
+				isRealActionFlag = !robot::isHumanPlayerAction((actionTypeType) act);
 
 				//find out the earliest finish time from 3 robots
 				bestFinishTime = CLIMB_END_TIME + 1;
@@ -284,6 +270,7 @@ void alliance::findBestAction(int actionIndexIn)
 
 		//update layer indexes
 		if (updetedTreeFlag) {
+			static int callCounter = 0;
 			previousLayerStartIndex = layerStartIndex;
 			previousLayerEndIndex = layerEndIndex;
 
@@ -292,6 +279,7 @@ void alliance::findBestAction(int actionIndexIn)
 			if ((bestScoreIdx == 0) || (numPendingAction == 0)) {
 				printf("ERROR: cannot find any useful actions\n");
 			}
+			callCounter++;
 			//bestScoreIdx of the last pending action iteration is the best action list of all
 		}
 		else {
@@ -305,7 +293,7 @@ void alliance::findBestAction(int actionIndexIn)
 		searchFailedFlag = true;
 	}
 
-	//add one real action for each robot to avoid idle robot
+	//add one action for each robot to avoid idle robot
 	layerEndIndex = layerStartIndex = previousLayerEndIndex;
 	previousLayerStartIndex = bestScoreIdx;
 	previousLayerEndIndex = bestScoreIdx + 1;
@@ -349,9 +337,16 @@ void alliance::findBestAction(int actionIndexIn)
 		if (previousFinishTime == 0) {
 			startTime = previousFinishTime = currentTime;
 		}
+		else {
+			continue; //the robot already has a planned action, not an idle robot.
+		}
 
 		for (int prevIdx = previousLayerStartIndex; prevIdx < previousLayerEndIndex; prevIdx++) {
 			for (int act = startAction; act <= endRealAction; act++) {
+
+				if ((!robot::isAutonomousAction((actionTypeType)act)) && (currentTime <= AUTONOMOUS_END_TIME)) {
+					continue;
+				}
 
 				//the current action finish time
 				finishTime = m_pRobots[robot].estimateActionDelayInSec((actionTypeType)act, previousFinishTime,
@@ -399,11 +394,21 @@ void alliance::findBestAction(int actionIndexIn)
 		}
 	}
 	
+	noNewActionFlag = true;
 	if (previousLayerStartIndex != bestScoreIdx) {
 		//After an action tree is created, search which action sequence can get the best score
-		bestScoreIdx = findBestScoreBranch(previousLayerStartIndex, previousLayerEndIndex, actionIndexIn, &numPendingAction);
+		newBestScoreIdx = findBestScoreBranch(previousLayerStartIndex, previousLayerEndIndex, actionIndexIn, &numPendingAction);
+
+		if ((newBestScoreIdx == 0) || (numPendingAction == 0)) {
+			//cannot find any new actions
+		}
+		else {
+			noNewActionFlag = false;
+			bestScoreIdx = newBestScoreIdx;
+		}
 	}
-	else {
+
+	if(noNewActionFlag) {
 		//no new actions added, no need to update bestScoreIdx;
 
 		//find the number of actions on the best score branch
@@ -413,10 +418,6 @@ void alliance::findBestAction(int actionIndexIn)
 			numPendingAction++;
 			previousActionIndex = m_pSearchList[previousActionIndex].previousIndex;
 		}
-	}
-	if ((bestScoreIdx == 0) || (numPendingAction == 0)) {
-		printf("ERROR: cannot find any useful actions\n");
-		searchFailedFlag = true;
 	}
 
 	//reset the output
@@ -573,7 +574,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 			//after every robot take at most one action, execute all robots.
 			if ((assignedActionFlag) && (!isActionRejectedFlag)) {
 				earliestFinishTime = m_testPlatForm.getEarliestFinishTime();
-				if (0 != m_testPlatForm.commitAction(earliestFinishTime, actionIndexIn)) {
+				if (0 != m_testPlatForm.commitAction(earliestFinishTime, actionIndexIn, m_allianceType)) {
 					isActionRejectedFlag = true;
 					break;
 				}
@@ -586,12 +587,14 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 			}
 		}
 
-		//finish all pending actions
-		while ((!isActionRejectedFlag) && (m_testPlatForm.hasPendingActions())) {
-			earliestFinishTime = m_testPlatForm.getEarliestFinishTime();
-			if (0 != m_testPlatForm.commitAction(earliestFinishTime, actionIndexIn)) {
-				isActionRejectedFlag = true;
-				break;
+		if (!isActionRejectedFlag) {
+			//finish all pending actions
+			while ((!isActionRejectedFlag) && (m_testPlatForm.hasPendingActions())) {
+				earliestFinishTime = m_testPlatForm.getEarliestFinishTime();
+				if (0 != m_testPlatForm.commitAction(earliestFinishTime, actionIndexIn, m_allianceType)) {
+					isActionRejectedFlag = true;
+					break;
+				}
 			}
 		}
 

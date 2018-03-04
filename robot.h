@@ -22,6 +22,15 @@ typedef struct searchActionType {
 	int previousIndex;
 }searchActionType;
 
+typedef enum actionResultType {
+	ACTION_DONE,
+	ACTION_TIME_OUT, //action will not finish before game over
+	ACTION_FAILED,   //implementation error
+	ACTION_START_ERROR, //start time inverse error
+	ACTION_IN_PROGRESS
+}actionResultType;
+
+
 
 typedef struct pendingActionType {
 	actionTypeType actionType;
@@ -46,6 +55,10 @@ public:
 	robot();
 	~robot();
 
+	allianceType getAlliance(void) const
+	{
+		return m_allianceType;
+	}
 	const robotConfigurationType *getConfiguration(void) const
 	{
 		return &m_config;
@@ -86,7 +99,6 @@ public:
 	void setPosition(float xIn, float yIn, int objectIdIn);
 	void setPlatformAndCube(platform *pPlatform, int cubeIdxIn);
 	void dumpOneCube(void);
-	void pickUpOneCube(int cubeIdxIn);
 
 	float estimateActionDelayInSec(actionTypeType actionIn, float currentTimeIn, bool interruptFlagIn,
 		  coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn, coordinateType *pEndPosOut) const;
@@ -96,6 +108,7 @@ public:
 		setConfiguration(srcIn.getConfiguration(), NULL);
 		memcpy(&m_state, srcIn.getState(), sizeof(m_state));
 		memcpy(&m_plannedAction, srcIn.getPlannedAction(), sizeof(m_plannedAction));
+		m_allianceType = srcIn.getAlliance();
 
 		return srcIn;
 	}
@@ -108,8 +121,10 @@ public:
 	}
 
 	static bool isActionNeedCube(actionTypeType actionIn);
+	static bool isAutonomousAction(actionTypeType actionIn);
+	static bool isHumanPlayerAction(actionTypeType actionIn);
 
-	bool moveToNextTime(float timeIn);
+	actionResultType moveToNextTime(float timeIn);
 
 protected:
 	int combineTwoPathes(const robotPathType *pPath1In, const robotPathType *pPath2In, robotPathType *pPathOut) const;
