@@ -7,6 +7,9 @@
 #include "robot.h"
 #include "platform.h"
 
+//#define GET_RANDOM_VALUE (m_config.randomDelayFactor * (((float) rand() - RAND_MAX/2) / (float)RAND_MAX));
+#define GET_RANDOM_VALUE  0
+
 robot::robot()
 {
 	memset(&m_config, 0, sizeof(m_config));
@@ -212,7 +215,7 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 	const rectangleObjectType *pStartPosIn,  bool hasCubeFlagIn, bool interruptFlagIn, robotPathType *pPathOut) const
 {
 	rectangleObjectType newPos;
-	float randomFactor = m_config.randomDelayFactor * (((float) rand() - RAND_MAX/2) / (float)RAND_MAX);
+	float randomFactor = GET_RANDOM_VALUE;
 	float actionDelay;
 	coordinateType destination;
 	bool isCubeNeeded;

@@ -323,6 +323,7 @@ float platform::getEarliestFinishTime(void)
 
 int platform::commitAction(float nextTimeIn, int indexIn, allianceType activeAllianceIn)
 {
+	const rectangleObjectType *pRobotPos;
 	int updateActionResult = 0;
 	actionResultType actionResult;
 	float earliestFinishTime;
@@ -356,6 +357,15 @@ int platform::commitAction(float nextTimeIn, int indexIn, allianceType activeAll
 		actionType = pPlannetAction->actionType;
 		if (actionType != INVALID_ACTION) {
 			actionResult = m_redRobots[i].moveToNextTime(earliestFinishTime);
+
+			pRobotPos = m_redRobots[i].getPosition();
+			if ((pRobotPos->center.x + pRobotPos->sizeX / 2 >= m_platformStructure.redAutoLine)
+				&& (earliestFinishTime <= AUTONOMOUS_END_TIME)
+				&& (!m_state.redCrossAutoFlag[i])) {
+
+				m_state.redCrossAutoFlag[i] = true;
+				m_redScore += 5;
+			}
 
 			switch(actionResult) {
 			case ACTION_TIME_OUT:
@@ -393,6 +403,15 @@ int platform::commitAction(float nextTimeIn, int indexIn, allianceType activeAll
 		actionType = pPlannetAction->actionType;
 		if (actionType != INVALID_ACTION) {
 			actionResult = m_blueRobots[i].moveToNextTime(earliestFinishTime);
+
+			pRobotPos = m_blueRobots[i].getPosition();
+			if ((pRobotPos->center.x - pRobotPos->sizeX / 2 <= m_platformStructure.blueAutoLine)
+				&& (earliestFinishTime <= AUTONOMOUS_END_TIME)
+				&& (!m_state.blueCrossAutoFlag[i])) {
+
+				m_state.blueCrossAutoFlag[i] = true;
+				m_blueScore += 5;
+			}
 
 			switch (actionResult) {
 			case ACTION_TIME_OUT:
@@ -1313,6 +1332,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 					(pPathOut->turnPoints[p].y - startPoint.y)*(pPathOut->turnPoints[p].y - startPoint.y);
 
 				pPathOut->totalDistance += (float)sqrt(distance);
+				startPoint = pPathOut->turnPoints[p];
 			}
 
 			return true;
@@ -1406,6 +1426,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 			(pPathOut->turnPoints[p].y - startPoint.y)*(pPathOut->turnPoints[p].y - startPoint.y);
 
 		pPathOut->totalDistance += (float)sqrt(distance);
+		startPoint = pPathOut->turnPoints[p];
 	}
 
 	return true;

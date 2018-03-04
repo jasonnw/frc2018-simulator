@@ -96,8 +96,12 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 			earliestFinishTime = getEarliestFinishTime();
 			playTotheNextTime(earliestFinishTime, actionIndexIn, FRAME_DELAY_IN_MS);
 		}
+
+		logFinalScore();
+
 		updateField();
 		drawPlatform(0);
+
 		return 1;
 	}
 	else {
