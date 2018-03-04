@@ -54,6 +54,8 @@ int displayPlatform::sendAction(const actionMessageType *pActionIn)
 		return -1;
 	}
 
+	//logAction(pActionIn->action.actionType, pActionIn->action.projectedFinishTime, pActionIn->action.robotIndex, pActionIn->actionIndex+1000, true);
+
 	//block on message Q
 	m_pQueue->send(pActionIn);
 	return 0;
@@ -75,9 +77,11 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 	do {
 		commitMessageFlag = false;
 		if (0 == m_pQueue->tryReceive(&message)) {
+			//logAction(message.action.actionType, message.action.projectedFinishTime, message.action.robotIndex, message.actionIndex + 2000, true);
+
 			commitMessageFlag = message.commitActionFlag;
 			quitFlag = message.quitFlag;
-			if (!quitFlag) {
+			if ((!quitFlag) && (!commitMessageFlag)) {
 				setRobotAction(&message.action, message.alliance, actionIndexIn);
 			}
 		}

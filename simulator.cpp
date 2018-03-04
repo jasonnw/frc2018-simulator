@@ -39,7 +39,7 @@ alliance redAlliance;
 alliance blueAlliance;
 platform gamePlatform;
 displayPlatform showPlatform;
-actionMessageType message[2];
+actionMessageType messageBuffer;
 
 #ifndef _MSC_VER
 //missing definitions of MS visual studio unique code
@@ -61,14 +61,15 @@ static DWORD WINAPI displayThreadEntry(LPVOID lpParameter)
 	int returnVal;
 	int actionCount = 0;
 
+	showPlatform.setLogFile(stdout);
 	showPlatform.setState(&initState);
 	showPlatform.setRedScore(initRedScore);
 	showPlatform.setBlueScore(initBlueScore);
-	showPlatform.setLogFile(NULL);
 	showPlatform.configRedRobots(RED_CONFIGURATION);
 	showPlatform.configBlueRobots(BLUE_CONFIGURATION);
 
 	showPlatform.drawPlatform(1000);
+
 	do {
 		returnVal = showPlatform.updatePlatform(actionCount);
 		actionCount++;
@@ -119,8 +120,6 @@ int main(int argc, char** argv)
 {
 	searchActionType redAction[NUMBER_OF_ROBOTS];
 	searchActionType blueAction[NUMBER_OF_ROBOTS];
-	//two message buffers to delay the output message by 1 for last message detection
-	int frontMessageIdx, backMessageIdx;
 
 	Point redStart, redEnd;
 	Point blueStart, blueEnd;
@@ -153,7 +152,7 @@ int main(int argc, char** argv)
 	gamePlatform.setState(&initState);
 	gamePlatform.setRedScore(initRedScore);
 	gamePlatform.setBlueScore(initBlueScore);
-	gamePlatform.setLogFile(stdout);
+	gamePlatform.setLogFile(NULL);
 	gamePlatform.configRedRobots(RED_CONFIGURATION);
 	gamePlatform.configBlueRobots(BLUE_CONFIGURATION);
 
@@ -183,68 +182,42 @@ int main(int argc, char** argv)
 		redAlliance.getBestAction(redAction);
 		blueAlliance.getBestAction(blueAction);
 
-		for (int i = 0; i < 2; i++) {
-			message[i].actionIndex = actionCounter;
-			message[i].alliance = ALLIANCE_BLUE;
-			message[i].commitActionFlag = false;
-			message[i].quitFlag = false;
-		}
+		messageBuffer.commitActionFlag = false;
+		messageBuffer.quitFlag = false;
+		messageBuffer.actionIndex = actionCounter;
 
 		newActionCount = 0;
-		frontMessageIdx = 0;
-		backMessageIdx = -1;
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-
-			//send the previous message out
-			if (backMessageIdx == frontMessageIdx) {
-				showPlatform.sendAction(&message[backMessageIdx]);
-				backMessageIdx ^= 1;
-			}
 
 			if ((redAction[i].actionType != INVALID_ACTION) && (redAction[i].actionType != RED_ACTION_NONE)) {
 				gamePlatform.setRobotAction(&redAction[i], ALLIANCE_RED, actionCounter);
 				newActionCount++;
 
-				memcpy(&message[frontMessageIdx].action, &redAction[i], sizeof(searchActionType));
-				message[frontMessageIdx].alliance = ALLIANCE_RED;
-				if (backMessageIdx == -1) {
-					backMessageIdx = frontMessageIdx;
-				}
-				frontMessageIdx ^= 1;
-			}
-
-			if (backMessageIdx == frontMessageIdx) {
-				showPlatform.sendAction(&message[backMessageIdx]);
-				backMessageIdx ^= 1;
+				memcpy(&messageBuffer.action, &redAction[i], sizeof(searchActionType));
+				messageBuffer.alliance = ALLIANCE_RED;
+				showPlatform.sendAction(&messageBuffer);
 			}
 
 			if ((blueAction[i].actionType != INVALID_ACTION) && (blueAction[i].actionType != BLUE_ACTION_NONE)) {
 				gamePlatform.setRobotAction(&blueAction[i], ALLIANCE_BLUE, actionCounter);
 				newActionCount++;
 
-				memcpy(&message[frontMessageIdx].action, &blueAction[i], sizeof(searchActionType));
-				message[frontMessageIdx].alliance = ALLIANCE_BLUE;
-				if (backMessageIdx == -1) {
-					backMessageIdx = frontMessageIdx;
-				}
-				frontMessageIdx ^= 1;
-			}
-			if (backMessageIdx == frontMessageIdx) {
-				showPlatform.sendAction(&message[backMessageIdx]);
-				backMessageIdx ^= 1;
+				memcpy(&messageBuffer.action, &blueAction[i], sizeof(searchActionType));
+				messageBuffer.alliance = ALLIANCE_BLUE;
+				showPlatform.sendAction(&messageBuffer);
 			}
 		}
 
 		//send the last message
 		if (newActionCount != 0) {
-			message[backMessageIdx].commitActionFlag = true;
-			showPlatform.sendAction(&message[backMessageIdx]);
+			messageBuffer.commitActionFlag = true;
+			showPlatform.sendAction(&messageBuffer);
 		}
 		else {
 			//send quit command
-			message[backMessageIdx].quitFlag = true;
-			message[backMessageIdx].commitActionFlag = true;
-			showPlatform.sendAction(&message[backMessageIdx]);
+			messageBuffer.quitFlag = true;
+			messageBuffer.commitActionFlag = true;
+			showPlatform.sendAction(&messageBuffer);
 		}
 
 		earliestFinishTime = gamePlatform.getEarliestFinishTime();
