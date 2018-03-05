@@ -63,7 +63,7 @@ static DWORD WINAPI displayThreadEntry(LPVOID lpParameter)
 	int returnVal;
 	int actionCount = 0;
 
-	showPlatform.setLogFile(NULL);
+	showPlatform.setLogFile(stdout);
 	showPlatform.setState(&initState);
 	showPlatform.setRedScore(initRedScore);
 	showPlatform.setBlueScore(initBlueScore);
@@ -151,7 +151,7 @@ int main(int argc, char** argv)
 	initDisplay();
 
 	//initialization
-	gamePlatform.setLogFile(stdout);
+	gamePlatform.setLogFile(NULL);
 	gamePlatform.setState(&initState);
 	gamePlatform.setRedScore(initRedScore);
 	gamePlatform.setBlueScore(initBlueScore);

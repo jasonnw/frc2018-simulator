@@ -1043,6 +1043,9 @@ float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endS
 			if (nextPath.numberOfTurns != 0) {
 				nextPath.turnPointDelay[nextPath.numberOfTurns - 1] += robotCubeDelayIn;
 			}
+			else {
+				nextPath.firstTurnDelay += robotCubeDelayIn;
+			}
 			if (shortestPath > nextPath.totalDistance) {
 				memcpy(pPathOut, &nextPath, sizeof(robotPathType));
 				*pCubeOut =  &m_cubes[i];
@@ -1118,10 +1121,13 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 		pPathOut->initialSpeed = 0;
 		pPathOut->turnPoints[0] = pMovingObjectIn->center;
 		pPathOut->turnPointDelay[0] = 0; //no delay after turn point is arrived
+		pPathOut->pickUpCubeIndex = -1;
+		pPathOut->firstTurnDelay = robotCubeDelayIn;
 	}
-
-	//the last turn point is the point to pick up a cube
-	pPathOut->pickUpCubeIndex = pPathOut->numberOfTurns - 1;
+	else {
+		//the last turn point is the point to pick up a cube
+		pPathOut->pickUpCubeIndex = pPathOut->numberOfTurns - 1;
+	}
 	return true;
 }
 
@@ -1188,6 +1194,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	coordinateType arroundPos;
 
 	pPathOut->initialSpeed = 0;
+	pPathOut->firstTurnDelay = 0;
 	memcpy(&movingObject, pMovingObjectIn, sizeof(movingObject));
 
 	//check if it is arrived 

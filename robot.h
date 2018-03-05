@@ -131,7 +131,8 @@ protected:
 	int combineTwoPathes(const robotPathType *pPath1In, const robotPathType *pPath2In, robotPathType *pPathOut) const;
 	float calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const;
 	int findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, float stopDelayIn,
-		coordinateType *pStopPositionOut, int *pCubeIndexOut, float *tpTrnPointDelayChangeOut, bool *pGiveUpCubeFlag) const;
+		coordinateType *pStopPositionOut, int *pCubeIndexOut, float *tpTrnPointDelayChangeOut,
+		bool *pGiveUpCubeFlagOut, bool *atMiddleOfLineFlagOut) const;
 
 	float getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn, const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn,
 		bool interruptFlagIn, robotPathType *pPathOut) const;

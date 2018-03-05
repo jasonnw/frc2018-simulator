@@ -144,6 +144,7 @@ const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 8;
 typedef struct robotPathType {
 	coordinateType turnPoints[MAX_TURNS_ON_PATH];
 	float turnPointDelay[MAX_TURNS_ON_PATH];
+	float firstTurnDelay;  //the delay before start moving
 	float initialSpeed;
 	float totalDistance;
 	int numberOfTurns;  //the number of turns on the path.
