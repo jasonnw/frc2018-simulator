@@ -259,6 +259,32 @@ bool platform::hasPendingAction(int robotIndexIn, allianceType allianceIn)
 	}
 }
 
+void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, allianceType allianceIn, int robotIdxIn, int indexIn)
+{
+	robot *pRobots;
+
+	if (allianceIn == ALLIANCE_RED) {
+		pRobots = m_redRobots;
+	}
+	else {
+		pRobots = m_blueRobots;
+	}
+
+	pRobots[robotIdxIn].forceAction(pPlannedActionIn, m_timeInSec, indexIn);
+}
+
+const pendingActionType *platform::getRobotAction(allianceType allianceIn, int robotIdxIn) const
+{
+	const robot *pRobots;
+
+	if (allianceIn == ALLIANCE_RED) {
+		pRobots = m_redRobots;
+	}
+	else {
+		pRobots = m_blueRobots;
+	}
+	return pRobots[robotIdxIn].getPlannedAction();
+}
 
 int platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn)
 {

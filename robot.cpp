@@ -114,6 +114,21 @@ bool robot::isHumanPlayerAction(actionTypeType actionIn)
 	}
 }
 
+int robot::forceAction(const pendingActionType *pPlannedActionIn, float timeIn, int indexIn)
+{
+	float actionDleay = pPlannedActionIn->projectedFinishTime - pPlannedActionIn->startTime;
+
+	if (m_plannedAction.actionType != pPlannedActionIn->actionType) {
+		memcpy(&m_plannedAction, pPlannedActionIn, sizeof(pendingActionType));
+		m_plannedAction.startTime = timeIn;
+		m_plannedAction.projectedFinishTime = timeIn + actionDleay;
+		m_plannedAction.actionIndex = indexIn;
+	}
+	//else, continue the current action
+
+	return 0;
+}
+
 
 int robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
 {

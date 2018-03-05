@@ -178,9 +178,10 @@ const int PLATFORM_RESOLUSION_X = 1280;
 const int PLATFORM_RESOLUSION_y = 720;
 
 typedef struct actionMessageType {
-	searchActionType action;
+	pendingActionType action;
 	allianceType alliance;
 	int actionIndex;
+	int robotIdx;
 	bool commitActionFlag;
 	bool quitFlag;
 }actionMessageType;

@@ -223,6 +223,9 @@ public:
 	int getRedLiftRobotIndex(void) const { return m_liftRedRobotIndex; }
 	int getBlueLiftRobotIndex(void) const { return m_liftBlueRobotIndex; }
 
+	const pendingActionType *getRobotAction(allianceType allianceIn, int robotIdxIn) const;
+
+
 	void setState(const platformStateType *pStateIn) { memcpy(&m_state, pStateIn,  sizeof(m_state)); }
 	void setTime(float timeIn) { m_timeInSec = timeIn; }
 	void setRedScore(int redScoreIn) { m_redScore = redScoreIn; }
@@ -280,6 +283,7 @@ public:
 	void removeCube(int cubeIdxIn) { m_cubes[cubeIdxIn].availbleFlag = false; }
 
 	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
+	void forceRobotAction(const pendingActionType *pPlannedActionIn, allianceType allianceIn, int robotIdxIn, int indexIn);
 
 	float getEarliestFinishTime(void);
 	int commitAction(float nextTimeIn, int indexIn, allianceType activeAllianceIn);

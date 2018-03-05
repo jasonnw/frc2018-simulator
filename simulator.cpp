@@ -20,10 +20,10 @@ const cv::Scalar blueColor(200, 0, 0);
 const cv::Scalar redColor(0, 0, 200);
 
 const int IMAGE_RESOLUSION_X = 1280;
-const int IMAGE_RESOLUSION_y = 720;
+const int IMAGE_RESOLUSION_y = 800;
 
 const int ORIGIN_X = 40;
-const int ORIGIN_Y = 680;
+const int ORIGIN_Y = 760;
 
 const int MAXIMUM_X = 1270;
 const int MAXIMUM_Y = 20;
@@ -32,6 +32,8 @@ const int SECONDS_PER_LABEL = 10;
 const int POINTS_PER_SECOND = 7;
 const int SCORES_PER_LABEL = 20;
 const int POINTS_PER_SCORE = 2;
+
+const int LABAL_OFFSET_Y = 780;
 
 //global objects
 Mat gameScore(IMAGE_RESOLUSION_y, IMAGE_RESOLUSION_X, CV_8UC3, Scalar(0, 0, 0));
@@ -98,15 +100,15 @@ static void initDisplay(void)
 
 	for (int i = 0; i < 18; i++) {
 		sprintf_s(numberString, "%d", i*SECONDS_PER_LABEL);
-		putText(gameScore, numberString, cvPoint(36 + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, 700),
+		putText(gameScore, numberString, cvPoint(36 + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, LABAL_OFFSET_Y),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
 
-		Point x0 = Point(ORIGIN_X + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, 680);
-		Point x1 = Point(ORIGIN_X + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, 675);
+		Point x0 = Point(ORIGIN_X + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, LABAL_OFFSET_Y - 20);
+		Point x1 = Point(ORIGIN_X + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, LABAL_OFFSET_Y - 25);
 		line(gameScore,	x0, x1, coordinateColor, 1, 8);
 
 		sprintf_s(numberString, "%d", i*SCORES_PER_LABEL);
-		putText(gameScore, numberString, cvPoint(5, 680 - i * SCORES_PER_LABEL*POINTS_PER_SCORE),
+		putText(gameScore, numberString, cvPoint(5, LABAL_OFFSET_Y - 20 - i * SCORES_PER_LABEL*POINTS_PER_SCORE),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
 
 		Point y0 = Point(ORIGIN_X, ORIGIN_Y - i * SCORES_PER_LABEL*POINTS_PER_SCORE);
@@ -120,7 +122,7 @@ int main(int argc, char** argv)
 {
 	searchActionType redAction[NUMBER_OF_ROBOTS];
 	searchActionType blueAction[NUMBER_OF_ROBOTS];
-
+	const pendingActionType *pAction;
 	Point redStart, redEnd;
 	Point blueStart, blueEnd;
 	int actionCounter;
@@ -193,8 +195,10 @@ int main(int argc, char** argv)
 				gamePlatform.setRobotAction(&redAction[i], ALLIANCE_RED, actionCounter);
 				newActionCount++;
 
-				memcpy(&messageBuffer.action, &redAction[i], sizeof(searchActionType));
+				pAction = gamePlatform.getRobotAction(ALLIANCE_RED, i);
+				memcpy(&messageBuffer.action, pAction, sizeof(pendingActionType));
 				messageBuffer.alliance = ALLIANCE_RED;
+				messageBuffer.robotIdx = i;
 				showPlatform.sendAction(&messageBuffer);
 			}
 
@@ -202,8 +206,10 @@ int main(int argc, char** argv)
 				gamePlatform.setRobotAction(&blueAction[i], ALLIANCE_BLUE, actionCounter);
 				newActionCount++;
 
-				memcpy(&messageBuffer.action, &blueAction[i], sizeof(searchActionType));
+				pAction = gamePlatform.getRobotAction(ALLIANCE_BLUE, i);
+				memcpy(&messageBuffer.action, pAction, sizeof(pendingActionType));
 				messageBuffer.alliance = ALLIANCE_BLUE;
+				messageBuffer.robotIdx = i;
 				showPlatform.sendAction(&messageBuffer);
 			}
 		}
@@ -235,7 +241,7 @@ int main(int argc, char** argv)
 		}
 
 		//update the score display
-		redEnd.x = blueEnd.x = POINTS_PER_SECOND * (int) floor(gamePlatform.getTime() + 0.5);
+		redEnd.x = blueEnd.x = ORIGIN_X + POINTS_PER_SECOND * (int) floor(gamePlatform.getTime() + 0.5);
 		redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getRedScore();
 		blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getBlueScore();
 		line(gameScore,	redStart, redEnd, redColor, 3, 8);

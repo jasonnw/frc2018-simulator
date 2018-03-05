@@ -114,6 +114,7 @@ public:
 	}
 
 	int takeAction(actionTypeType actionIn, float timeIn, int indexIn);
+	int forceAction(const pendingActionType *pPlannedActionIn, float timeIn, int indexIn);
 
 	float getPlannedActionFinishTime(void)
 	{

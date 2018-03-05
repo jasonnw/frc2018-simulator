@@ -82,7 +82,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 			commitMessageFlag = message.commitActionFlag;
 			quitFlag = message.quitFlag;
 			if ((!quitFlag) && (!commitMessageFlag)) {
-				setRobotAction(&message.action, message.alliance, actionIndexIn);
+				forceRobotAction(&message.action, message.alliance, message.robotIdx, actionIndexIn);
 			}
 		}
 		else {
