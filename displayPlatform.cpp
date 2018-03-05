@@ -3,7 +3,7 @@
 #include "displayPlatform.h"
 
 const float ORIGION_POINT_X = 10;
-const float ORIGION_POINT_Y = 710;
+const float ORIGION_POINT_Y = 790;
 const float PIXELS_PER_INCH = (float) 1.9;
 const cv::Scalar wallColor = { 128, 128, 128 };
 const float FRAME_DELAY_IN_MS = 16;
@@ -94,6 +94,9 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 		//finish all pending actions
 		while (hasPendingActions()) {
 			earliestFinishTime = getEarliestFinishTime();
+			if (earliestFinishTime > CLIMB_END_TIME) {
+				break;
+			}
 			playTotheNextTime(earliestFinishTime, actionIndexIn, FRAME_DELAY_IN_MS);
 		}
 
@@ -126,7 +129,7 @@ void displayPlatform::playTotheNextTime(float nextTimeIn, int actionIndexIn, flo
 			printf("ERROR, cannot display invalid action");
 		}
 		updateField();
-		drawPlatform((int) floor(frameDelay * 1000));
+		drawPlatform((int) floor(frameDelay * 4000));
 	}
 
 	//last action
@@ -155,7 +158,7 @@ void displayPlatform::drawPlatform(int delayIn)
 	waitKey(delayIn);
 }
 
-void displayPlatform::drwaObject(const rectangleObjectType *pObjectIn)
+void displayPlatform::drawObject(const rectangleObjectType *pObjectIn)
 {
 	Point point1;
 	Point point2;
@@ -164,6 +167,53 @@ void displayPlatform::drwaObject(const rectangleObjectType *pObjectIn)
 	point2 = coordinateToPoint(pObjectIn->center.x - pObjectIn->sizeX / 2, pObjectIn->center.y - pObjectIn->sizeY / 2);
 
 	rectangle(*m_pPlatform, point1, point2, pObjectIn->color, CV_FILLED, 8, 0);
+}
+
+void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numberIn, int sizeIn)
+{
+	Point point1;
+	char robotIdxStr[4];
+	cv::Scalar color(50, 20, 20);
+
+	sprintf_s(robotIdxStr, "%d", numberIn);
+	point1 = coordinateToPoint(pObjectIn->center.x - 4, pObjectIn->center.y - 8);
+	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, 0.8, color, 1, CV_AA);
+}
+
+
+void displayPlatform::drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn)
+{
+	Point point1;
+	Point point2;
+	char robotIdxStr[4];
+	cv::Scalar color(50, 20, 20);
+	cv::Scalar cubeColor(20, 120, 20);
+
+	drawObject(pObjectIn);
+	sprintf_s(robotIdxStr, "%d", robotIdxIn);
+
+	point1 = coordinateToPoint(pObjectIn->center.x - 4, pObjectIn->center.y - 15);
+
+	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, 0.8, color, 1, CV_AA);
+
+	if (hasCubeFlagIn) {
+		point1 = coordinateToPoint(pObjectIn->center.x + 8, pObjectIn->center.y + 12);
+		point2 = coordinateToPoint(pObjectIn->center.x - 8, pObjectIn->center.y - 4);
+
+		rectangle(*m_pPlatform, point1, point2, cubeColor, CV_FILLED, 8, 0);
+	}
+}
+
+void displayPlatform::drawCube(coordinateType positionIn)
+{
+	Point point1;
+	Point point2;
+	cv::Scalar cubeColor(20, 120, 20);
+
+	point1 = coordinateToPoint(positionIn.x + 8, positionIn.y + 8);
+	point2 = coordinateToPoint(positionIn.x - 8, positionIn.y - 8);
+
+	rectangle(*m_pPlatform, point1, point2, cubeColor, CV_FILLED, 8, 0);
 }
 
 void displayPlatform::drawField(void)
@@ -189,23 +239,44 @@ void displayPlatform::drawField(void)
 	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
 
 	for (int i = RED_SWITCH_ZONE; i < NUM_STILL_STRUCTURE; i++) {
-		drwaObject(&m_platformStructure.structures[i]);
+		drawObject(&m_platformStructure.structures[i]);
 	}
 
-	drwaObject(&m_platformStructure.blueExchangeZone);
-	drwaObject(&m_platformStructure.blueLiftZone);
-	drwaObject(&m_platformStructure.bluePlatformZone);
-	drwaObject(&m_platformStructure.bluePowerCubeZone);
-	drwaObject(&m_platformStructure.blueSwitchNorthPlate);
-	drwaObject(&m_platformStructure.blueSwitchSouthPlate);
-	drwaObject(&m_platformStructure.redExchangeZone);
-	drwaObject(&m_platformStructure.redLiftZone);
-	drwaObject(&m_platformStructure.redPlatformZone);
-	drwaObject(&m_platformStructure.redPowerCubeZone);
-	drwaObject(&m_platformStructure.redSwitchNorthPlate);
-	drwaObject(&m_platformStructure.redSwitchSouthPlate);
-	drwaObject(&m_platformStructure.scaleNorthPlate);
-	drwaObject(&m_platformStructure.scaleSouthPlate);
+	drawObject(&m_platformStructure.blueExchangeZone);
+	drawObject(&m_platformStructure.blueLiftZone);
+	drawObject(&m_platformStructure.bluePlatformZone);
+	drawObject(&m_platformStructure.bluePowerCubeZone);
+	drawObject(&m_platformStructure.blueSwitchNorthPlate);
+	drawObject(&m_platformStructure.blueSwitchSouthPlate);
+	drawObject(&m_platformStructure.redExchangeZone);
+	drawObject(&m_platformStructure.redLiftZone);
+	drawObject(&m_platformStructure.redPlatformZone);
+	drawObject(&m_platformStructure.redPowerCubeZone);
+	drawObject(&m_platformStructure.redSwitchNorthPlate);
+	drawObject(&m_platformStructure.redSwitchSouthPlate);
+	drawObject(&m_platformStructure.scaleNorthPlate);
+	drawObject(&m_platformStructure.scaleSouthPlate);
+
+	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
+		if (m_cubes[i].availbleFlag) {
+			drawCube(m_cubes[i].position);
+		}
+	}
+	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
+		if (m_cubes[i].availbleFlag) {
+			drawCube(m_cubes[i].position);
+		}
+	}
+	for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
+		if (m_cubes[i].availbleFlag) {
+			drawCube(m_cubes[i].position);
+		}
+	}
+	for (int i = CUBE_BY_BLUE_POWER_ZONE; i < CUBE_BY_RED_EXCHANGE_ZONE; i++) {
+		if (m_cubes[i].availbleFlag) {
+			drawCube(m_cubes[i].position);
+		}
+	}
 
 }
 
@@ -215,8 +286,35 @@ void displayPlatform::updateField(void)
 	*m_pPlatform = Scalar(0, 0, 0);
 	drawField();
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		drwaObject(m_redRobots[i].getPosition());
-		drwaObject(m_blueRobots[i].getPosition());
+		drawRobot(m_redRobots[i].getPosition(), i, m_redRobots[i].hasCube());
+		drawRobot(m_blueRobots[i].getPosition(), i, m_redRobots[i].hasCube());
+	}
+	
+	if (BLUE_NORTH_SWITCH_FLAG) {
+		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_BlueBlockCount);
+		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_RedBlockCount);
+	}
+	else {
+		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_RedBlockCount);
+		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_BlueBlockCount);
+	}
+
+	if (RED_NORTH_SWITCH_FLAG) {
+		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_RedBlockCount);
+		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_BlueBlockCount);
+	}
+	else {
+		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_BlueBlockCount);
+		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_RedBlockCount);
+	}
+
+	if (RED_NORTH_SCALE_FLAG) {
+		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleRedBlockCount);
+		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleBlueBlockCount);
+	}
+	else {
+		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleBlueBlockCount);
+		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleRedBlockCount);
 	}
 }
 

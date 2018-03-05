@@ -136,7 +136,6 @@ public:
 class platform
 {
 private:
-	platformStateType m_state;
 	float m_timeInSec; 
 	int m_redScore;
 	int m_blueScore;
@@ -145,17 +144,18 @@ private:
 	int m_debugCounter;
 	FILE *m_pLogFIle;
 
+protected:
+	platformStateType m_state;
+	platformLayoutType m_platformStructure;
+	robot m_redRobots[NUMBER_OF_ROBOTS];
+	robot m_blueRobots[NUMBER_OF_ROBOTS];
+
+
 	cubeStateType m_cubes[MAX_CUBES];
 	//6 cubes by each switch
 	//10 cubes at each power cube zone
 	//unlimited cubes at exchange zone
 	//constructor will put cube to the start position;
-
-
-protected:
-	platformLayoutType m_platformStructure;
-	robot m_redRobots[NUMBER_OF_ROBOTS];
-	robot m_blueRobots[NUMBER_OF_ROBOTS];
 
 public:
 	platform();

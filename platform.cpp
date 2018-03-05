@@ -72,6 +72,15 @@ platform::platform()
 	m_platformStructure.blueSwitchSouthPlate.sizeY = 3 * 12;
 	m_platformStructure.blueSwitchSouthPlate.color = { 100, 0, 0 };
 
+	if (BLUE_NORTH_SWITCH_FLAG) {
+		m_platformStructure.blueSwitchNorthPlate.color = { 120, 10, 10 };
+		m_platformStructure.blueSwitchSouthPlate.color = { 10, 10, 120 };
+	}
+	else {
+		m_platformStructure.blueSwitchNorthPlate.color = { 10, 10, 120 };
+		m_platformStructure.blueSwitchSouthPlate.color = { 120, 10, 10 };
+	}
+
 	m_platformStructure.eastWall = (288 * 2 + 72);
 	m_platformStructure.northWall = (264 + 48 * 2);
 	m_platformStructure.redAutoLine = 10 * 12;
@@ -104,33 +113,48 @@ platform::platform()
 	m_platformStructure.redPowerCubeZone.sizeY = 45;
 	m_platformStructure.redPowerCubeZone.color = { 0, 0, 100 };
 
+
 	m_platformStructure.redSwitchNorthPlate.objectId = 11;
 	m_platformStructure.redSwitchNorthPlate.center.x = 140 + 56 / 2;
 	m_platformStructure.redSwitchNorthPlate.center.y = (264 + 48 * 2) / 2 + 6 * 12;
 	m_platformStructure.redSwitchNorthPlate.sizeX = 4 * 12;
 	m_platformStructure.redSwitchNorthPlate.sizeY = 3 * 12;
-	m_platformStructure.redSwitchNorthPlate.color = { 10, 10, 100 };
 
 	m_platformStructure.redSwitchSouthPlate.objectId = 12;
 	m_platformStructure.redSwitchSouthPlate.center.x = 140 + 56 / 2;
 	m_platformStructure.redSwitchSouthPlate.center.y = (264 + 48 * 2) / 2 - 6 * 12;
 	m_platformStructure.redSwitchSouthPlate.sizeX = 4 * 12;
 	m_platformStructure.redSwitchSouthPlate.sizeY = 3 * 12;
-	m_platformStructure.redSwitchSouthPlate.color = { 0, 0, 100 };
+
+	if (RED_NORTH_SWITCH_FLAG) {
+		m_platformStructure.redSwitchNorthPlate.color = { 10, 10, 120 };
+		m_platformStructure.redSwitchSouthPlate.color = { 120, 10, 10 };
+	}
+	else {
+		m_platformStructure.redSwitchNorthPlate.color = { 120, 10, 10 };
+		m_platformStructure.redSwitchSouthPlate.color = { 10, 10, 120 };
+	}
 
 	m_platformStructure.scaleNorthPlate.objectId = 13;
 	m_platformStructure.scaleNorthPlate.center.x = (288 * 2 + 72) / 2;
 	m_platformStructure.scaleNorthPlate.center.y = (264 + 48 * 2) / 2 + (15 * 12 / 2);
 	m_platformStructure.scaleNorthPlate.sizeX = 4 * 12;
 	m_platformStructure.scaleNorthPlate.sizeY = 3 * 12;
-	m_platformStructure.scaleNorthPlate.color = { 10, 10, 100 };
 
 	m_platformStructure.scaleSouthPlate.objectId = 14;
 	m_platformStructure.scaleSouthPlate.center.x = (288 * 2 + 72) / 2;
 	m_platformStructure.scaleSouthPlate.center.y = (264 + 48 * 2) / 2 - (15 * 12 / 2);
 	m_platformStructure.scaleSouthPlate.sizeX = 4 * 12;
 	m_platformStructure.scaleSouthPlate.sizeY = 3 * 12;
-	m_platformStructure.scaleSouthPlate.color = { 0, 0, 100 };
+
+	if (RED_NORTH_SCALE_FLAG) {
+		m_platformStructure.scaleNorthPlate.color = { 10, 10, 100 };
+		m_platformStructure.scaleSouthPlate.color = { 100, 10, 10 };
+	}
+	else {
+		m_platformStructure.scaleNorthPlate.color = { 100, 10, 10 };
+		m_platformStructure.scaleSouthPlate.color = { 10, 10, 10 };
+	}
 
 	m_platformStructure.southWall = 0;
 	m_platformStructure.westWall = 0;

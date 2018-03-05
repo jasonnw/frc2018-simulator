@@ -175,7 +175,7 @@ public:
 
 const int MESSAGE_QUEUE_DEPTH = 20;
 const int PLATFORM_RESOLUSION_X = 1280;
-const int PLATFORM_RESOLUSION_y = 720;
+const int PLATFORM_RESOLUSION_y = 800;
 
 typedef struct actionMessageType {
 	pendingActionType action;
@@ -207,10 +207,14 @@ public:
 	void drawPlatform(int delayIn);
 
 protected:
-	void playTotheNextTime(float nextTimeIn, int actionIndexIn, float delayIn);
-	void drwaObject(const rectangleObjectType *pObjectIn);
-	void drawField(void);
 	Point coordinateToPoint(float xIn, float yIn);
 	void updateField(void);
+	void playTotheNextTime(float nextTimeIn, int actionIndexIn, float delayIn);
+
+	void drawCube(coordinateType positionIn);
+	void drawObject(const rectangleObjectType *pObjectIn);
+	void drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn);
+	void drawNumber(const rectangleObjectType *pObjectIn, int numberIn, int sizeIn);
+	void drawField(void);
 };
 
