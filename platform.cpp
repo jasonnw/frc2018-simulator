@@ -183,12 +183,12 @@ platform::platform()
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position.x = 196 + 6 + 30;
-		m_cubes[i].position.y = (float) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_RED_SWITCH) * 24);
+		m_cubes[i].position.y = (float) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_RED_SWITCH) * 30);
 	}
 	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position.x = (288 * 2 + 72) - 196 - 6 - 30;
-		m_cubes[i].position.y = (float)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_BLUE_SWITCH) * 24);
+		m_cubes[i].position.y = (float)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_BLUE_SWITCH) * 30);
 	}
 	for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
 		m_cubes[i].availbleFlag = true;
@@ -283,7 +283,7 @@ bool platform::hasPendingAction(int robotIndexIn, allianceType allianceIn)
 	}
 }
 
-void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, allianceType allianceIn, int robotIdxIn, int indexIn)
+void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, allianceType allianceIn, int robotIdxIn, int indexIn)
 {
 	robot *pRobots;
 
@@ -294,7 +294,22 @@ void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, allia
 		pRobots = m_blueRobots;
 	}
 
-	pRobots[robotIdxIn].forceAction(pPlannedActionIn, m_timeInSec, indexIn);
+	pRobots[robotIdxIn].forceAction(pPlannedActionIn, startPosIn, m_timeInSec, indexIn);
+}
+
+coordinateType platform::getRobotPos(allianceType allianceIn, int robotIdxIn) const
+{
+	const robot *pRobots;
+	const rectangleObjectType *pPos;
+
+	if (allianceIn == ALLIANCE_RED) {
+		pRobots = m_redRobots;
+	}
+	else {
+		pRobots = m_blueRobots;
+	}
+	pPos = pRobots[robotIdxIn].getPosition();
+	return pPos->center;
 }
 
 const pendingActionType *platform::getRobotAction(allianceType allianceIn, int robotIdxIn) const

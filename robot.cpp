@@ -114,9 +114,12 @@ bool robot::isHumanPlayerAction(actionTypeType actionIn)
 	}
 }
 
-int robot::forceAction(const pendingActionType *pPlannedActionIn, float timeIn, int indexIn)
+int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, float timeIn, int indexIn)
 {
 	float actionDleay = pPlannedActionIn->projectedFinishTime - pPlannedActionIn->startTime;
+
+	//sync the current robot position
+	m_state.pos.center = startPosIn;
 
 	if (m_plannedAction.actionType != pPlannedActionIn->actionType) {
 		memcpy(&m_plannedAction, pPlannedActionIn, sizeof(pendingActionType));
@@ -175,6 +178,7 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 	bool hasCubeFlag = false;
 	bool giveUpCubeFlag = false;
 	bool middleOfLineFlag;
+	bool justTimeUpFlag;
 	int stopIndex;
 	float delayOutput;
 	float turnPointDelayChange;
@@ -192,7 +196,7 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 		else {
 			//stop the current task and start the new task
 			stopIndex = findStopPosition(&startPosition.center, &m_plannedAction.path, currentTimeIn, &stopPosition,
-				&cubeIndex, &turnPointDelayChange, &giveUpCubeFlag, &middleOfLineFlag);
+				&cubeIndex, &turnPointDelayChange, &giveUpCubeFlag, &middleOfLineFlag, &justTimeUpFlag);
 
 			if ((m_state.cubeIdx != INVALID_IDX) || (cubeIndex != INVALID_IDX)) {
 				hasCubeFlag = true; //may have cube from the previous action or before stop point
@@ -425,6 +429,8 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 
 	actionDelay += calculateDelayOnPath(&pStartPosIn->center, pPathOut);
 
+	//test if action delay is correct
+
 	//return delay must not be 0
 	if (MINMUM_TIME_RESOLUTION > actionDelay) {
 		actionDelay = MINMUM_TIME_RESOLUTION;
@@ -545,6 +551,7 @@ actionResultType robot::moveToNextTime(float timeIn)
 	int cubeIndex;
 	bool giveUpCubeFlag = false;
 	bool middleOfLineFlag = false;
+	bool justTimeUpFlag;
 
 	returnResult = ACTION_IN_PROGRESS;
 	actionType = m_plannedAction.actionType; //save a copy of action type
@@ -557,14 +564,19 @@ actionResultType robot::moveToNextTime(float timeIn)
 	delay = timeIn - m_plannedAction.startTime;
 
 	stopIdx = findStopPosition(&m_state.pos.center, &m_plannedAction.path, delay, &newPosition, &cubeIndex,
-		&turnPointDelayChange, &giveUpCubeFlag, &middleOfLineFlag);
+		&turnPointDelayChange, &giveUpCubeFlag, &middleOfLineFlag, &justTimeUpFlag);
 
 	if (cubeIndex != INVALID_IDX) {
+		if (m_state.cubeIdx != INVALID_IDX) {
+			printf("ERROR, robot already has a cube\n");
+		}
 		m_state.cubeIdx = cubeIndex;
 		m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
 	}
 
+	//update the current position and time
 	m_state.pos.center = newPosition;
+	m_plannedAction.startTime = timeIn;
 
 	if (timeIn >= m_plannedAction.projectedFinishTime) {
 		//to avoid time drifting, force action done when it passed the original projected finish time
@@ -683,7 +695,7 @@ actionResultType robot::moveToNextTime(float timeIn)
 
 int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, 
 	 float stopDelayIn, coordinateType *pStopPositionOut, int *pCubeIndexOut, 
-	float *tpTrnPointDelayChangeOut, bool *pGiveUpCubeFlagOut, bool *atMiddleOfLineFlagOut) const
+	float *pTrnPointDelayChangeOut, bool *pGiveUpCubeFlagOut, bool *atMiddleOfLineFlagOut, bool *pJustDoneFlagOut) const
 {
 	coordinateType startPos = *pStartIn;
 	int stopIndex = INVALID_IDX;
@@ -691,17 +703,25 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 	float totalDelay = 0;
 	float delay;
 
-	*pStopPositionOut = m_state.pos.center;
+	*pStopPositionOut = *pStartIn;
 	*pCubeIndexOut = INVALID_IDX;
 	*pGiveUpCubeFlagOut = false;
-	*tpTrnPointDelayChangeOut = 0;
+	*pTrnPointDelayChangeOut = 0;
 	*atMiddleOfLineFlagOut = false;
+	*pJustDoneFlagOut = false;
 
 	totalDelay = pPathIn->firstTurnDelay;
 
-	if (totalDelay >= stopDelayIn) {
-		*tpTrnPointDelayChangeOut = stopDelayIn;
+	if (totalDelay > stopDelayIn) {
+		//stop before pick up cube
+		*pTrnPointDelayChangeOut = stopDelayIn;
 		return stopIndex;
+	}
+
+	if (totalDelay == stopDelayIn) {
+		if (pPathIn->numberOfTurns == 0) {
+			*pJustDoneFlagOut = true;
+		}
 	}
 
 	if (pPathIn->pickUpCubeIndex == -1) {
@@ -713,6 +733,11 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 			*pGiveUpCubeFlagOut = true;
 			return stopIndex;
 		}
+	}
+
+	if (totalDelay == stopDelayIn) {
+		//stop after cube pick up
+		return stopIndex;
 	}
 
 	for (int i = 0; i < pPathIn->numberOfTurns; i++) {
@@ -741,12 +766,18 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 		if (totalDelay + delay > stopDelayIn) {
 			//stop at the end of the line with less turn point delay
 			*pStopPositionOut = pPathIn->turnPoints[i];
-			*tpTrnPointDelayChangeOut = stopDelayIn - totalDelay;
+			*pTrnPointDelayChangeOut = stopDelayIn - totalDelay;
 			break;
 		}
 
 		//else, because turn point delay is passed, the cube should be picked up already
 		totalDelay += delay;
+		if (totalDelay == stopDelayIn) {
+			if (i+1 == pPathIn->numberOfTurns) {
+				*pJustDoneFlagOut = true;
+			}
+		}
+
 		if (i == pPathIn->pickUpCubeIndex) {
 			*pCubeIndexOut = m_pPlatform->pickUpCube(pPathIn->turnPoints[i], m_allianceType);
 			if (*pCubeIndexOut == INVALID_IDX) {

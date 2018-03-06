@@ -180,6 +180,7 @@ const int PLATFORM_RESOLUSION_y = 800;
 typedef struct actionMessageType {
 	pendingActionType action;
 	allianceType alliance;
+	coordinateType startPos;
 	int actionIndex;
 	int robotIdx;
 	bool commitActionFlag;
@@ -214,7 +215,7 @@ protected:
 	void drawCube(coordinateType positionIn);
 	void drawObject(const rectangleObjectType *pObjectIn);
 	void drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn);
-	void drawNumber(const rectangleObjectType *pObjectIn, int numberIn, int sizeIn);
+	void drawNumber(const rectangleObjectType *pObjectIn, int numberIn, float sizeIn);
 	void drawField(void);
 };
 

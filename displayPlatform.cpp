@@ -82,7 +82,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 			commitMessageFlag = message.commitActionFlag;
 			quitFlag = message.quitFlag;
 			if ((!quitFlag) && (!commitMessageFlag)) {
-				forceRobotAction(&message.action, message.alliance, message.robotIdx, actionIndexIn);
+				forceRobotAction(&message.action, message.startPos, message.alliance, message.robotIdx, actionIndexIn);
 			}
 		}
 		else {
@@ -123,13 +123,13 @@ void displayPlatform::playTotheNextTime(float nextTimeIn, int actionIndexIn, flo
 		frameDelay = (float) (FRAME_DELAY_IN_MS / 1000);
 	}
 
-	for (float i = currentTime; i < nextTimeIn; i += frameDelay)
+	for (float i = currentTime + frameDelay; i < nextTimeIn; i += frameDelay)
 	{
 		if (0 != commitAction(i, actionIndexIn, INVALID_ALLIANCE)) {
 			printf("ERROR, cannot display invalid action");
 		}
 		updateField();
-		drawPlatform((int) floor(frameDelay * 4000));
+		drawPlatform((int) floor(frameDelay * 2000));
 	}
 
 	//last action
@@ -169,15 +169,15 @@ void displayPlatform::drawObject(const rectangleObjectType *pObjectIn)
 	rectangle(*m_pPlatform, point1, point2, pObjectIn->color, CV_FILLED, 8, 0);
 }
 
-void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numberIn, int sizeIn)
+void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numberIn, float sizeIn)
 {
 	Point point1;
 	char robotIdxStr[4];
-	cv::Scalar color(50, 20, 20);
+	cv::Scalar color(200, 200, 200);
 
 	sprintf_s(robotIdxStr, "%d", numberIn);
 	point1 = coordinateToPoint(pObjectIn->center.x - 4, pObjectIn->center.y - 8);
-	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, 0.8, color, 1, CV_AA);
+	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, color, 1, CV_AA);
 }
 
 
@@ -291,30 +291,30 @@ void displayPlatform::updateField(void)
 	}
 	
 	if (BLUE_NORTH_SWITCH_FLAG) {
-		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_BlueBlockCount);
-		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_RedBlockCount);
+		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_BlueBlockCount, 2.0);
+		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_RedBlockCount, 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_RedBlockCount);
-		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_BlueBlockCount);
+		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_RedBlockCount, 2.0);
+		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_BlueBlockCount, 2.0);
 	}
 
 	if (RED_NORTH_SWITCH_FLAG) {
-		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_RedBlockCount);
-		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_BlueBlockCount);
+		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_RedBlockCount, 2.0);
+		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_BlueBlockCount, 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_BlueBlockCount);
-		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_RedBlockCount);
+		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_BlueBlockCount, 2.0);
+		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_RedBlockCount, 2.0);
 	}
 
 	if (RED_NORTH_SCALE_FLAG) {
-		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleRedBlockCount);
-		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleBlueBlockCount);
+		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleRedBlockCount, 2.0);
+		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleBlueBlockCount, 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleBlueBlockCount);
-		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleRedBlockCount);
+		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleBlueBlockCount, 2.0);
+		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleRedBlockCount, 2.0);
 	}
 }
 
