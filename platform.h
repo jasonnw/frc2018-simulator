@@ -137,8 +137,8 @@ class platform
 {
 private:
 	float m_timeInSec; 
-	int m_redScore;
-	int m_blueScore;
+	double m_redScore;
+	double m_blueScore;
 	int m_liftRedRobotIndex;
 	int m_liftBlueRobotIndex;
 	int m_debugCounter;
@@ -163,8 +163,8 @@ public:
 
 	const platformStateType * getState(void) const { return &m_state; }
 	float getTime(void) const { return m_timeInSec; }
-	int getRedScore(void) const { return m_redScore; }
-	int getBlueScore(void) const { return m_blueScore; }
+	double getRedScore(void) const { return m_redScore; }
+	double getBlueScore(void) const { return m_blueScore; }
 	const cubeStateType *getCubes(void) const { return m_cubes; }
 	const robot * getRedRobots(void) const { return m_redRobots; }
 	const robot * getBlueRobots(void) const { return m_blueRobots; }
@@ -229,8 +229,8 @@ public:
 
 	void setState(const platformStateType *pStateIn) { memcpy(&m_state, pStateIn,  sizeof(m_state)); }
 	void setTime(float timeIn) { m_timeInSec = timeIn; }
-	void setRedScore(int redScoreIn) { m_redScore = redScoreIn; }
-	void setBlueScore(int blueScoreIn) { m_blueScore = blueScoreIn; }
+	void setRedScore(double redScoreIn) { m_redScore = redScoreIn; }
+	void setBlueScore(double blueScoreIn) { m_blueScore = blueScoreIn; }
 	void setLogFile(FILE *pFileIn) { m_pLogFIle = pFileIn; }
 	void setCubes(const cubeStateType *pCubesIn) {
 		memcpy(m_cubes, pCubesIn, sizeof(cubeStateType)*MAX_CUBES);
@@ -313,7 +313,7 @@ protected:
 		cubeStateType **pCubeOut, robotPathType *pPathOut);
 
 	void updateScore(float secondsIn);
-	int updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
+	double updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
 		vaultButtonStateType forceVaultButtonIn, vaultButtonStateType boostVaultButtonIn,
 		int vaultBlockSelectionIn, ownerShipType newOnerShipIn, ownerShipType *pOwnerShipInOut);
 

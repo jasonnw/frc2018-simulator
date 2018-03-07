@@ -247,8 +247,8 @@ void platform::getFinalScore(int *pRedScoreOut, int *pBlueScoreOut)
 	if (CLIMB_END_TIME > m_timeInSec) {
 		updateScore(CLIMB_END_TIME - m_timeInSec);
 	}
-	*pRedScoreOut = getRedScore();
-	*pBlueScoreOut = getBlueScore();
+	*pRedScoreOut = (int) floor(getRedScore() + 0.5);
+	*pBlueScoreOut = (int) floor(getBlueScore() + 0.5);
 	return;
 }
 
@@ -737,11 +737,11 @@ int platform::isGameTimeOver(void)
 	}
 }
 
-int platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
+double platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
 	vaultButtonStateType forceVaultButtonIn, vaultButtonStateType boostVaultButtonIn,
 	int vaultBlockSelectionIn, ownerShipType newOnershipIn, ownerShipType *pOwnershipInOut)
 {
-	int scores = 0;
+	double scores = 0;
 	bool ownershipChangeFlag;
 
 	ownershipChangeFlag = false;
@@ -1046,7 +1046,7 @@ void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn
 	}
 
 	if (successFlagIn) {
-		fprintf(m_pLogFIle, ", red score %d, blue score %d\n", getRedScore(), getBlueScore());
+		fprintf(m_pLogFIle, ", red score %d, blue score %d\n", (int) getRedScore(), (int) getBlueScore());
 	}
 	else {
 		fprintf(m_pLogFIle, " (failed)\n");

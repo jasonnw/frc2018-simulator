@@ -137,6 +137,7 @@ protected:
 	float getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn, const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn,
 		bool interruptFlagIn, robotPathType *pPathOut) const;
 
+	void updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, float lineDelayChangeIn, robotPathType *pPathInOut) const;
 
 	//TODO, apply motion profile with following functions, JWJW
 	float getLineDelay(coordinateType startPoint, coordinateType endPoint, float maximumSpeedIn, float accelerationDistanceIn) const;

@@ -244,8 +244,8 @@ int main(int argc, char** argv)
 
 		//update the score display
 		redEnd.x = blueEnd.x = ORIGIN_X + POINTS_PER_SECOND * (int) floor(gamePlatform.getTime() + 0.5);
-		redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getRedScore();
-		blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getBlueScore();
+		redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getRedScore();
+		blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getBlueScore();
 		line(gameScore,	redStart, redEnd, redColor, 3, 8);
 		line(gameScore, blueStart, blueEnd, blueColor, 3, 8);
 
@@ -265,8 +265,8 @@ int main(int argc, char** argv)
 	gamePlatform.logFinalScore();
 
 	redEnd.x = blueEnd.x = POINTS_PER_SECOND * (int)floor(gamePlatform.getTime() + 0.5);
-	redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getRedScore();
-	blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * gamePlatform.getBlueScore();
+	redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getRedScore();
+	blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getBlueScore();
 
 	//stop display
 	WaitForSingleObject(threadHandle, INFINITE);

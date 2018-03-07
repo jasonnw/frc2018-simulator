@@ -231,20 +231,24 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 	return delayOutput;
 }
 
-float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn, 
-	const rectangleObjectType *pStartPosIn,  bool hasCubeFlagIn, bool interruptFlagIn, robotPathType *pPathOut) const
+float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn,
+	const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn, bool interruptFlagIn, robotPathType *pPathOut) const
 {
 	rectangleObjectType newPos;
 	float randomFactor = GET_RANDOM_VALUE;
 	float actionDelay;
+	float lastTurnDelay;
 	coordinateType destination;
 	bool isCubeNeeded;
 	bool dumpCubeFlag;
 	robotPathType path2Cube, path2Destination;
 	cubeStateType *pCube;
 	allianceType alliance;
+	static int debugCounter = 0;
 
 	actionDelay = randomFactor;
+	lastTurnDelay = randomFactor;
+
 	pPathOut->pickUpCubeIndex = INVALID_IDX;
 	pPathOut->numberOfTurns = 0;
 	pPathOut->totalDistance = 0;
@@ -371,11 +375,11 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 		break;
 	case LIFT_ONE_RED_ROBOT:
 		destination = m_pPlatform->getRedLiftZonePosition();
-		actionDelay += m_config.liftRobotDelay;
+		lastTurnDelay += m_config.liftRobotDelay;
 		break;
 	case LIFT_ONE_BLUE_ROBOT:
 		destination = m_pPlatform->getBlueLiftZonePosition();
-		actionDelay += m_config.liftRobotDelay;
+		lastTurnDelay += m_config.liftRobotDelay;
 		break;
 	default:
 		printf("ERROR: invalid action %d\n", actionIn);
@@ -386,7 +390,7 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 
 	//pick up a cube
 	if (isCubeNeeded) {
-		if(!m_pPlatform->findTheClosestCube(&newPos, alliance, m_config.turnDelay, m_config.inOutTakeDelay, &pCube, &path2Cube)) {
+		if (!m_pPlatform->findTheClosestCube(&newPos, alliance, m_config.turnDelay, m_config.inOutTakeDelay, &pCube, &path2Cube)) {
 			return CLIMB_END_TIME + 1; //task cannot be done
 		}
 
@@ -418,9 +422,12 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 	if ((dumpCubeFlag) && (path2Destination.numberOfTurns != 0)) {
 		path2Destination.turnPointDelay[path2Destination.numberOfTurns - 1] += m_config.inOutTakeDelay;
 	}
-	else {
+	else if (dumpCubeFlag) {
+		//dump cube at the start position
 		path2Destination.firstTurnDelay += m_config.inOutTakeDelay;
 	}
+
+	path2Destination.turnPointDelay[path2Destination.numberOfTurns - 1] += lastTurnDelay;
 
 	//combine pick up cube path and destination path
 	if (0 != combineTwoPathes(&path2Cube, &path2Destination, pPathOut)) {
@@ -429,15 +436,127 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 
 	actionDelay += calculateDelayOnPath(&pStartPosIn->center, pPathOut);
 
+#if 0
 	//test if action delay is correct
+	coordinateType stopPos;
+	int cubeIndex;
+	int stopIdx;
+	float delayChange;
+	float sDelay = 0;
+	bool giveUpCubeFlag;
+	bool atMiddleLine;
+	bool finishFlag;
+
+	newPos.center = pStartPosIn->center;
+	for (sDelay = 0; sDelay < actionDelay; sDelay += (float) 0.1) {
+
+		stopIdx = findStopPosition(&newPos.center, pPathOut, (float) 0.1,
+			&stopPos, &cubeIndex, &delayChange,
+			&giveUpCubeFlag, &atMiddleLine, &finishFlag);
+
+		newPos.center = stopPos;
+		updatePath(stopIdx, cubeIndex, atMiddleLine, delayChange, pPathOut);
+	}
+
+	//final move
+	stopIdx = findStopPosition(&newPos.center, pPathOut, (actionDelay + (float) 0.1) - sDelay,
+		&stopPos, &cubeIndex, &delayChange,
+		&giveUpCubeFlag, &atMiddleLine, &finishFlag);
+
+	if (!finishFlag) {
+		printf("ERROR, action cannot be finished at due time\n");
+	}
+	if (atMiddleLine) {
+		printf("ERROR, path cannot be finished at due time\n");
+	}
+	if (giveUpCubeFlag) {
+		printf("ERROR, cannot get expected cube\n");
+	}
+
+	//recover the output path after test
+	if (0 != combineTwoPathes(&path2Cube, &path2Destination, pPathOut)) {
+		return CLIMB_END_TIME + 1; //number of turns over the limitation
+	}
+#endif
 
 	//return delay must not be 0
 	if (MINMUM_TIME_RESOLUTION > actionDelay) {
 		actionDelay = MINMUM_TIME_RESOLUTION;
 	}
-
+	debugCounter++;
 	return actionDelay;
 }
+
+
+void robot::updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, float lineDelayChangeIn, robotPathType *pPathInOut) const
+{
+	if (cubeIdxIn != INVALID_IDX) {
+		//pick up cube is done, 
+		pPathInOut->pickUpCubeIndex = INVALID_IDX;
+	}
+
+	if (stopIdxIn != INVALID_IDX) {
+		if (pPathInOut->pickUpCubeIndex != INVALID_IDX) {
+			if (pPathInOut->pickUpCubeIndex >= stopIdxIn + 1) {
+				pPathInOut->pickUpCubeIndex -= stopIdxIn + 1;
+				//Note: if stopIdx is 0, will update the robot position to turnPoint[0] and the
+				//first turnPoint is turnPoint[1]
+			}
+			else {
+				if ((pPathInOut->turnPointDelay[stopIdxIn] >= lineDelayChangeIn) &&
+					(!middleOfLineFlagIn) &&
+					(cubeIdxIn == INVALID_IDX)) {
+					//next time, will pick up the cube at the start point
+					pPathInOut->pickUpCubeIndex = -1;
+				}
+			}
+		}
+		//else, do nothing, no need to pick up a cube for this action.
+
+		if (stopIdxIn <= pPathInOut->numberOfTurns - 1) {
+
+			//adjust turn delay at the next turn point
+
+			if (!middleOfLineFlagIn) {
+				//[stopIdx] is the new start point
+				if (pPathInOut->turnPointDelay[stopIdxIn] >= lineDelayChangeIn) {
+					pPathInOut->turnPointDelay[stopIdxIn] -= lineDelayChangeIn;
+					pPathInOut->firstTurnDelay = pPathInOut->turnPointDelay[stopIdxIn];
+				}
+				else {
+					printf("ERROR, robot stay at turn point longer than expected\n");
+				}
+			}
+			else {
+				//stop at the middle of a line, no turn delay
+				pPathInOut->firstTurnDelay = 0;
+			}
+			for (int i = stopIdxIn + 1; i < pPathInOut->numberOfTurns; i++) {
+				pPathInOut->turnPoints[i - stopIdxIn - 1] = pPathInOut->turnPoints[i];
+				pPathInOut->turnPointDelay[i - stopIdxIn - 1] = pPathInOut->turnPointDelay[i];
+			}
+		}
+		else {
+			printf("ERROR, internal error, stop index is too big\n");
+		}
+		pPathInOut->numberOfTurns -= stopIdxIn + 1;
+	}
+	else {
+		//stop before the first turn point, 
+		if (middleOfLineFlagIn) {
+			pPathInOut->firstTurnDelay = 0;
+		}
+		else {
+			if (pPathInOut->firstTurnDelay >= lineDelayChangeIn) {
+				pPathInOut->firstTurnDelay -= lineDelayChangeIn;
+			}
+			else {
+				printf("ERROR, robot stay at star point longer than expected\n");
+			}
+		}
+	}
+}
+
 
 int robot::combineTwoPathes(const robotPathType *pPath1In, const robotPathType *pPath2In, robotPathType *pPathOut) const
 {
@@ -447,25 +566,33 @@ int robot::combineTwoPathes(const robotPathType *pPath1In, const robotPathType *
 	}
 
 	pPathOut->numberOfTurns = 0;
-	pPathOut->firstTurnDelay = pPath1In->firstTurnDelay;
-	pPathOut->pickUpCubeIndex = pPath1In->pickUpCubeIndex;
+	pPathOut->totalDistance = 0;
 
-	pPathOut->totalDistance = pPath1In->totalDistance + pPath2In->totalDistance;
-	pPathOut->initialSpeed = 0;
-	for (int i = 0; i < pPath1In->numberOfTurns; i++) {
-		pPathOut->pickUpCubeIndex = pPathOut->numberOfTurns;
-		pPathOut->turnPoints[pPathOut->numberOfTurns] = pPath1In->turnPoints[i];
-		pPathOut->turnPointDelay[pPathOut->numberOfTurns] = pPath1In->turnPointDelay[i];
-		pPathOut->numberOfTurns++;
+	if (pPath1In->numberOfTurns != 0) {
+		pPathOut->firstTurnDelay = pPath1In->firstTurnDelay;
+		pPathOut->pickUpCubeIndex = pPath1In->pickUpCubeIndex;
+
+		pPathOut->totalDistance = pPath1In->totalDistance;
+		pPathOut->initialSpeed = 0;
+		for (int i = 0; i < pPath1In->numberOfTurns; i++) {
+			pPathOut->turnPoints[i] = pPath1In->turnPoints[i];
+			pPathOut->turnPointDelay[i] = pPath1In->turnPointDelay[i];
+		}
+
+		pPathOut->numberOfTurns += pPath1In->numberOfTurns;
+		pPathOut->turnPointDelay[pPathOut->numberOfTurns - 1] += pPath2In->firstTurnDelay;
 	}
-
-	pPathOut->turnPointDelay[pPathOut->numberOfTurns - 1] += pPath2In->firstTurnDelay;
+	else {
+		pPathOut->firstTurnDelay = pPath2In->firstTurnDelay;
+		pPathOut->pickUpCubeIndex = INVALID_IDX;
+	}
 
 	for (int i = 0; i < pPath2In->numberOfTurns; i++) {
 		pPathOut->turnPoints[i+pPathOut->numberOfTurns] = pPath2In->turnPoints[i];
 		pPathOut->turnPointDelay[i+pPathOut->numberOfTurns] = pPath2In->turnPointDelay[i];
-		pPathOut->numberOfTurns++;
 	}
+	pPathOut->numberOfTurns += pPath2In->numberOfTurns;
+	pPathOut->totalDistance += pPath2In->totalDistance;
 
 	if (pPathOut->pickUpCubeIndex == INVALID_IDX) {
 		pPathOut->pickUpCubeIndex = pPath2In->pickUpCubeIndex;
@@ -575,8 +702,8 @@ actionResultType robot::moveToNextTime(float timeIn)
 	}
 
 	//update the current position and time
-	m_state.pos.center = newPosition;
 	m_plannedAction.startTime = timeIn;
+	m_state.pos.center = newPosition;
 
 	if (timeIn >= m_plannedAction.projectedFinishTime) {
 		//to avoid time drifting, force action done when it passed the original projected finish time
@@ -623,75 +750,13 @@ actionResultType robot::moveToNextTime(float timeIn)
 		}
 	}
 	else {
-
-		if (stopIdx != INVALID_IDX) {
-			if (m_plannedAction.path.pickUpCubeIndex != INVALID_IDX) {
-				if (m_plannedAction.path.pickUpCubeIndex >= stopIdx+1) {
-					m_plannedAction.path.pickUpCubeIndex -= stopIdx + 1;
-					//Note: if stopIdx is 0, will update the robot position to turnPoint[0] and the
-					//first turnPoint is turnPoint[1]
-				}
-				else {
-					if (cubeIndex != INVALID_IDX) {
-						//pick up cube is done, 
-						m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
-					}
-					else {
-						if ((m_plannedAction.path.turnPointDelay[stopIdx] >= turnPointDelayChange) && (!middleOfLineFlag)) {
-							//next time, will pick up the cube at the start point
-							m_plannedAction.path.pickUpCubeIndex = -1;
-						}
-						else {
-							printf("ERROR: internal logic error\n");
-						}
-					}
-				}
-			}
-			//else, do nothing, no need to pick up a cube for this action.
-
-			if (stopIdx <= m_plannedAction.path.numberOfTurns - 1) {
-
-				//adjust turn delay at the next turn point
-
-				if (!middleOfLineFlag) {
-					//[stopIdx] is the new start point
-					if (m_plannedAction.path.turnPointDelay[stopIdx] >= turnPointDelayChange) {
-						m_plannedAction.path.turnPointDelay[stopIdx] -= turnPointDelayChange;
-						m_plannedAction.path.firstTurnDelay = m_plannedAction.path.turnPointDelay[stopIdx];
-					}
-					else {
-						printf("ERROR, robot stay at turn point longer than expected\n");
-					}
-				}
-				else {
-					//stop at the middle of a line, no turn delay
-					m_plannedAction.path.firstTurnDelay = 0;
-				}
-				for (int i = stopIdx+1; i < m_plannedAction.path.numberOfTurns; i++) {
-					m_plannedAction.path.turnPoints[i - stopIdx-1] = m_plannedAction.path.turnPoints[i];
-					m_plannedAction.path.turnPointDelay[i - stopIdx-1] = m_plannedAction.path.turnPointDelay[i];
-				}
-			}
-			else {
-				printf("ERROR, internal error, stop index is too big\n");
-			}
-			m_plannedAction.startTime = timeIn;
-			m_plannedAction.path.numberOfTurns -= stopIdx + 1;
-		}
-		else {
-			//stop before the first turn point, 
-			if (m_plannedAction.path.firstTurnDelay >= turnPointDelayChange) {
-				m_plannedAction.path.firstTurnDelay -= turnPointDelayChange;
-			}
-			else {
-				printf("ERROR, robot stay at star point longer than expected\n");
-			}
-		}
+		updatePath(stopIdx, cubeIndex, middleOfLineFlag, turnPointDelayChange, &m_plannedAction.path);
 	}
 
 	return returnResult;
 }
 
+const float TIME_ROUNDING_ERROR = (float) 1e-4;
 
 int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, 
 	 float stopDelayIn, coordinateType *pStopPositionOut, int *pCubeIndexOut, 
@@ -712,16 +777,10 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 
 	totalDelay = pPathIn->firstTurnDelay;
 
-	if (totalDelay > stopDelayIn) {
+	if ((totalDelay > stopDelayIn) && (totalDelay - stopDelayIn >= TIME_ROUNDING_ERROR)) {
 		//stop before pick up cube
 		*pTrnPointDelayChangeOut = stopDelayIn;
 		return stopIndex;
-	}
-
-	if (totalDelay == stopDelayIn) {
-		if (pPathIn->numberOfTurns == 0) {
-			*pJustDoneFlagOut = true;
-		}
 	}
 
 	if (pPathIn->pickUpCubeIndex == -1) {
@@ -735,9 +794,13 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 		}
 	}
 
-	if (totalDelay == stopDelayIn) {
+	if ((totalDelay <= stopDelayIn) || 
+		((totalDelay > stopDelayIn) && (totalDelay - stopDelayIn < TIME_ROUNDING_ERROR))) {
 		//stop after cube pick up
-		return stopIndex;
+		if (pPathIn->numberOfTurns == 0) {
+			*pJustDoneFlagOut = true;
+			return stopIndex;
+		}
 	}
 
 	for (int i = 0; i < pPathIn->numberOfTurns; i++) {
