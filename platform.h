@@ -17,12 +17,12 @@ typedef enum structuresType {
 typedef struct platformLayoutType {
 
 	//still structures for collision detection
-	float southWall;
-	float northWall;
-	float eastWall;
-	float westWall;
-	float redAutoLine;
-	float blueAutoLine;
+	double southWall;
+	double northWall;
+	double eastWall;
+	double westWall;
+	double redAutoLine;
+	double blueAutoLine;
 	rectangleObjectType structures[NUM_STILL_STRUCTURE];
 
 	//possible robot destination
@@ -136,7 +136,7 @@ public:
 class platform
 {
 private:
-	float m_timeInSec; 
+	double m_timeInSec; 
 	double m_redScore;
 	double m_blueScore;
 	int m_liftRedRobotIndex;
@@ -162,53 +162,53 @@ public:
 	~platform();
 
 	const platformStateType * getState(void) const { return &m_state; }
-	float getTime(void) const { return m_timeInSec; }
+	double getTime(void) const { return m_timeInSec; }
 	double getRedScore(void) const { return m_redScore; }
 	double getBlueScore(void) const { return m_blueScore; }
 	const cubeStateType *getCubes(void) const { return m_cubes; }
 	const robot * getRedRobots(void) const { return m_redRobots; }
 	const robot * getBlueRobots(void) const { return m_blueRobots; }
 
-	float getScaleX(void) { return m_platformStructure.scaleNorthPlate.center.x; }
-	float getScaleNorthY(void) { 
+	double getScaleX(void) { return m_platformStructure.scaleNorthPlate.center.x; }
+	double getScaleNorthY(void) { 
 		return m_platformStructure.scaleNorthPlate.center.y + m_platformStructure.scaleNorthPlate.sizeY/2;
 	}
-	float getScaleSouthY(void) {
+	double getScaleSouthY(void) {
 		return m_platformStructure.scaleSouthPlate.center.y - m_platformStructure.scaleSouthPlate.sizeY / 2;
 	}
 
-	float getRedSwitchX(void) {
+	double getRedSwitchX(void) {
 		return m_platformStructure.redSwitchNorthPlate.center.x;
 	}
-	float getBlueSwitchX(void) {
+	double getBlueSwitchX(void) {
 		return m_platformStructure.blueSwitchNorthPlate.center.x;
 	}
-	float getRedSwitchNorthY(void) {
+	double getRedSwitchNorthY(void) {
 		return m_platformStructure.redSwitchNorthPlate.center.y + m_platformStructure.redSwitchNorthPlate.sizeY/2;
 	}
-	float getRedSwitchSouthY(void) {
+	double getRedSwitchSouthY(void) {
 		return m_platformStructure.redSwitchSouthPlate.center.y - m_platformStructure.redSwitchSouthPlate.sizeY / 2;
 	}
 
-	float getBlueSwitchNorthY(void) {
+	double getBlueSwitchNorthY(void) {
 		return m_platformStructure.blueSwitchNorthPlate.center.y + m_platformStructure.blueSwitchNorthPlate.sizeY / 2;
 	}
-	float getBlueSwitchSouthY(void) {
+	double getBlueSwitchSouthY(void) {
 		return m_platformStructure.blueSwitchSouthPlate.center.y - m_platformStructure.blueSwitchSouthPlate.sizeY / 2;
 	}
 
-	float getRedExchangeZoneX(void) {
+	double getRedExchangeZoneX(void) {
 		return m_platformStructure.redExchangeZone.center.x + m_platformStructure.redExchangeZone.sizeX/2;
 		//Note red exchange zone is on the left side
 	}
-	float getRedExchangeZoneY(void) {
+	double getRedExchangeZoneY(void) {
 		return m_platformStructure.redExchangeZone.center.y;
 	}
-	float getBlueExchangeZoneX(void) {
+	double getBlueExchangeZoneX(void) {
 		return m_platformStructure.blueExchangeZone.center.x - m_platformStructure.blueExchangeZone.sizeX / 2;
 		//NOte: blue exchange zone is on the right side
 	}
-	float getBlueExchangeZoneY(void) {
+	double getBlueExchangeZoneY(void) {
 		return m_platformStructure.blueExchangeZone.center.y;
 	}
 
@@ -228,7 +228,7 @@ public:
 
 
 	void setState(const platformStateType *pStateIn) { memcpy(&m_state, pStateIn,  sizeof(m_state)); }
-	void setTime(float timeIn) { m_timeInSec = timeIn; }
+	void setTime(double timeIn) { m_timeInSec = timeIn; }
 	void setRedScore(double redScoreIn) { m_redScore = redScoreIn; }
 	void setBlueScore(double blueScoreIn) { m_blueScore = blueScoreIn; }
 	void setLogFile(FILE *pFileIn) { m_pLogFIle = pFileIn; }
@@ -267,7 +267,7 @@ public:
 
 	void finishAllPendingActions(int actionIndexIn, allianceType activeAllianceIn)
 	{
-		float earliestFinishTime;
+		double earliestFinishTime;
 
 		//finish all pending actions and stop
 		while (hasPendingActions()) {
@@ -286,8 +286,8 @@ public:
 	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
 	void forceRobotAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, allianceType allianceIn, int robotIdxIn, int indexIn);
 
-	float getEarliestFinishTime(void);
-	int commitAction(float nextTimeIn, int indexIn, allianceType activeAllianceIn);
+	double getEarliestFinishTime(void);
+	int commitAction(double nextTimeIn, int indexIn, allianceType activeAllianceIn);
 	bool hasPendingActions(void);
 
 	int isGameTimeOver(void);
@@ -298,26 +298,26 @@ public:
 
 	//find a path to go around all static objects
 	bool findAvailablePath(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn, 
-		bool isTargetACubeIn, float robotTurnDelayIn, robotPathType *pPathOut);
+		bool isTargetACubeIn, double robotTurnDelayIn, robotPathType *pPathOut);
 	//Note: cube will not block robot because it could be pushed out
 
 	bool findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, 
-		float robotTurnDelayIn, float robotCubeDelayIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
+		double robotTurnDelayIn, double robotCubeDelayIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
 	int pickUpCube(coordinateType positionIn, allianceType allianceIn);
 
 protected:
-	int updateOneAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
+	int updateOneAction(actionTypeType actionIn, double timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
 
-	float findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
-		const rectangleObjectType *pMovingObjectIn, float robotTurnDelayIn, float robotCubeDelayIn, 
+	double findOneCube(double shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
+		const rectangleObjectType *pMovingObjectIn, double robotTurnDelayIn, double robotCubeDelayIn, 
 		cubeStateType **pCubeOut, robotPathType *pPathOut);
 
-	void updateScore(float secondsIn);
-	double updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
+	void updateScore(double secondsIn);
+	double updateScaleSwitchScore(double secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
 		vaultButtonStateType forceVaultButtonIn, vaultButtonStateType boostVaultButtonIn,
 		int vaultBlockSelectionIn, ownerShipType newOnerShipIn, ownerShipType *pOwnerShipInOut);
 
-	void logAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn, bool successFlagIn);
+	void logAction(actionTypeType actionIn, double timeIn, int robotIndexIn, int indexIn, bool successFlagIn);
 
 	bool collisionWithAllOtherObjects(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn, const rectangleObjectType **pCollisionObjectOut);
 
@@ -325,7 +325,7 @@ protected:
 	bool collisionDectection(const rectangleObjectType *pStillObjectIn, const rectangleObjectType *pMovingObjectIn, 
 		coordinateType endPointIn);
 
-	inline bool pointInRectangle(float leftXIn, float topYIn, float bottomYIn, float rightXIn, float pointXIn, float pointY) const
+	inline bool pointInRectangle(double leftXIn, double topYIn, double bottomYIn, double rightXIn, double pointXIn, double pointY) const
 	{
 		if ((pointXIn >= leftXIn) && (pointXIn <= rightXIn) && (pointY >= bottomYIn) && (pointY <= topYIn)) {
 			return true;

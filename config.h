@@ -15,14 +15,14 @@ const int INVALID_IDX = INT32_MAX;
 //coordinate on the field
 //(0, 0) is the lower corner on the red alliance side
 typedef struct coordinateType {
-	float x;
-	float y;
+	double x;
+	double y;
 }coordinateType;
 
 typedef struct rectangleObjectType {
 	coordinateType center;
-	float sizeX;
-	float sizeY;
+	double sizeX;
+	double sizeY;
 	int objectId; //a unique ID for each object on the field
 	cv::Scalar color;
 }rectangleObjectType;
@@ -35,14 +35,14 @@ typedef struct  cubeStateType
 
 //Robot delay configurations in number of second
 typedef struct robotConfigurationType {
-	float sizeX;
-	float sizeY;
-	float randomDelayFactor;
-	float liftRobotDelay;
-	float inOutTakeDelay;
-	float turnDelay;
-	float maximumSpeed;
-	float accelerationDistance;
+	double sizeX;
+	double sizeY;
+	double randomDelayFactor;
+	double liftRobotDelay;
+	double inOutTakeDelay;
+	double turnDelay;
+	double maximumSpeed;
+	double accelerationDistance;
 }robotConfigurationType;
 
 typedef enum ownerShipType {
@@ -129,9 +129,13 @@ typedef struct platformStateType {
 	bool redLiftFlag[NUMBER_OF_ROBOTS];
 	bool blueLiftFlag[NUMBER_OF_ROBOTS];
 	vaultButtonStateType redForceButton;
+	double redForceButtonTime;
 	vaultButtonStateType blueForceButton;
+	double blueForceButtonTime;
 	vaultButtonStateType redBoostButton;
+	double redBoostButtonTime;
 	vaultButtonStateType blueBoostButton;
+	double blueBoostButtonTime;
 	vaultButtonStateType redLiftButton;
 	vaultButtonStateType blueLiftButton;
 }platformStateType;
@@ -143,24 +147,24 @@ const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 8;
 
 typedef struct robotPathType {
 	coordinateType turnPoints[MAX_TURNS_ON_PATH];
-	float turnPointDelay[MAX_TURNS_ON_PATH];
-	float firstTurnDelay;  //the delay before start moving
-	float initialSpeed;
-	float totalDistance;
+	double turnPointDelay[MAX_TURNS_ON_PATH];
+	double firstTurnDelay;  //the delay before start moving
+	double initialSpeed;
+	double totalDistance;
 	int numberOfTurns;  //the number of turns on the path.
 	int pickUpCubeIndex; //the turning point to pick up a cube
 }robotPathType;
 
 const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 1; //minimum 2 blocks to own scale or switch
-const float ROBOT_TO_WALL_DISTANCE = 6;      //always 6 inches away from the wall
+const double ROBOT_TO_WALL_DISTANCE = 6;      //always 6 inches away from the wall
 
 //Game time in seconds
-const float MINMUM_TIME_RESOLUTION = (float) 0.1; //second
+const double MINMUM_TIME_RESOLUTION = (double) 0.1; //second
 
-const float COMPETITION_START_TIME = 0;                      //competition start time
-const float AUTONOMOUS_END_TIME = 15;						 // Autonomous session end time 
-const float COMPETITION_END_TIME = AUTONOMOUS_END_TIME + 135; //total competition time is 2m15sec
-const float CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after competition time is additional 30sec
+const double COMPETITION_START_TIME = 0;                      //competition start time
+const double AUTONOMOUS_END_TIME = 15;						 // Autonomous session end time 
+const double COMPETITION_END_TIME = AUTONOMOUS_END_TIME + 135; //total competition time is 2m15sec
+const double CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after competition time is additional 30sec
 															 //Note: To simplify the simulator, auto session result will be used to initialize the game state.
 															 //      Auto session time is excluded from game time. The game starts on COMPITATION_START_TIME
 //action search control parameters
@@ -170,9 +174,9 @@ const int MIN_SCORE_CHECKING_STEP = 4;                       //start check if th
 const int SEARCH_CONTINUE_THRESHOLD = 0;                     //the threshold score to continue action search
 //Note: SEARCH_GIVEUP_THRESHOLD controls action search speed and quality. Smaller SEARCH_GIVEUP_THRESHOLD will make search slower but may find the best action.
 
-const float PICK_UP_CUBE_DISTANCE = 4 * 12;
+const double PICK_UP_CUBE_DISTANCE = 4 * 12;
 
-const float LARGEST_ROBOT_SIZE = 4 * 12;
+const double LARGEST_ROBOT_SIZE = 4 * 12;
 
 //robot delay configurations in number of second
 const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
@@ -219,9 +223,13 @@ const platformStateType initState =
 	{ false, false, false }, //bool liftRedRobotFlag[3];
 	{ false, false, false }, //bool liftBlueRobotFlag[3];
 	BUTTON_NOT_PUSH, //vaultButtonStateType redForceButton;
+	0,
 	BUTTON_NOT_PUSH, //vaultButtonStateType blueForceButton;
+	0,
 	BUTTON_NOT_PUSH, //vaultButtonStateType redBoostButton;
+	0,
 	BUTTON_NOT_PUSH, //vaultButtonStateType blueBoostButton;
+	0,
 	BUTTON_NOT_PUSH, //vaultButtonStateType redLiftButton;
 	BUTTON_NOT_PUSH //vaultButtonStateType blueLiftButton;
 };

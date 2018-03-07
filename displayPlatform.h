@@ -208,14 +208,14 @@ public:
 	void drawPlatform(int delayIn);
 
 protected:
-	Point coordinateToPoint(float xIn, float yIn);
+	Point coordinateToPoint(double xIn, double yIn);
 	void updateField(void);
-	void playTotheNextTime(float nextTimeIn, int actionIndexIn, float delayIn);
+	void playTotheNextTime(double nextTimeIn, int actionIndexIn, double delayIn);
 
 	void drawCube(coordinateType positionIn);
 	void drawObject(const rectangleObjectType *pObjectIn);
 	void drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn);
-	void drawNumber(const rectangleObjectType *pObjectIn, int numberIn, float sizeIn);
+	void drawNumber(const rectangleObjectType *pObjectIn, int numberIn, double sizeIn);
 	void drawField(void);
 };
 

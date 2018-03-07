@@ -14,8 +14,8 @@ typedef struct searchActionType {
 	actionTypeType actionType;
 	coordinateType actionDonePos;
 	bool actionDoneWithCube;
-	float startTime;
-	float projectedFinishTime;
+	double startTime;
+	double projectedFinishTime;
 	int projectedFinalScore;
 	int actionIndex;
 	int robotIndex;
@@ -34,8 +34,8 @@ typedef enum actionResultType {
 
 typedef struct pendingActionType {
 	actionTypeType actionType;
-	float startTime;
-	float projectedFinishTime;
+	double startTime;
+	double projectedFinishTime;
 	int actionIndex;
 	robotPathType path;
 }pendingActionType;
@@ -96,11 +96,11 @@ public:
 	}
 
 	void setConfiguration(const robotConfigurationType *pConfigIn, platform *pPlatform);
-	void setPosition(float xIn, float yIn, int objectIdIn);
+	void setPosition(double xIn, double yIn, int objectIdIn);
 	void setPlatformAndCube(platform *pPlatform, int cubeIdxIn);
 	void dumpOneCube(void);
 
-	float estimateActionDelayInSec(actionTypeType actionIn, float currentTimeIn, bool interruptFlagIn,
+	double estimateActionDelayInSec(actionTypeType actionIn, double currentTimeIn, bool interruptFlagIn,
 		  coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn, coordinateType *pEndPosOut) const;
 
 	const robot & operator = (const robot &srcIn)
@@ -113,10 +113,10 @@ public:
 		return srcIn;
 	}
 
-	int takeAction(actionTypeType actionIn, float timeIn, int indexIn);
-	int forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, float timeIn, int indexIn);
+	int takeAction(actionTypeType actionIn, double timeIn, int indexIn);
+	int forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, double timeIn, int indexIn);
 
-	float getPlannedActionFinishTime(void)
+	double getPlannedActionFinishTime(void)
 	{
 		return m_plannedAction.projectedFinishTime;
 	}
@@ -125,25 +125,25 @@ public:
 	static bool isAutonomousAction(actionTypeType actionIn);
 	static bool isHumanPlayerAction(actionTypeType actionIn);
 
-	actionResultType moveToNextTime(float timeIn);
+	actionResultType moveToNextTime(double timeIn);
 
 protected:
 	int combineTwoPathes(const robotPathType *pPath1In, const robotPathType *pPath2In, robotPathType *pPathOut) const;
-	float calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const;
-	int findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, float stopDelayIn,
-		coordinateType *pStopPositionOut, int *pCubeIndexOut, float *pTrnPointDelayChangeOut,
+	double calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const;
+	int findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, double stopDelayIn,
+		coordinateType *pStopPositionOut, int *pCubeIndexOut, double *pTrnPointDelayChangeOut,
 		bool *pGiveUpCubeFlagOut, bool *atMiddleOfLineFlagOut, bool *pJustDoneFlagOut) const;
 
-	float getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn, const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn,
+	double getActionDelayInSecInternal(actionTypeType actionIn, double currentTimeIn, const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn,
 		bool interruptFlagIn, robotPathType *pPathOut) const;
 
-	void updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, float lineDelayChangeIn, robotPathType *pPathInOut) const;
+	void updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, double lineDelayChangeIn, robotPathType *pPathInOut) const;
 
 	//TODO, apply motion profile with following functions, JWJW
-	float getLineDelay(coordinateType startPoint, coordinateType endPoint, float maximumSpeedIn, float accelerationDistanceIn) const;
-	float runFromePointToPoint(coordinateType startPoint, coordinateType endPoint, 
-		float initialSpeedIn, float maximumSpeedIn, float accelerationDistanceIn,
-		float durationIn, coordinateType *pStopPointOut, bool *pIsFinishedFlagOut) const;
+	double getLineDelay(coordinateType startPoint, coordinateType endPoint, double maximumSpeedIn, double accelerationDistanceIn) const;
+	double runFromePointToPoint(coordinateType startPoint, coordinateType endPoint, 
+		double initialSpeedIn, double maximumSpeedIn, double accelerationDistanceIn,
+		double durationIn, coordinateType *pStopPointOut, bool *pIsFinishedFlagOut) const;
 
 };
 

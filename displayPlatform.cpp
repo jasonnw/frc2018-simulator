@@ -2,11 +2,11 @@
 #include "config.h"
 #include "displayPlatform.h"
 
-const float ORIGION_POINT_X = 10;
-const float ORIGION_POINT_Y = 790;
-const float PIXELS_PER_INCH = (float) 1.9;
+const double ORIGION_POINT_X = 10;
+const double ORIGION_POINT_Y = 790;
+const double PIXELS_PER_INCH = (double) 1.9;
 const cv::Scalar wallColor = { 128, 128, 128 };
-const float FRAME_DELAY_IN_MS = 16;
+const double FRAME_DELAY_IN_MS = 16;
 
 displayPlatform::displayPlatform()
 {
@@ -66,7 +66,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 	actionMessageType message;
 	bool commitMessageFlag;
 	bool quitFlag;
-	float earliestFinishTime;
+	double earliestFinishTime;
 
 	if (m_pQueue == NULL) {
 		printf("ERROR, message queue is invalid\n");
@@ -114,16 +114,16 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 	}
 }
 
-void displayPlatform::playTotheNextTime(float nextTimeIn, int actionIndexIn, float frameDelayIn)
+void displayPlatform::playTotheNextTime(double nextTimeIn, int actionIndexIn, double frameDelayIn)
 {
-	float currentTime = getTime();
-	float frameDelay = (float) (frameDelayIn / 1000.0);
+	double currentTime = getTime();
+	double frameDelay = (double) (frameDelayIn / 1000.0);
 
 	if (frameDelay == 0) {
-		frameDelay = (float) (FRAME_DELAY_IN_MS / 1000);
+		frameDelay = (double) (FRAME_DELAY_IN_MS / 1000);
 	}
 
-	for (float i = currentTime + frameDelay; i < nextTimeIn; i += frameDelay)
+	for (double i = currentTime + frameDelay; i < nextTimeIn; i += frameDelay)
 	{
 		if (0 != commitAction(i, actionIndexIn, INVALID_ALLIANCE)) {
 			printf("ERROR, cannot display invalid action");
@@ -140,7 +140,7 @@ void displayPlatform::playTotheNextTime(float nextTimeIn, int actionIndexIn, flo
 	drawPlatform((int)floor(frameDelay * 1000));
 }
 
-Point displayPlatform::coordinateToPoint(float xIn, float yIn)
+Point displayPlatform::coordinateToPoint(double xIn, double yIn)
 {
 	Point result;
 	int x, y;
@@ -169,7 +169,7 @@ void displayPlatform::drawObject(const rectangleObjectType *pObjectIn)
 	rectangle(*m_pPlatform, point1, point2, pObjectIn->color, CV_FILLED, 8, 0);
 }
 
-void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numberIn, float sizeIn)
+void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numberIn, double sizeIn)
 {
 	Point point1;
 	char robotIdxStr[4];

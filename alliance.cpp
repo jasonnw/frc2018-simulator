@@ -91,12 +91,12 @@ void alliance::findBestAction(int actionIndexIn)
 
 	int previousActionIndex;
 
-	float currentTime = m_referencePlatForm.getTime();
-	float bestFinishTime;
-	float finishTime;
-	float previousFinishTime;
-	float startTime;
-	float bestStartTime;
+	double currentTime = m_referencePlatForm.getTime();
+	double bestFinishTime;
+	double finishTime;
+	double previousFinishTime;
+	double startTime;
+	double bestStartTime;
 
 	int bestFinishRobotIdx;
 	int layerStartIndex;
@@ -436,7 +436,7 @@ void alliance::findBestAction(int actionIndexIn)
 	}
 	else {
 		//plan the beast action
-		float earliestRobotTime[NUMBER_OF_ROBOTS];
+		double earliestRobotTime[NUMBER_OF_ROBOTS];
 		previousActionIndex = bestScoreIdx;
 
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -479,10 +479,10 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 	actionChainType actionChain[MAXIMUM_PENDING_ACTIONS + NUMBER_OF_ROBOTS];
 
 	int bestScore = INT32_MIN;
-	float bestScoreFinishTime = 0;
+	double bestScoreFinishTime = 0;
 	int bestScoreIdx = 0;
-	float lastFinishTime = 0;
-	float earliestTime;
+	double lastFinishTime = 0;
+	double earliestTime;
 	int earliestIndex;
 	int chainIndex;
 	bool isActionRejectedFlag;
@@ -492,7 +492,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 	int executedActionCount;
 	bool firstActionFlag[NUMBER_OF_ROBOTS];
 	int score, finalRedScore, finalBlueScore;
-	float earliestFinishTime;
+	double earliestFinishTime;
 
 	*pBranchLengthOut = 0;
 

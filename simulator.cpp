@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 	FILE *pRedActionLog = NULL;
 	FILE *pBlueActionLog = NULL;
 	errno_t errCode;
-	float earliestFinishTime;
+	double earliestFinishTime;
 
 	if (argc != 3) {
 		printf("usage: simulator [redActionLogFileName blueActionLogFileName]\n");

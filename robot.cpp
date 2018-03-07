@@ -7,7 +7,7 @@
 #include "robot.h"
 #include "platform.h"
 
-//#define GET_RANDOM_VALUE (m_config.randomDelayFactor * (((float) rand() - RAND_MAX/2) / (float)RAND_MAX));
+//#define GET_RANDOM_VALUE (m_config.randomDelayFactor * (((double) rand() - RAND_MAX/2) / (double)RAND_MAX));
 #define GET_RANDOM_VALUE  0
 
 robot::robot()
@@ -36,7 +36,7 @@ void robot::setConfiguration(const robotConfigurationType *pConfigIn, platform *
 	m_state.pos.sizeY = m_config.sizeY;
 }
 
-void robot::setPosition(float xIn, float yIn, int objectIdIn)
+void robot::setPosition(double xIn, double yIn, int objectIdIn)
 {
 	m_state.pos.objectId = objectIdIn;
 	m_state.pos.center.x = xIn;
@@ -114,9 +114,9 @@ bool robot::isHumanPlayerAction(actionTypeType actionIn)
 	}
 }
 
-int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, float timeIn, int indexIn)
+int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, double timeIn, int indexIn)
 {
-	float actionDleay = pPlannedActionIn->projectedFinishTime - pPlannedActionIn->startTime;
+	double actionDleay = pPlannedActionIn->projectedFinishTime - pPlannedActionIn->startTime;
 
 	//sync the current robot position
 	m_state.pos.center = startPosIn;
@@ -133,9 +133,9 @@ int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType
 }
 
 
-int robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
+int robot::takeAction(actionTypeType actionIn, double timeIn, int indexIn)
 {
-	float actionDleay;
+	double actionDleay;
 	bool hasCubeFlag = false;
 	bool interruptFlag = false;
 
@@ -168,7 +168,7 @@ int robot::takeAction(actionTypeType actionIn, float timeIn, int indexIn)
 }
 
 
-float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTimeIn, 
+double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTimeIn, 
 	bool interruptFlagIn, coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn, coordinateType *pEndPosOut) const
 {
 	coordinateType stopPosition;
@@ -180,8 +180,8 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 	bool middleOfLineFlag;
 	bool justTimeUpFlag;
 	int stopIndex;
-	float delayOutput;
-	float turnPointDelayChange;
+	double delayOutput;
+	double turnPointDelayChange;
 
 	memcpy(&startPosition, &m_state.pos, sizeof(startPosition));
 
@@ -231,13 +231,13 @@ float robot::estimateActionDelayInSec(actionTypeType actionIn, float currentTime
 	return delayOutput;
 }
 
-float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentTimeIn,
+double robot::getActionDelayInSecInternal(actionTypeType actionIn, double currentTimeIn,
 	const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn, bool interruptFlagIn, robotPathType *pPathOut) const
 {
 	rectangleObjectType newPos;
-	float randomFactor = GET_RANDOM_VALUE;
-	float actionDelay;
-	float lastTurnDelay;
+	double randomFactor = GET_RANDOM_VALUE;
+	double actionDelay;
+	double lastTurnDelay;
 	coordinateType destination;
 	bool isCubeNeeded;
 	bool dumpCubeFlag;
@@ -441,16 +441,16 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 	coordinateType stopPos;
 	int cubeIndex;
 	int stopIdx;
-	float delayChange;
-	float sDelay = 0;
+	double delayChange;
+	double sDelay = 0;
 	bool giveUpCubeFlag;
 	bool atMiddleLine;
 	bool finishFlag;
 
 	newPos.center = pStartPosIn->center;
-	for (sDelay = 0; sDelay < actionDelay; sDelay += (float) 0.1) {
+	for (sDelay = 0; sDelay < actionDelay; sDelay += (double) 0.1) {
 
-		stopIdx = findStopPosition(&newPos.center, pPathOut, (float) 0.1,
+		stopIdx = findStopPosition(&newPos.center, pPathOut, (double) 0.1,
 			&stopPos, &cubeIndex, &delayChange,
 			&giveUpCubeFlag, &atMiddleLine, &finishFlag);
 
@@ -459,7 +459,7 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 	}
 
 	//final move
-	stopIdx = findStopPosition(&newPos.center, pPathOut, (actionDelay + (float) 0.1) - sDelay,
+	stopIdx = findStopPosition(&newPos.center, pPathOut, (actionDelay + (double) 0.1) - sDelay,
 		&stopPos, &cubeIndex, &delayChange,
 		&giveUpCubeFlag, &atMiddleLine, &finishFlag);
 
@@ -488,7 +488,7 @@ float robot::getActionDelayInSecInternal(actionTypeType actionIn, float currentT
 }
 
 
-void robot::updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, float lineDelayChangeIn, robotPathType *pPathInOut) const
+void robot::updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, double lineDelayChangeIn, robotPathType *pPathInOut) const
 {
 	if (cubeIdxIn != INVALID_IDX) {
 		//pick up cube is done, 
@@ -607,27 +607,27 @@ int robot::combineTwoPathes(const robotPathType *pPath1In, const robotPathType *
 }
 
 
-float robot::getLineDelay(coordinateType startPoint, coordinateType endPoint, float maximumSpeedIn, float accelerationDistanceIn) const
+double robot::getLineDelay(coordinateType startPoint, coordinateType endPoint, double maximumSpeedIn, double accelerationDistanceIn) const
 {
-	float distance;
-	float delay;
+	double distance;
+	double delay;
 
 	distance = (endPoint.x - startPoint.x) * (endPoint.x - startPoint.x);
 	distance += (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y);
 
-	distance = (float)sqrt(distance);
+	distance = (double)sqrt(distance);
 	delay = distance / maximumSpeedIn; //simple delay calculation without acceleration
 
 	return delay;
 }
 
-float robot::runFromePointToPoint(coordinateType startPoint, coordinateType endPoint, 
-	float initialSpeedIn, float maximumSpeedIn, float accelerationDistanceIn,
-	float durationIn, coordinateType *pStopPointOut, bool *pIsFinishedFlagOut) const
+double robot::runFromePointToPoint(coordinateType startPoint, coordinateType endPoint, 
+	double initialSpeedIn, double maximumSpeedIn, double accelerationDistanceIn,
+	double durationIn, coordinateType *pStopPointOut, bool *pIsFinishedFlagOut) const
 {
-	float finishDuration;
-	float distance;
-	float totalDistance;
+	double finishDuration;
+	double distance;
+	double totalDistance;
 
 	finishDuration = getLineDelay(startPoint, endPoint, maximumSpeedIn, accelerationDistanceIn);
 	if (finishDuration <= durationIn) {
@@ -639,7 +639,7 @@ float robot::runFromePointToPoint(coordinateType startPoint, coordinateType endP
 	else {
 		totalDistance = (endPoint.x - startPoint.x) * (endPoint.x - startPoint.x);
 		totalDistance += (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y);
-		totalDistance = (float) sqrt(totalDistance);
+		totalDistance = (double) sqrt(totalDistance);
 
 		distance = maximumSpeedIn * durationIn;
 		*pIsFinishedFlagOut = false;
@@ -651,9 +651,9 @@ float robot::runFromePointToPoint(coordinateType startPoint, coordinateType endP
 }
 
 
-float robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const
+double robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const
 {
-	float delay = pPathIn->firstTurnDelay;
+	double delay = pPathIn->firstTurnDelay;
 	coordinateType startPos = *pStartIn;
 
 	for (int i = 0; i < pPathIn->numberOfTurns; i++) {
@@ -667,12 +667,12 @@ float robot::calculateDelayOnPath(const coordinateType *pStartIn, const robotPat
 }
 
 
-actionResultType robot::moveToNextTime(float timeIn)
+actionResultType robot::moveToNextTime(double timeIn)
 {
 	actionResultType returnResult;
 	int stopIdx;
-	float delay;
-	float turnPointDelayChange;
+	double delay;
+	double turnPointDelayChange;
 	coordinateType newPosition;
 	actionTypeType actionType;
 	int cubeIndex;
@@ -756,17 +756,17 @@ actionResultType robot::moveToNextTime(float timeIn)
 	return returnResult;
 }
 
-const float TIME_ROUNDING_ERROR = (float) 1e-4;
+const double TIME_ROUNDING_ERROR = (double) 1e-4;
 
 int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType *pPathIn, 
-	 float stopDelayIn, coordinateType *pStopPositionOut, int *pCubeIndexOut, 
-	float *pTrnPointDelayChangeOut, bool *pGiveUpCubeFlagOut, bool *atMiddleOfLineFlagOut, bool *pJustDoneFlagOut) const
+	 double stopDelayIn, coordinateType *pStopPositionOut, int *pCubeIndexOut, 
+	double *pTrnPointDelayChangeOut, bool *pGiveUpCubeFlagOut, bool *atMiddleOfLineFlagOut, bool *pJustDoneFlagOut) const
 {
 	coordinateType startPos = *pStartIn;
 	int stopIndex = INVALID_IDX;
 	bool taskFinishedFlag;
-	float totalDelay = 0;
-	float delay;
+	double totalDelay = 0;
+	double delay;
 
 	*pStopPositionOut = *pStartIn;
 	*pCubeIndexOut = INVALID_IDX;

@@ -15,7 +15,7 @@ class alliance
 private:
 	platform m_testPlatForm;
 	allianceType m_allianceType;
-	float m_timeInSec;
+	double m_timeInSec;
 	platform m_referencePlatForm;
 	const robot *m_pRobots;
 	searchActionType m_bestAction[NUMBER_OF_ROBOTS];

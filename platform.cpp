@@ -6,7 +6,7 @@
 #include <math.h>
 #include "platform.h"
 
-#define ROUNDING_METHOD(x) ((int)floor((x) + 0.5))
+#define ROUNDING_METHOD(x) ((int)floor((x)))
 
 platform::platform()
 {
@@ -38,9 +38,9 @@ platform::platform()
 	m_platformStructure.blueExchangeZone.color = { 100, 10, 10 };
 
 	m_platformStructure.blueLiftZone.objectId = 2;
-	m_platformStructure.blueLiftZone.center.x = (float) ((288 * 2 + 72) - 261.74);
+	m_platformStructure.blueLiftZone.center.x = (double) ((288 * 2 + 72) - 261.74);
 	m_platformStructure.blueLiftZone.center.y = (264 + 48 * 2) / 2;
-	m_platformStructure.blueLiftZone.sizeX = (float) ((288 * 2 + 72)/2 - 261.74);
+	m_platformStructure.blueLiftZone.sizeX = (double) ((288 * 2 + 72)/2 - 261.74);
 	m_platformStructure.blueLiftZone.sizeY = 9 * 12;
 	m_platformStructure.blueLiftZone.color = { 100, 0, 0 };
 
@@ -93,9 +93,9 @@ platform::platform()
 	m_platformStructure.redExchangeZone.color = { 10, 10, 100 };
 
 	m_platformStructure.redLiftZone.objectId = 8;
-	m_platformStructure.redLiftZone.center.x = (float) 261.74;
+	m_platformStructure.redLiftZone.center.x = (double) 261.74;
 	m_platformStructure.redLiftZone.center.y = (264 + 48 * 2) / 2;
-	m_platformStructure.redLiftZone.sizeX = (float)((288 * 2 + 72) / 2 - 261.74);
+	m_platformStructure.redLiftZone.sizeX = (double)((288 * 2 + 72) / 2 - 261.74);
 	m_platformStructure.redLiftZone.sizeY = 9 * 12;
 	m_platformStructure.redLiftZone.color = { 0, 0, 100 };
 
@@ -183,12 +183,12 @@ platform::platform()
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position.x = 196 + 6 + 30;
-		m_cubes[i].position.y = (float) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_RED_SWITCH) * 30);
+		m_cubes[i].position.y = (double) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_RED_SWITCH) * 30);
 	}
 	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position.x = (288 * 2 + 72) - 196 - 6 - 30;
-		m_cubes[i].position.y = (float)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_BLUE_SWITCH) * 30);
+		m_cubes[i].position.y = (double)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_BLUE_SWITCH) * 30);
 	}
 	for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
 		m_cubes[i].availbleFlag = true;
@@ -366,9 +366,9 @@ bool platform::hasPendingActions(void)
 	return hasPendingActionFlag;
 }
 
-float platform::getEarliestFinishTime(void)
+double platform::getEarliestFinishTime(void)
 {
-	float earliestFinishTime;
+	double earliestFinishTime;
 
 	earliestFinishTime = CLIMB_END_TIME + 1;
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -386,12 +386,12 @@ float platform::getEarliestFinishTime(void)
 	return earliestFinishTime;
 }
 
-int platform::commitAction(float nextTimeIn, int indexIn, allianceType activeAllianceIn)
+int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAllianceIn)
 {
 	const rectangleObjectType *pRobotPos;
 	int updateActionResult = 0;
 	actionResultType actionResult;
-	float earliestFinishTime;
+	double earliestFinishTime;
 	const pendingActionType *pPlannetAction;
 	actionTypeType actionType;
 	allianceType passiveAlliance;
@@ -517,7 +517,7 @@ int platform::commitAction(float nextTimeIn, int indexIn, allianceType activeAll
 	return updateActionResult;
 }
 
-int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIndexIn, allianceType allianceIn, int indexIn)
+int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotIndexIn, allianceType allianceIn, int indexIn)
 {
 	int liftRebotCount = 0;
 
@@ -583,6 +583,7 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		}
 		if (m_state.redForceButton == BUTTON_NOT_PUSH) {
 			m_state.redForceButton = BUTTON_PUSH;
+			m_state.redForceButtonTime = 0;
 			m_state.forceRedButtonPushBlockCount = m_state.forceRedBlockCount;
 		}
 		else {
@@ -595,6 +596,7 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		}
 		if (m_state.redBoostButton == BUTTON_NOT_PUSH) {
 			m_state.redBoostButton = BUTTON_PUSH;
+			m_state.redBoostButtonTime = 0;
 			m_state.boostRedButtonPushBlockCount = m_state.boostRedBlockCount;
 		}
 		else {
@@ -678,6 +680,7 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		}
 		if (m_state.blueForceButton == BUTTON_NOT_PUSH) {
 			m_state.blueForceButton = BUTTON_PUSH;
+			m_state.blueForceButtonTime = 0;
 			m_state.forceBlueButtonPushBlockCount = m_state.forceBlueBlockCount;
 		}
 		else {
@@ -690,6 +693,7 @@ int platform::updateOneAction(actionTypeType actionIn, float timeIn, int robotIn
 		}
 		if (m_state.blueBoostButton == BUTTON_NOT_PUSH) {
 			m_state.blueBoostButton = BUTTON_PUSH;
+			m_state.blueBoostButtonTime = 0;
 			m_state.boostBlueButtonPushBlockCount = m_state.boostBlueBlockCount;
 		}
 		else {
@@ -737,7 +741,7 @@ int platform::isGameTimeOver(void)
 	}
 }
 
-double platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
+double platform::updateScaleSwitchScore(double secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
 	vaultButtonStateType forceVaultButtonIn, vaultButtonStateType boostVaultButtonIn,
 	int vaultBlockSelectionIn, ownerShipType newOnershipIn, ownerShipType *pOwnershipInOut)
 {
@@ -764,12 +768,12 @@ double platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCoun
 		if ((*pOwnershipInOut == newOnershipIn) &&
 			(ownershipChangeFlag == false)) { //ownership change happens before
 
-			scores += ROUNDING_METHOD(secondsIn);
+			scores += secondsIn;
 			if (m_timeInSec + secondsIn < AUTONOMOUS_END_TIME) {
-				scores += ROUNDING_METHOD(secondsIn);
+				scores += secondsIn;
 			}
 			else if (m_timeInSec < AUTONOMOUS_END_TIME) {
-				scores += ROUNDING_METHOD(AUTONOMOUS_END_TIME - m_timeInSec);
+				scores += AUTONOMOUS_END_TIME - m_timeInSec;
 			}
 			//Note: because button push is not allowed in autonomous session,
 			//      the logic above doesn't distinguish the ownership caused by cubes
@@ -780,7 +784,7 @@ double platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCoun
 			//it must be force button on
 			//only get scores within force button 10 seconds
 			if (forceVaultButtonIn + secondsIn <= BUTTON_PUSH_OVER_10SEC) {
-				scores += ROUNDING_METHOD(secondsIn);
+				scores += secondsIn;
 			}
 			else {
 				scores += BUTTON_PUSH_OVER_10SEC - forceVaultButtonIn;
@@ -793,7 +797,7 @@ double platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCoun
 			//double the score
 			if ((*pOwnershipInOut == newOnershipIn) && (ownershipChangeFlag == false)) {
 				if (boostVaultButtonIn + secondsIn <= BUTTON_PUSH_OVER_10SEC) {
-					scores += ROUNDING_METHOD(secondsIn);
+					scores += secondsIn;
 				}
 				else {
 					scores += BUTTON_PUSH_OVER_10SEC - boostVaultButtonIn;
@@ -803,7 +807,7 @@ double platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCoun
 				//by force button
 				if ((forceVaultButtonIn + secondsIn <= BUTTON_PUSH_OVER_10SEC) &&
 					(boostVaultButtonIn + secondsIn <= BUTTON_PUSH_OVER_10SEC)) {
-					scores += ROUNDING_METHOD(secondsIn);
+					scores += secondsIn;
 				}
 				else {
 					if (forceVaultButtonIn >= boostVaultButtonIn) {
@@ -825,7 +829,7 @@ double platform::updateScaleSwitchScore(float secondsIn, int vaultForceBlockCoun
 	return scores;
 }
 
-void platform::updateScore(float secondsIn)
+void platform::updateScore(double secondsIn)
 {
 	int liftRebotCount;
 
@@ -843,10 +847,13 @@ void platform::updateScore(float secondsIn)
 			((m_state.redForceButton != BUTTON_PUSH_OVER_10SEC))) {
 
 			previousRedForceButton = m_state.redForceButton;  //red force is enabled
-
-			m_state.redForceButton = (vaultButtonStateType)(m_state.redForceButton + ROUNDING_METHOD(secondsIn));
-			if (m_state.redForceButton > BUTTON_PUSH_OVER_10SEC) {
-				m_state.redForceButton = BUTTON_PUSH_OVER_10SEC;
+			m_state.redForceButtonTime += secondsIn;
+			if (m_state.redForceButtonTime >= 1) {
+				m_state.redForceButton = (vaultButtonStateType)(m_state.redForceButton + ROUNDING_METHOD(m_state.redForceButtonTime));
+				m_state.redForceButtonTime -= ROUNDING_METHOD(m_state.redForceButtonTime);
+				if (m_state.redForceButton > BUTTON_PUSH_OVER_10SEC) {
+					m_state.redForceButton = BUTTON_PUSH_OVER_10SEC;
+				}
 			}
 		}
 
@@ -854,10 +861,13 @@ void platform::updateScore(float secondsIn)
 			((m_state.redBoostButton != BUTTON_PUSH_OVER_10SEC))) {
 
 			previousRedBoostButton = m_state.redBoostButton; //red boost is enabled
-
-			m_state.redBoostButton = (vaultButtonStateType)(m_state.redBoostButton + ROUNDING_METHOD(secondsIn));
-			if (m_state.redBoostButton > BUTTON_PUSH_OVER_10SEC) {
-				m_state.redBoostButton = BUTTON_PUSH_OVER_10SEC;
+			m_state.redBoostButtonTime += secondsIn;
+			if (m_state.redBoostButtonTime >= 1) {
+				m_state.redBoostButton = (vaultButtonStateType)(m_state.redBoostButton + ROUNDING_METHOD(m_state.redBoostButtonTime));
+				m_state.redBoostButtonTime -= ROUNDING_METHOD(m_state.redBoostButtonTime);
+				if (m_state.redBoostButton > BUTTON_PUSH_OVER_10SEC) {
+					m_state.redBoostButton = BUTTON_PUSH_OVER_10SEC;
+				}
 			}
 		}
 	}
@@ -869,10 +879,13 @@ void platform::updateScore(float secondsIn)
 			((m_state.blueForceButton != BUTTON_PUSH_OVER_10SEC))) {
 
 			previousBlueForceButton = m_state.blueForceButton;
-
-			m_state.blueForceButton = (vaultButtonStateType)(m_state.blueForceButton + ROUNDING_METHOD(secondsIn));
-			if (m_state.blueForceButton > BUTTON_PUSH_OVER_10SEC) {
-				m_state.blueForceButton = BUTTON_PUSH_OVER_10SEC;
+			m_state.blueForceButtonTime += secondsIn;
+			if (m_state.blueForceButtonTime >= 1) {
+				m_state.blueForceButton = (vaultButtonStateType)(m_state.blueForceButton + ROUNDING_METHOD(m_state.blueForceButtonTime));
+				m_state.blueForceButtonTime -= ROUNDING_METHOD(m_state.blueForceButtonTime);
+				if (m_state.blueForceButton > BUTTON_PUSH_OVER_10SEC) {
+					m_state.blueForceButton = BUTTON_PUSH_OVER_10SEC;
+				}
 			}
 		}
 
@@ -880,10 +893,13 @@ void platform::updateScore(float secondsIn)
 			((m_state.blueBoostButton != BUTTON_PUSH_OVER_10SEC))) {
 
 			previousBlueBoostButton = m_state.blueBoostButton;
-
-			m_state.blueBoostButton = (vaultButtonStateType)(m_state.blueBoostButton + ROUNDING_METHOD(secondsIn));
-			if (m_state.blueBoostButton > BUTTON_PUSH_OVER_10SEC) {
-				m_state.blueBoostButton = BUTTON_PUSH_OVER_10SEC;
+			m_state.blueBoostButtonTime += secondsIn;
+			if (m_state.blueBoostButtonTime >= 1) {
+				m_state.blueBoostButton = (vaultButtonStateType)(m_state.blueBoostButton + ROUNDING_METHOD(m_state.blueBoostButtonTime));
+				m_state.blueBoostButtonTime -= ROUNDING_METHOD(m_state.blueBoostButtonTime);
+				if (m_state.blueBoostButton > BUTTON_PUSH_OVER_10SEC) {
+					m_state.blueBoostButton = BUTTON_PUSH_OVER_10SEC;
+				}
 			}
 		}
 	}
@@ -960,7 +976,7 @@ void platform::updateScore(float secondsIn)
 	}
 }
 
-void platform::logAction(actionTypeType actionIn, float timeIn, int robotIndexIn, int indexIn, bool successFlagIn)
+void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexIn, int indexIn, bool successFlagIn)
 {
 	if (m_pLogFIle == NULL) {
 		return;
@@ -1065,11 +1081,11 @@ void platform::logFinalScore(void)
 	fflush(m_pLogFIle);
 }
 
-float platform::findOneCube(float shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
-	const rectangleObjectType *pMovingObjectIn, float robotTurnDelayIn, float robotCubeDelayIn,
+double platform::findOneCube(double shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
+	const rectangleObjectType *pMovingObjectIn, double robotTurnDelayIn, double robotCubeDelayIn,
 	cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
-	float shortestPath = shortestPathIn;
+	double shortestPath = shortestPathIn;
 	robotPathType nextPath;
 
 	//search for cubs by the switch
@@ -1113,12 +1129,12 @@ const cubeSearchRangeType blueCubeSearchRange[] =
 	{ CUBE_BY_BLUE_EXCHANGE_ZONE , CUBE_LAST, true }   //CUBE BY EXCHANGE ZONE
 };
 
-const float DISTANCE_OUT_OF_RANGE = 1000000;
+const double DISTANCE_OUT_OF_RANGE = 1000000;
 bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, allianceType allianceIn, 
-	float robotTurnDelayIn, float robotCubeDelayIn,
+	double robotTurnDelayIn, double robotCubeDelayIn,
 	cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
-	float shortestPath = DISTANCE_OUT_OF_RANGE;
+	double shortestPath = DISTANCE_OUT_OF_RANGE;
 	int cubeListSize = sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType);
 
 	pPathOut->numberOfTurns = 0;
@@ -1197,10 +1213,10 @@ int platform::pickUpCube(coordinateType positionIn, allianceType allianceIn)
 
 bool  platform::tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn, bool cubeAvailableFlagIn)
 {
-	float distance;
+	double distance;
 
 	distance = (robotPosIn.x - cubePosIn.x) * (robotPosIn.x - cubePosIn.x) + (robotPosIn.y - cubePosIn.y) * (robotPosIn.y - cubePosIn.y);
-	distance = (float) sqrt(distance);
+	distance = (double) sqrt(distance);
 
 	if ((distance <= PICK_UP_CUBE_DISTANCE) && (cubeAvailableFlagIn)) {
 		return true;
@@ -1212,7 +1228,7 @@ bool  platform::tryPickOneCube(coordinateType robotPosIn, coordinateType cubePos
 
 
 bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
-	bool isTargetACubeIn, float robotTurnDelayIn, robotPathType *pPathOut)
+	bool isTargetACubeIn, double robotTurnDelayIn, robotPathType *pPathOut)
 {
 	//scan all static objects to find out a shortest path to the end point
 
@@ -1228,7 +1244,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	const rectangleObjectType *pCollisionObject;
 	rectangleObjectType movingObject;
 	int turnPointIndex = 0;
-	float distance;
+	double distance;
 	coordinateType startPoint;
 	coordinateType arroundPos;
 
@@ -1255,7 +1271,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		distance = (endPointIn.x - pMovingObjectIn->center.x)*(endPointIn.x - pMovingObjectIn->center.x) +
 			(endPointIn.y - pMovingObjectIn->center.y)*(endPointIn.y - pMovingObjectIn->center.y);
 
-		pPathOut->totalDistance = (float) sqrt(distance);
+		pPathOut->totalDistance = (double) sqrt(distance);
 		return true;
 	}
 
@@ -1403,7 +1419,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 				distance = (pPathOut->turnPoints[p].x - startPoint.x)*(pPathOut->turnPoints[p].x - startPoint.x) +
 					(pPathOut->turnPoints[p].y - startPoint.y)*(pPathOut->turnPoints[p].y - startPoint.y);
 
-				pPathOut->totalDistance += (float)sqrt(distance);
+				pPathOut->totalDistance += (double)sqrt(distance);
 				startPoint = pPathOut->turnPoints[p];
 			}
 
@@ -1411,17 +1427,17 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		}
 
 		//TODO, please confirm that blue switch is on the right side, JWJW
-		float rightMostPath = m_platformStructure.blueSwitchSouthPlate.center.x +
+		double rightMostPath = m_platformStructure.blueSwitchSouthPlate.center.x +
 			m_platformStructure.blueSwitchSouthPlate.sizeX / 2 +
 			m_platformStructure.bluePowerCubeZone.sizeX +
 			LARGEST_ROBOT_SIZE/2 + ROBOT_TO_WALL_DISTANCE;
-		float secondRightPath = m_platformStructure.scaleSouthPlate.center.x +
+		double secondRightPath = m_platformStructure.scaleSouthPlate.center.x +
 			m_platformStructure.scaleSouthPlate.sizeX / 2 +
 			LARGEST_ROBOT_SIZE / 2 + ROBOT_TO_WALL_DISTANCE;
-		float thirdRightPath = m_platformStructure.scaleSouthPlate.center.x -
+		double thirdRightPath = m_platformStructure.scaleSouthPlate.center.x -
 			m_platformStructure.scaleSouthPlate.sizeX / 2 -
 			LARGEST_ROBOT_SIZE / 2 - ROBOT_TO_WALL_DISTANCE;
-		float forthRightPath = m_platformStructure.redSwitchSouthPlate.center.x -
+		double forthRightPath = m_platformStructure.redSwitchSouthPlate.center.x -
 			m_platformStructure.redSwitchSouthPlate.sizeX / 2 -
 			m_platformStructure.redPowerCubeZone.sizeX -
 			LARGEST_ROBOT_SIZE / 2 - ROBOT_TO_WALL_DISTANCE;
@@ -1497,7 +1513,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		distance = (pPathOut->turnPoints[p].x - startPoint.x)*(pPathOut->turnPoints[p].x - startPoint.x) +
 			(pPathOut->turnPoints[p].y - startPoint.y)*(pPathOut->turnPoints[p].y - startPoint.y);
 
-		pPathOut->totalDistance += (float)sqrt(distance);
+		pPathOut->totalDistance += (double)sqrt(distance);
 		startPoint = pPathOut->turnPoints[p];
 	}
 
@@ -1541,8 +1557,8 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 bool platform::collisionDectection(const rectangleObjectType *pStillObjectIn, 
 	const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn)
 {
-	float mLeftX, mTopY, mBottomY, mRightX;
-	float sLeftX, sTopY, sBottomY, sRightX;
+	double mLeftX, mTopY, mBottomY, mRightX;
+	double sLeftX, sTopY, sBottomY, sRightX;
 
 	//find moving object covered rectangle
 	mLeftX = pMovingObjectIn->center.x - pMovingObjectIn->sizeX / 2;
