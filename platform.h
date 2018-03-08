@@ -137,6 +137,7 @@ class platform
 {
 private:
 	double m_timeInSec; 
+	double m_lastScoreUpdateTime;
 	double m_redScore;
 	double m_blueScore;
 	int m_liftRedRobotIndex;
@@ -226,6 +227,8 @@ public:
 	const pendingActionType *getRobotAction(allianceType allianceIn, int robotIdxIn) const;
 	coordinateType getRobotPos(allianceType allianceIn, int robotIdxIn) const;
 
+	bool getRobotHasCubeFlag(allianceType allianceIn, int robotIdxIn) const;
+	int getRobotCubeIdx(allianceType allianceIn, int robotIdxIn) const;
 
 	void setState(const platformStateType *pStateIn) { memcpy(&m_state, pStateIn,  sizeof(m_state)); }
 	void setTime(double timeIn) { m_timeInSec = timeIn; }
@@ -284,7 +287,8 @@ public:
 	void removeCube(int cubeIdxIn) { m_cubes[cubeIdxIn].availbleFlag = false; }
 
 	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
-	void forceRobotAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, allianceType allianceIn, int robotIdxIn, int indexIn);
+	void forceRobotAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, int cubeIdxIn,
+		allianceType allianceIn, int robotIdxIn, int indexIn);
 
 	double getEarliestFinishTime(void);
 	int commitAction(double nextTimeIn, int indexIn, allianceType activeAllianceIn);
@@ -312,7 +316,7 @@ protected:
 		const rectangleObjectType *pMovingObjectIn, double robotTurnDelayIn, double robotCubeDelayIn, 
 		cubeStateType **pCubeOut, robotPathType *pPathOut);
 
-	void updateScore(double secondsIn);
+	void updateScore(double secondsPassedIn);
 	double updateScaleSwitchScore(double secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,
 		vaultButtonStateType forceVaultButtonIn, vaultButtonStateType boostVaultButtonIn,
 		int vaultBlockSelectionIn, ownerShipType newOnerShipIn, ownerShipType *pOwnerShipInOut);

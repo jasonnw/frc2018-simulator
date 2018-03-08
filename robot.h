@@ -73,6 +73,10 @@ public:
 	{
 		return &m_state.pos;
 	}
+	const int getCubeIdx(void) const
+	{
+		return m_state.cubeIdx;
+	}
 
 	const pendingActionType *getPlannedAction(void) const
 	{

@@ -82,7 +82,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 			commitMessageFlag = message.commitActionFlag;
 			quitFlag = message.quitFlag;
 			if ((!quitFlag) && (!commitMessageFlag)) {
-				forceRobotAction(&message.action, message.startPos, message.alliance, message.robotIdx, actionIndexIn);
+				forceRobotAction(&message.action, message.startPos, message.cubeIdx, message.alliance, message.robotIdx, actionIndexIn);
 			}
 		}
 		else {
@@ -287,7 +287,7 @@ void displayPlatform::updateField(void)
 	drawField();
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		drawRobot(m_redRobots[i].getPosition(), i, m_redRobots[i].hasCube());
-		drawRobot(m_blueRobots[i].getPosition(), i, m_redRobots[i].hasCube());
+		drawRobot(m_blueRobots[i].getPosition(), i, m_blueRobots[i].hasCube());
 	}
 	
 	if (BLUE_NORTH_SWITCH_FLAG) {

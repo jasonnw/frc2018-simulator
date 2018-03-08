@@ -198,6 +198,7 @@ int main(int argc, char** argv)
 				pAction = gamePlatform.getRobotAction(ALLIANCE_RED, i);
 				memcpy(&messageBuffer.action, pAction, sizeof(pendingActionType));
 				messageBuffer.startPos = gamePlatform.getRobotPos(ALLIANCE_RED, i);
+				messageBuffer.cubeIdx = gamePlatform.getRobotCubeIdx(ALLIANCE_RED, i);
 				messageBuffer.alliance = ALLIANCE_RED;
 				messageBuffer.robotIdx = i;
 				showPlatform.sendAction(&messageBuffer);
@@ -210,6 +211,7 @@ int main(int argc, char** argv)
 				pAction = gamePlatform.getRobotAction(ALLIANCE_BLUE, i);
 				memcpy(&messageBuffer.action, pAction, sizeof(pendingActionType));
 				messageBuffer.startPos = gamePlatform.getRobotPos(ALLIANCE_BLUE, i);
+				messageBuffer.cubeIdx = gamePlatform.getRobotCubeIdx(ALLIANCE_BLUE, i);
 				messageBuffer.alliance = ALLIANCE_BLUE;
 				messageBuffer.robotIdx = i;
 				showPlatform.sendAction(&messageBuffer);

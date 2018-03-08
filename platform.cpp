@@ -12,6 +12,7 @@ platform::platform()
 {
 	memset(&m_state, 0, sizeof(m_state));
 	m_timeInSec = 0;
+	m_lastScoreUpdateTime = 0;
 	m_redScore = 0;
 	m_blueScore = 0;
 	m_pLogFIle = NULL;
@@ -245,7 +246,7 @@ platform::~platform()
 void platform::getFinalScore(int *pRedScoreOut, int *pBlueScoreOut)
 {
 	if (CLIMB_END_TIME > m_timeInSec) {
-		updateScore(CLIMB_END_TIME - m_timeInSec);
+		updateScore(CLIMB_END_TIME - m_lastScoreUpdateTime);
 	}
 	*pRedScoreOut = (int) floor(getRedScore() + 0.5);
 	*pBlueScoreOut = (int) floor(getBlueScore() + 0.5);
@@ -283,9 +284,30 @@ bool platform::hasPendingAction(int robotIndexIn, allianceType allianceIn)
 	}
 }
 
-void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, allianceType allianceIn, int robotIdxIn, int indexIn)
+void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, int cubeIdxIn,
+	allianceType allianceIn, int robotIdxIn, int indexIn)
 {
+	static int debugCounter = 0;
 	robot *pRobots;
+	coordinateType currentPos = getRobotPos(allianceIn, robotIdxIn);
+	bool currentHasCubeFlag = getRobotHasCubeFlag(allianceIn, robotIdxIn);
+
+	if (currentHasCubeFlag) {
+		if (cubeIdxIn == INVALID_IDX) {
+			printf("ERROR, robot %d should not have a cube\n", robotIdxIn);
+		}
+	}
+	else {
+		if (cubeIdxIn != INVALID_IDX) {
+			printf("ERROR, robot %d should have a cube\n", robotIdxIn);
+		}
+	}
+	//Note: Because of different execution order between game platform and display platform
+	//      one robot may pick up different cube on different platform. But, has cube flag should be the same.
+
+	if ((abs(currentPos.x - startPosIn.x) >= 5) || (abs(currentPos.y - startPosIn.y) >= 5)) {
+		printf("ERROR, robot %d position out of sync\n", robotIdxIn);
+	}
 
 	if (allianceIn == ALLIANCE_RED) {
 		pRobots = m_redRobots;
@@ -295,6 +317,7 @@ void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, coord
 	}
 
 	pRobots[robotIdxIn].forceAction(pPlannedActionIn, startPosIn, m_timeInSec, indexIn);
+	debugCounter++;
 }
 
 coordinateType platform::getRobotPos(allianceType allianceIn, int robotIdxIn) const
@@ -310,6 +333,32 @@ coordinateType platform::getRobotPos(allianceType allianceIn, int robotIdxIn) co
 	}
 	pPos = pRobots[robotIdxIn].getPosition();
 	return pPos->center;
+}
+
+bool platform::getRobotHasCubeFlag(allianceType allianceIn, int robotIdxIn) const
+{
+	const robot *pRobots;
+
+	if (allianceIn == ALLIANCE_RED) {
+		pRobots = m_redRobots;
+	}
+	else {
+		pRobots = m_blueRobots;
+	}
+	return pRobots[robotIdxIn].hasCube();
+}
+
+int platform::getRobotCubeIdx(allianceType allianceIn, int robotIdxIn) const
+{
+	const robot *pRobots;
+
+	if (allianceIn == ALLIANCE_RED) {
+		pRobots = m_redRobots;
+	}
+	else {
+		pRobots = m_blueRobots;
+	}
+	return pRobots[robotIdxIn].getCubeIdx();
 }
 
 const pendingActionType *platform::getRobotAction(allianceType allianceIn, int robotIdxIn) const
@@ -412,7 +461,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 	earliestFinishTime = nextTimeIn;
 	if (earliestFinishTime >= CLIMB_END_TIME) {
 		//skip the action and only update the game score
-		updateScore(CLIMB_END_TIME - m_timeInSec);
+		updateScore(CLIMB_END_TIME - m_lastScoreUpdateTime);
 		return updateActionResult;
 	}
 
@@ -726,7 +775,7 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 	if (timeIn < m_timeInSec) {
 		printf("Error, time reverse, from %3.2f to %3.2f\n", m_timeInSec, timeIn);
 	}
-	updateScore(timeIn - m_timeInSec);
+	updateScore(timeIn - m_lastScoreUpdateTime);
 	logAction(actionIn, timeIn, robotIndexIn, indexIn, true);
 	return 0;
 }
@@ -829,7 +878,7 @@ double platform::updateScaleSwitchScore(double secondsIn, int vaultForceBlockCou
 	return scores;
 }
 
-void platform::updateScore(double secondsIn)
+void platform::updateScore(double secondsPassedIn)
 {
 	int liftRebotCount;
 
@@ -847,7 +896,7 @@ void platform::updateScore(double secondsIn)
 			((m_state.redForceButton != BUTTON_PUSH_OVER_10SEC))) {
 
 			previousRedForceButton = m_state.redForceButton;  //red force is enabled
-			m_state.redForceButtonTime += secondsIn;
+			m_state.redForceButtonTime += secondsPassedIn;
 			if (m_state.redForceButtonTime >= 1) {
 				m_state.redForceButton = (vaultButtonStateType)(m_state.redForceButton + ROUNDING_METHOD(m_state.redForceButtonTime));
 				m_state.redForceButtonTime -= ROUNDING_METHOD(m_state.redForceButtonTime);
@@ -861,7 +910,7 @@ void platform::updateScore(double secondsIn)
 			((m_state.redBoostButton != BUTTON_PUSH_OVER_10SEC))) {
 
 			previousRedBoostButton = m_state.redBoostButton; //red boost is enabled
-			m_state.redBoostButtonTime += secondsIn;
+			m_state.redBoostButtonTime += secondsPassedIn;
 			if (m_state.redBoostButtonTime >= 1) {
 				m_state.redBoostButton = (vaultButtonStateType)(m_state.redBoostButton + ROUNDING_METHOD(m_state.redBoostButtonTime));
 				m_state.redBoostButtonTime -= ROUNDING_METHOD(m_state.redBoostButtonTime);
@@ -879,7 +928,7 @@ void platform::updateScore(double secondsIn)
 			((m_state.blueForceButton != BUTTON_PUSH_OVER_10SEC))) {
 
 			previousBlueForceButton = m_state.blueForceButton;
-			m_state.blueForceButtonTime += secondsIn;
+			m_state.blueForceButtonTime += secondsPassedIn;
 			if (m_state.blueForceButtonTime >= 1) {
 				m_state.blueForceButton = (vaultButtonStateType)(m_state.blueForceButton + ROUNDING_METHOD(m_state.blueForceButtonTime));
 				m_state.blueForceButtonTime -= ROUNDING_METHOD(m_state.blueForceButtonTime);
@@ -893,7 +942,7 @@ void platform::updateScore(double secondsIn)
 			((m_state.blueBoostButton != BUTTON_PUSH_OVER_10SEC))) {
 
 			previousBlueBoostButton = m_state.blueBoostButton;
-			m_state.blueBoostButtonTime += secondsIn;
+			m_state.blueBoostButtonTime += secondsPassedIn;
 			if (m_state.blueBoostButtonTime >= 1) {
 				m_state.blueBoostButton = (vaultButtonStateType)(m_state.blueBoostButton + ROUNDING_METHOD(m_state.blueBoostButtonTime));
 				m_state.blueBoostButtonTime -= ROUNDING_METHOD(m_state.blueBoostButtonTime);
@@ -904,19 +953,19 @@ void platform::updateScore(double secondsIn)
 		}
 	}
 
-	m_redScore += updateScaleSwitchScore(secondsIn, m_state.forceRedButtonPushBlockCount, m_state.boostRedButtonPushBlockCount,
+	m_redScore += updateScaleSwitchScore(secondsPassedIn, m_state.forceRedButtonPushBlockCount, m_state.boostRedButtonPushBlockCount,
 		m_state.scaleRedBlockCount - m_state.scaleBlueBlockCount,
 		previousRedForceButton, previousRedBoostButton, 2, OWNED_BY_RED, &m_state.scaleOwner);
 
-	m_blueScore += updateScaleSwitchScore(secondsIn, m_state.forceBlueButtonPushBlockCount, m_state.boostBlueButtonPushBlockCount,
+	m_blueScore += updateScaleSwitchScore(secondsPassedIn, m_state.forceBlueButtonPushBlockCount, m_state.boostBlueButtonPushBlockCount,
 		m_state.scaleBlueBlockCount - m_state.scaleRedBlockCount,
 		previousBlueForceButton, previousBlueBoostButton, 2, OWNED_BY_BLUE, &m_state.scaleOwner);
 
-	m_redScore += updateScaleSwitchScore(secondsIn, m_state.forceRedButtonPushBlockCount, m_state.boostRedButtonPushBlockCount,
+	m_redScore += updateScaleSwitchScore(secondsPassedIn, m_state.forceRedButtonPushBlockCount, m_state.boostRedButtonPushBlockCount,
 		m_state.switchRed_RedBlockCount - m_state.switchRed_BlueBlockCount,
 		previousRedForceButton, previousRedBoostButton, 2, OWNED_BY_RED, &m_state.switchRedOwner);
 
-	m_blueScore += updateScaleSwitchScore(secondsIn, m_state.forceBlueButtonPushBlockCount, m_state.boostBlueButtonPushBlockCount,
+	m_blueScore += updateScaleSwitchScore(secondsPassedIn, m_state.forceBlueButtonPushBlockCount, m_state.boostBlueButtonPushBlockCount,
 		m_state.switchBlue_BlueBlockCount - m_state.switchBlue_RedBlockCount,
 		previousBlueForceButton, previousBlueBoostButton, 2, OWNED_BY_BLUE, &m_state.switchBlueOwner);
 
@@ -974,6 +1023,8 @@ void platform::updateScore(double secondsIn)
 		m_state.redLiftButton = BUTTON_NOT_PUSH;
 		m_state.blueLiftButton = BUTTON_NOT_PUSH;
 	}
+
+	m_lastScoreUpdateTime += secondsPassedIn;
 }
 
 void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexIn, int indexIn, bool successFlagIn)

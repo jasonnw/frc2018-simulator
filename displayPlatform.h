@@ -18,31 +18,36 @@ private:
 	CONDITION_VARIABLE m_recieverCondVar;
 
 	T *m_pQueueBuffer;
+	bool *m_pIsEmptyFlag;
 	int m_queueSize;
-	int m_readIdx;  //the last read message index
-	int m_writeIdx; //the last write message index
-	bool m_writeWrapAroundFlag;
+	int m_readIdx;  //the next read message index
+	int m_writeIdx; //the next write message index
 
 public:
 	messageQueue(int qSizeIn, int *pErrorOut)
 	{
 		*pErrorOut = -1;
 		m_queueSize = 0;
-		m_readIdx = -1;
-		m_writeIdx = -1;
-		m_writeWrapAroundFlag = false;
+		m_readIdx = 0;
+		m_writeIdx = 0;
 
-		m_pQueueBuffer = (T*)malloc(sizeof(T) * qSizeIn);
+		m_pQueueBuffer = (T*)malloc(sizeof(T) * qSizeIn + sizeof(bool) * qSizeIn);
 		if (m_pQueueBuffer != NULL) {
 			m_queueSize = qSizeIn;
 			*pErrorOut = 0;
 			InitializeCriticalSection(&m_bufferLock);
 			InitializeConditionVariable(&m_senderCondVar);
 			InitializeConditionVariable(&m_recieverCondVar);
+
+			m_pIsEmptyFlag = (bool*) &m_pQueueBuffer[qSizeIn];
+			for (int i = 0; i < qSizeIn; i++) {
+				m_pIsEmptyFlag[i] = true;
+			}
 		}
 		else {
 			*pErrorOut = -1;
 		}
+
 	}
 	~messageQueue()
 	{
@@ -57,7 +62,7 @@ public:
 		bool isEmpty = false;
 		EnterCriticalSection(&m_bufferLock);
 
-		if ((m_writeIdx <= m_readIdx) && (m_writeWrapAroundFlag == false)) {
+		if (m_pIsEmptyFlag[m_readIdx]) {
 			isEmpty = true;
 		}
 
@@ -70,7 +75,7 @@ public:
 		bool isFull = false;
 		EnterCriticalSection(&m_bufferLock);
 
-		if ((m_writeIdx >= m_readIdx) && (m_writeWrapAroundFlag == true)) {
+		if (!m_pIsEmptyFlag[m_writeIdx]) {
 			isFull = true;
 		}
 
@@ -83,19 +88,17 @@ public:
 	{
 		EnterCriticalSection(&m_bufferLock);
 
-		int writeIndex = m_writeIdx + 1;
-		if (writeIndex >= m_queueSize) {
-			writeIndex = 0;
-			m_writeWrapAroundFlag = true;
-		}
-
-		while ((writeIndex >= m_readIdx) && (m_writeWrapAroundFlag)) {
+		while (!m_pIsEmptyFlag[m_writeIdx]) {
 			//Q is full
 			SleepConditionVariableCS(&m_recieverCondVar, &m_bufferLock, INFINITE);
 		}
 
-		memcpy(&m_pQueueBuffer[writeIndex], pMessageIn, sizeof(T));
-		m_writeIdx = writeIndex;
+		memcpy(&m_pQueueBuffer[m_writeIdx], pMessageIn, sizeof(T));
+		m_pIsEmptyFlag[m_writeIdx] = false;
+		m_writeIdx++;
+		if (m_writeIdx >= m_queueSize) {
+			m_writeIdx = 0;
+		}
 
 		LeaveCriticalSection(&m_bufferLock);
 		WakeConditionVariable(&m_senderCondVar);
@@ -104,20 +107,18 @@ public:
 	void receive(T* pMessageOut)
 	{
 		EnterCriticalSection(&m_bufferLock);
-		int readIndex = m_readIdx + 1;
 
-		if (readIndex >= m_queueSize) {
-			readIndex = 0;
-			m_writeWrapAroundFlag = false;
-		}
-
-		while ((readIndex > m_writeIdx) && (m_writeWrapAroundFlag == false)) {
+		while (m_pIsEmptyFlag[m_readIdx]) {
 			//Q is empty
 			SleepConditionVariableCS(&m_senderCondVar, &m_bufferLock, INFINITE);
 		}
 
-		memcpy(pMessageOut, &m_pQueueBuffer[readIndex], sizeof(T));
-		m_readIdx = readIndex;
+		memcpy(pMessageOut, &m_pQueueBuffer[m_readIdx], sizeof(T));
+		m_pIsEmptyFlag[m_readIdx] = true;
+		m_readIdx++;
+		if (m_readIdx >= m_queueSize) {
+			m_readIdx = 0;
+		}
 
 		LeaveCriticalSection(&m_bufferLock);
 		WakeConditionVariable(&m_recieverCondVar);
@@ -127,19 +128,17 @@ public:
 	{
 		EnterCriticalSection(&m_bufferLock);
 
-		int writeIndex = m_writeIdx + 1;
-		if (writeIndex >= m_queueSize) {
-			writeIndex = 0;
-			m_writeWrapAroundFlag = true;
-		}
-
-		if ((writeIndex >= m_readIdx) && (m_writeWrapAroundFlag)) {
+		if (!m_pIsEmptyFlag[m_writeIdx]) {
 			LeaveCriticalSection(&m_bufferLock);
 			return -1;
 		}
 		else {
-			memcpy(&m_pQueueBuffer[writeIndex], pMessageIn, sizeof(T));
-			m_writeIdx = writeIndex;
+			memcpy(&m_pQueueBuffer[m_writeIdx], pMessageIn, sizeof(T));
+			m_pIsEmptyFlag[m_writeIdx] = false;
+			m_writeIdx++;
+			if (m_writeIdx >= m_queueSize) {
+				m_writeIdx = 0;
+			}
 
 			LeaveCriticalSection(&m_bufferLock);
 			WakeConditionVariable(&m_senderCondVar);
@@ -150,21 +149,19 @@ public:
 	int tryReceive(T* pMessageOut)
 	{
 		EnterCriticalSection(&m_bufferLock);
-		int readIndex = m_readIdx + 1;
 
-		if (readIndex >= m_queueSize) {
-			readIndex = 0;
-			m_writeWrapAroundFlag = false;
-		}
-
-		if ((readIndex > m_writeIdx) && (m_writeWrapAroundFlag == false)) {
+		if (m_pIsEmptyFlag[m_readIdx]) {
 			//Q is empty
 			LeaveCriticalSection(&m_bufferLock);
 			return -1;
 		}
 		else {
-			memcpy(pMessageOut, &m_pQueueBuffer[readIndex], sizeof(T));
-			m_readIdx = readIndex;
+			memcpy(pMessageOut, &m_pQueueBuffer[m_readIdx], sizeof(T));
+			m_pIsEmptyFlag[m_readIdx] = true;
+			m_readIdx++;
+			if (m_readIdx >= m_queueSize) {
+				m_readIdx = 0;
+			}
 
 			LeaveCriticalSection(&m_bufferLock);
 			WakeConditionVariable(&m_recieverCondVar);
@@ -181,6 +178,7 @@ typedef struct actionMessageType {
 	pendingActionType action;
 	allianceType alliance;
 	coordinateType startPos;
+	int cubeIdx;
 	int actionIndex;
 	int robotIdx;
 	bool commitActionFlag;

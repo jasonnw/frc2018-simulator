@@ -121,13 +121,10 @@ int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType
 	//sync the current robot position
 	m_state.pos.center = startPosIn;
 
-	if (m_plannedAction.actionType != pPlannedActionIn->actionType) {
-		memcpy(&m_plannedAction, pPlannedActionIn, sizeof(pendingActionType));
-		m_plannedAction.startTime = timeIn;
-		m_plannedAction.projectedFinishTime = timeIn + actionDleay;
-		m_plannedAction.actionIndex = indexIn;
-	}
-	//else, continue the current action
+	memcpy(&m_plannedAction, pPlannedActionIn, sizeof(pendingActionType));
+	m_plannedAction.startTime = timeIn;
+	m_plannedAction.projectedFinishTime = timeIn + actionDleay;
+	m_plannedAction.actionIndex = indexIn;
 
 	return 0;
 }
@@ -835,7 +832,8 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 
 		//else, because turn point delay is passed, the cube should be picked up already
 		totalDelay += delay;
-		if (totalDelay == stopDelayIn) {
+		if (totalDelay <= stopDelayIn) {
+			*pStopPositionOut = pPathIn->turnPoints[i];
 			if (i+1 == pPathIn->numberOfTurns) {
 				*pJustDoneFlagOut = true;
 			}
