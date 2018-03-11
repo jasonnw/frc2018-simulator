@@ -199,7 +199,7 @@ platform::platform()
 
 	m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX =
 		(m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.westWall) * 2;
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY;
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
 	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR] =
 	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, 
@@ -233,7 +233,7 @@ platform::platform()
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX =
 		m_platformStructure.structures[SCALE_ZONE].center.x - m_platformStructure.structures[RED_SWITCH_ZONE].center.x -
 		m_platformStructure.structures[SCALE_ZONE].sizeX / 2 - m_platformStructure.structures[RED_SWITCH_ZONE].sizeX/2;
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY;
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR] =
 	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 
@@ -267,7 +267,7 @@ platform::platform()
 	m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX =
 		m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x - m_platformStructure.structures[SCALE_ZONE].center.x -
 		m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX / 2 - m_platformStructure.structures[SCALE_ZONE].sizeX / 2;
-	m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY = m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY;
+	m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
 	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[BOTTOM_CORRIDOR] =
 	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 
@@ -302,7 +302,7 @@ platform::platform()
 
 	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX =
 		(m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x) * 2;
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY = m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY;
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
 	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[BOTTOM_CORRIDOR] = 
 		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 
@@ -330,8 +330,8 @@ platform::platform()
 	m_platformStructure.zones[BOTTOM_CORRIDOR].area.center.x =
 		(m_platformStructure.eastWall - m_platformStructure.westWall) / 2;
 	m_platformStructure.zones[BOTTOM_CORRIDOR].area.center.y =
-		(m_platformStructure.structures[BLUE_SWITCH_ZONE].center.y -
-			m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY / 2 +
+		(m_platformStructure.structures[SCALE_ZONE].center.y -
+			m_platformStructure.structures[SCALE_ZONE].sizeY / 2 +
 			m_platformStructure.southWall) / 2;
 
 	m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeX =
@@ -374,8 +374,8 @@ platform::platform()
 		(m_platformStructure.eastWall - m_platformStructure.westWall) / 2;
 	m_platformStructure.zones[TOP_CORRIDOR].area.center.y =
 		(m_platformStructure.northWall + 
-			m_platformStructure.structures[BLUE_SWITCH_ZONE].center.y +
-			m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY / 2) / 2;
+			m_platformStructure.structures[SCALE_ZONE].center.y +
+			m_platformStructure.structures[SCALE_ZONE].sizeY / 2) / 2;
 
 	m_platformStructure.zones[TOP_CORRIDOR].area.sizeX =
 		(m_platformStructure.eastWall - m_platformStructure.westWall);
@@ -712,7 +712,7 @@ platform::platform()
 void platform::configRedRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
 {
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_redRobots[i].setConfiguration(&config1In[i], this);
+		m_redRobots[i].setConfiguration(&config1In[i], this, i);
 		m_redRobots[i].setAllianceType(ALLIANCE_RED);
 	}
 	//set robot initial positions
@@ -724,7 +724,7 @@ void platform::configRedRobots(const robotConfigurationType config1In[NUMBER_OF_
 void platform::configBlueRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
 {
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_blueRobots[i].setConfiguration(&config1In[i], this);
+		m_blueRobots[i].setConfiguration(&config1In[i], this, i);
 		m_blueRobots[i].setAllianceType(ALLIANCE_BLUE);
 	}
 	//set robot initial positions
@@ -911,20 +911,20 @@ bool platform::hasPendingActions(void)
 	return hasPendingActionFlag;
 }
 
-double platform::getEarliestFinishTime(void)
+double platform::getEarliestStopTime(void)
 {
 	double earliestFinishTime;
 
 	earliestFinishTime = CLIMB_END_TIME + 1;
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		if (hasPendingAction(i, ALLIANCE_RED)) {
-			if (earliestFinishTime > m_redRobots[i].getPlannedActionFinishTime()) {
-				earliestFinishTime = m_redRobots[i].getPlannedActionFinishTime();
+			if (earliestFinishTime > m_redRobots[i].getNextStopTime()) {
+				earliestFinishTime = m_redRobots[i].getNextStopTime();
 			}
 		}
 		if (hasPendingAction(i, ALLIANCE_BLUE)) {
-			if (earliestFinishTime > m_blueRobots[i].getPlannedActionFinishTime()) {
-				earliestFinishTime = m_blueRobots[i].getPlannedActionFinishTime();
+			if (earliestFinishTime > m_blueRobots[i].getNextStopTime()) {
+				earliestFinishTime = m_blueRobots[i].getNextStopTime();
 			}
 		}
 	}
@@ -1828,14 +1828,13 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 
 	//else, not in the same zone
 	sortZoneConnections(movingObject.center, startZone, endPointIn, targetZone, &m_sortedZonePath);
-	isSearchDoneFlag = false;
-	isSearchFailedFlag = false;
 
 	for (int i = 0; i < m_sortedZonePath.pathNUmber; i++) {
+		isSearchDoneFlag = false;
+		isSearchFailedFlag = false;
 		for (int j = 0; j < NUMBER_OF_ZONES_ON_PATH; j++) {
 			//to the connect point of the same zone
 			connectionZoneIdx = m_sortedZonePath.path[i].connections[j];
-
 			if (connectionZoneIdx == INVALID_ZONE) {
 				//replace it with the target zone
 				connectionZoneIdx = targetZone;
@@ -1863,8 +1862,10 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		}
 
 		//search the last point
-		if (true != foundPathWithinZone(&movingObject, endPointIn, &m_platformStructure.zones[targetZone], pPathOut)) {
-			isSearchFailedFlag = true;
+		if (!isSearchFailedFlag) {
+			if (true != foundPathWithinZone(&movingObject, endPointIn, &m_platformStructure.zones[targetZone], pPathOut)) {
+				isSearchFailedFlag = true;
+			}
 		}
 
 		if ((!isSearchFailedFlag) && (isSearchDoneFlag)) {
@@ -1903,6 +1904,12 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 			if (pRobotPosition->objectId != pMovingObjectIn->objectId) {
 				if (collisionDectection(pRobotPosition, pMovingObjectIn, endPointIn)) {
 
+					if ((pMovingObjectIn->center.x == endPointIn.x) && (pMovingObjectIn->center.x == endPointIn.x)) {
+						//single point collision check
+						*pCollisionObjectOut = pRobotPosition;
+						return true;
+					}
+					//else, moving path collision check
 					if (false == collisionDectection(pRobotPosition, pMovingObjectIn, pMovingObjectIn->center)) {
 						*pCollisionObjectOut = pRobotPosition;
 						return true;
@@ -2110,7 +2117,7 @@ void platform::sortZoneConnections(coordinateType startIn, robotMoveZoneType sta
 	//copy to the output
 	pPathListOut->pathNUmber = pathNumber;
 	for (int i = 0; i < pathNumber; i++) {
-		for (int j = 0; j < MAXIMUM_PATH_NUMBER; j++) {
+		for (int j = 0; j < NUMBER_OF_ZONES_ON_PATH; j++) {
 			pPathListOut->path[i].connections[j] = m_zone2ZonePath[startZoneIn][targetZoneIn].path[pathIdx[i]].connections[j];
 		}
 	}

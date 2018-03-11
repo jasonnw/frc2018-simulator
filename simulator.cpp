@@ -175,6 +175,8 @@ int main(int argc, char** argv)
 	//blueAlliance.setLogFile(pBlueActionLog);
 
 	do {
+		actionCounter++;
+
 		//enable action search log at any time
 		//if (actionCounter == 72) {
 		//	blueAlliance.setLogFile(pBlueActionLog);
@@ -230,7 +232,7 @@ int main(int argc, char** argv)
 			showPlatform.sendAction(&messageBuffer);
 		}
 
-		earliestFinishTime = gamePlatform.getEarliestFinishTime();
+		earliestFinishTime = gamePlatform.getEarliestStopTime();
 		if (0 != gamePlatform.commitAction(earliestFinishTime, actionCounter, INVALID_ALLIANCE)) {
 			printf("Error: Action is rejected\n");
 		}
@@ -253,7 +255,6 @@ int main(int argc, char** argv)
 
 		redStart = redEnd;
 		blueStart = blueEnd;
-		actionCounter++;
 	} while ((!gamePlatform.isGameTimeOver()) && (newActionCount!=0));
 
 	if (pRedActionLog != NULL) {

@@ -51,6 +51,7 @@ private:
 	robotStateType m_state;
 	pendingActionType m_plannedAction;
 	allianceType m_allianceType;
+	int m_robotIndex;
 
 public:
 	robot();
@@ -78,6 +79,10 @@ public:
 	{
 		return m_state.cubeIdx;
 	}
+	const int getRobotIndex(void) const
+	{
+		return m_robotIndex;
+	}
 
 	const pendingActionType *getPlannedAction(void) const
 	{
@@ -100,7 +105,12 @@ public:
 		}
 	}
 
-	void setConfiguration(const robotConfigurationType *pConfigIn, platform *pPlatform);
+	void setRobotIndex(int indexIn)
+	{
+		m_robotIndex = indexIn;
+	}
+
+	void setConfiguration(const robotConfigurationType *pConfigIn, platform *pPlatform, int indexIn);
 	void setPosition(double xIn, double yIn, int objectIdIn);
 	void setPlatformAndCube(platform *pPlatform, int cubeIdxIn);
 	void dumpOneCube(void);
@@ -110,7 +120,7 @@ public:
 
 	const robot & operator = (const robot &srcIn)
 	{
-		setConfiguration(srcIn.getConfiguration(), NULL);
+		setConfiguration(srcIn.getConfiguration(), NULL, srcIn.getRobotIndex());
 		memcpy(&m_state, srcIn.getState(), sizeof(m_state));
 		memcpy(&m_plannedAction, srcIn.getPlannedAction(), sizeof(m_plannedAction));
 		m_allianceType = srcIn.getAlliance();
@@ -122,6 +132,10 @@ public:
 	int forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, double timeIn, int indexIn);
 
 	double getPlannedActionFinishTime(void)
+	{
+		return m_plannedAction.projectedFinishTime;
+	}
+	double getNextStopTime(void)
 	{
 		if (m_plannedAction.path.pickUpCubeIndex != INVALID_IDX) {
 			if (m_plannedAction.pickUpCubeTime >= m_plannedAction.projectedFinishTime) {

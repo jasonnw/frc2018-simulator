@@ -200,6 +200,7 @@ public:
 
 	const platformStateType * getState(void) const { return &m_state; }
 	double getTime(void) const { return m_timeInSec; }
+	double getScoreUpdateTime(void) const { return m_lastScoreUpdateTime; }
 	double getRedScore(void) const { return m_redScore; }
 	double getBlueScore(void) const { return m_blueScore; }
 	const cubeStateType *getCubes(void) const { return m_cubes; }
@@ -268,6 +269,7 @@ public:
 
 	void setState(const platformStateType *pStateIn) { memcpy(&m_state, pStateIn,  sizeof(m_state)); }
 	void setTime(double timeIn) { m_timeInSec = timeIn; }
+	void setScoreUpdateTime(double timeIn) { m_lastScoreUpdateTime = timeIn; }
 	void setRedScore(double redScoreIn) { m_redScore = redScoreIn; }
 	void setBlueScore(double blueScoreIn) { m_blueScore = blueScoreIn; }
 	void setLogFile(FILE *pFileIn) { m_pLogFIle = pFileIn; }
@@ -293,6 +295,7 @@ public:
 	{
 		setState(srcIn.getState());
 		setTime(srcIn.getTime());
+		setScoreUpdateTime(getScoreUpdateTime());
 		setRedScore(srcIn.getRedScore());
 		setBlueScore(srcIn.getBlueScore());
 		setCubes(srcIn.getCubes());
@@ -310,7 +313,7 @@ public:
 
 		//finish all pending actions and stop
 		while (hasPendingActions()) {
-			earliestFinishTime = getEarliestFinishTime();
+			earliestFinishTime = getEarliestStopTime();
 			if (0 != commitAction(earliestFinishTime, actionIndexIn, activeAllianceIn)) {
 				printf("Error: Pending action is rejected\n");
 			}
@@ -326,7 +329,7 @@ public:
 	void forceRobotAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, int cubeIdxIn,
 		allianceType allianceIn, int robotIdxIn, int indexIn);
 
-	double getEarliestFinishTime(void);
+	double getEarliestStopTime(void);
 	int commitAction(double nextTimeIn, int indexIn, allianceType activeAllianceIn);
 	bool hasPendingActions(void);
 
@@ -354,6 +357,8 @@ public:
 		return distance;
 	}
 
+	bool collisionWithAllOtherObjects(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
+		const rectangleObjectType **pCollisionObjectOut);
 
 protected:
 	int updateOneAction(actionTypeType actionIn, double timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
@@ -368,8 +373,6 @@ protected:
 		int vaultBlockSelectionIn, ownerShipType newOnerShipIn, ownerShipType *pOwnerShipInOut);
 
 	void logAction(actionTypeType actionIn, double timeIn, int robotIndexIn, int indexIn, bool successFlagIn);
-
-	bool collisionWithAllOtherObjects(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn, const rectangleObjectType **pCollisionObjectOut);
 
 	//detect collision of two objects
 	bool collisionDectection(const rectangleObjectType *pStillObjectIn, const rectangleObjectType *pMovingObjectIn, 

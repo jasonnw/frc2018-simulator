@@ -25,7 +25,7 @@ robot::~robot()
 }
 
 
-void robot::setConfiguration(const robotConfigurationType *pConfigIn, platform *pPlatform)
+void robot::setConfiguration(const robotConfigurationType *pConfigIn, platform *pPlatform, int indexIn)
 {
 	memcpy(&m_config, pConfigIn, sizeof(m_config));
 	if (pPlatform != NULL) {
@@ -34,6 +34,7 @@ void robot::setConfiguration(const robotConfigurationType *pConfigIn, platform *
 
 	m_state.pos.sizeX = m_config.sizeX;
 	m_state.pos.sizeY = m_config.sizeY;
+	setRobotIndex(indexIn);
 }
 
 void robot::setPosition(double xIn, double yIn, int objectIdIn)
@@ -242,11 +243,14 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 	robotPathType *pPathOut, double *pPickUpCubeDelayOut) const
 {
 	rectangleObjectType newPos;
+	const rectangleObjectType *pCollisionObject;
 	double randomFactor = GET_RANDOM_VALUE;
 	double actionDelay;
 	double lastTurnDelay;
 	double pickUpCubeDelay;
+	double offsetX, offsetY;
 	coordinateType destination;
+	coordinateType targetCenter;
 	bool isCubeNeeded;
 	bool dumpCubeFlag;
 	robotPathType path2Cube, path2Destination;
@@ -303,72 +307,84 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 	else {
 		isCubeNeeded = dumpCubeFlag;
 	}
+	
+	offsetX = ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeX / 2 + 24;
+	offsetY = ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeY / 2;
+
 	switch (actionIn) {
 	case CUBE_RED_OFFENCE_SWITCH:
-		destination.x = m_pPlatform->getRedSwitchX();
+		targetCenter.x = m_pPlatform->getRedSwitchX();
 		if (RED_NORTH_SWITCH_FLAG) {
-			destination.y = m_pPlatform->getRedSwitchNorthY() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getRedSwitchNorthY();
 		}
 		else {
-			destination.y = m_pPlatform->getRedSwitchSouthY() - ROBOT_TO_WALL_DISTANCE - m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getRedSwitchSouthY();
+			offsetY = 0 - offsetY;
 		}
 		break;
 	case CUBE_BLUE_OFFENCE_SWITCH:
-		destination.x = m_pPlatform->getBlueSwitchX();
+		targetCenter.x = m_pPlatform->getBlueSwitchX();
 		if (BLUE_NORTH_SWITCH_FLAG) {
-			destination.y = m_pPlatform->getBlueSwitchNorthY() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getBlueSwitchNorthY();
 		}
 		else {
-			destination.y = m_pPlatform->getBlueSwitchSouthY() - ROBOT_TO_WALL_DISTANCE - m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getBlueSwitchSouthY();
+			offsetY = 0 - offsetY;
 		}
 		break;
 	case CUBE_RED_DEFENCE_SWITCH:
-		destination.x = m_pPlatform->getBlueSwitchX();
+		targetCenter.x = m_pPlatform->getBlueSwitchX();
 		if (BLUE_NORTH_SWITCH_FLAG) {
-			destination.y = m_pPlatform->getBlueSwitchSouthY() - ROBOT_TO_WALL_DISTANCE - m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getBlueSwitchSouthY();
+			offsetY = 0 - offsetY;
 		}
 		else {
-			destination.y = m_pPlatform->getBlueSwitchNorthY() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getBlueSwitchNorthY();
 		}
 		break;
 	case CUBE_BLUE_DEFENCE_SWITCH:
-		destination.x = m_pPlatform->getRedSwitchX();
+		targetCenter.x = m_pPlatform->getRedSwitchX();
 		if (RED_NORTH_SWITCH_FLAG) {
-			destination.y = m_pPlatform->getRedSwitchSouthY() - ROBOT_TO_WALL_DISTANCE - m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getRedSwitchSouthY();
+			offsetY = 0 - offsetY;
 		}
 		else {
-			destination.y = m_pPlatform->getRedSwitchNorthY() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getRedSwitchNorthY();
 		}
 		break;
 	case CUBE_RED_SCALE:
-		destination.x = m_pPlatform->getScaleX();
+		targetCenter.x = m_pPlatform->getScaleX();
 		if (RED_NORTH_SCALE_FLAG) {
-			destination.y = m_pPlatform->getScaleNorthY() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getScaleNorthY();
 		}
 		else {
-			destination.y = m_pPlatform->getScaleSouthY() - ROBOT_TO_WALL_DISTANCE - m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getScaleSouthY();
+			offsetY = 0 - offsetY;
 		}
 		break;
 	case CUBE_BLUE_SCALE:
-		destination.x = m_pPlatform->getScaleX();
+		targetCenter.x = m_pPlatform->getScaleX();
 		if (RED_NORTH_SCALE_FLAG) {
-			destination.y = m_pPlatform->getScaleSouthY() - ROBOT_TO_WALL_DISTANCE - m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getScaleSouthY();
+			offsetY = 0 - offsetY;
 		}
 		else {
-			destination.y = m_pPlatform->getScaleNorthY() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeY / 2;
+			targetCenter.y = m_pPlatform->getScaleNorthY();
 		}
 		break;
 	case CUBE_RED_FORCE_VAULT:
 	case CUBE_RED_BOOST_VAULT:
 	case CUBE_RED_LIFT_VAULT:
-		destination.x = m_pPlatform->getRedExchangeZoneX() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeX / 2;
-		destination.y = m_pPlatform->getRedExchangeZoneY();
+		targetCenter.x = m_pPlatform->getRedExchangeZoneX() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeX / 2;
+		targetCenter.y = m_pPlatform->getRedExchangeZoneY();
+		offsetY = offsetX = 0;
 		break;
 	case CUBE_BLUE_LIFT_VAULT:
 	case CUBE_BLUE_FORCE_VAULT:
 	case CUBE_BLUE_BOOST_VAULT:
-		destination.x = m_pPlatform->getBlueExchangeZoneX() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeX / 2;
-		destination.y = m_pPlatform->getBlueExchangeZoneY();
+		targetCenter.x = m_pPlatform->getBlueExchangeZoneX() + ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeX / 2;
+		targetCenter.y = m_pPlatform->getBlueExchangeZoneY();
+		offsetY = offsetX = 0;
 		break;
 	case PUSH_RED_FORCE_BUTTON:
 	case PUSH_RED_BOOST_BUTTON:
@@ -377,16 +393,21 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 	case RED_ACTION_NONE:
 	case BLUE_ACTION_NONE:
 		//no move
-		destination = pStartPosIn->center;
+		targetCenter = pStartPosIn->center;
+		offsetY = offsetX = 0;
 		//no delay
 		actionDelay = 0;
 		break;
 	case LIFT_ONE_RED_ROBOT:
-		destination = m_pPlatform->getRedLiftZonePosition();
+		targetCenter = m_pPlatform->getRedLiftZonePosition();
+		targetCenter.y += (m_robotIndex - 1) * (m_state.pos.sizeY + ROBOT_TO_WALL_DISTANCE);
+		offsetY = offsetX = 0;
 		lastTurnDelay += m_config.liftRobotDelay;
 		break;
 	case LIFT_ONE_BLUE_ROBOT:
-		destination = m_pPlatform->getBlueLiftZonePosition();
+		targetCenter = m_pPlatform->getBlueLiftZonePosition();
+		targetCenter.y += (m_robotIndex-1) * (m_state.pos.sizeY + ROBOT_TO_WALL_DISTANCE);
+		offsetY = offsetX = 0;
 		lastTurnDelay += m_config.liftRobotDelay;
 		break;
 	default:
@@ -396,6 +417,43 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 
 	memcpy(&newPos, pStartPosIn, sizeof(newPos));
 
+	destination.x = targetCenter.x;
+	destination.y = targetCenter.y + offsetY;
+	newPos.center = destination;
+	if (m_pPlatform->collisionWithAllOtherObjects(&newPos, destination, &pCollisionObject)) {
+		if (offsetY*offsetX == 0) {
+			return CLIMB_END_TIME + 1; //no other position available
+		}
+		//pick the closest x
+		if (pStartPosIn->center.x >= targetCenter.x) {
+			destination.x = targetCenter.x + offsetX;
+		}
+		else {
+			destination.x = targetCenter.x - offsetX;
+		}
+		destination.y = targetCenter.y;
+		newPos.center = destination;
+
+		if (m_pPlatform->collisionWithAllOtherObjects(&newPos, destination, &pCollisionObject)) {
+			//take the far side x
+			if (pStartPosIn->center.x >= targetCenter.x) {
+				destination.x = targetCenter.x - offsetX;
+			}
+			else {
+				destination.x = targetCenter.x + offsetX;
+			}
+			destination.y = targetCenter.y;
+			newPos.center = destination;
+
+			if (m_pPlatform->collisionWithAllOtherObjects(&newPos, destination, &pCollisionObject)) {
+				//no available position to finish the task
+				return CLIMB_END_TIME + 1; //task cannot be done
+			}
+		}
+	}
+
+	//reset start point
+	newPos.center = pStartPosIn->center;
 	//pick up a cube
 	if (isCubeNeeded) {
 		if (!m_pPlatform->findTheClosestCube(&newPos, alliance, m_config.turnDelay, m_config.inOutTakeDelay, &pCube, &path2Cube)) {
@@ -608,8 +666,13 @@ double robot::runFromePointToPoint(coordinateType startPoint, coordinateType end
 		distance = maximumSpeedIn * durationIn;
 		*pIsFinishedFlagOut = false;
 
-		pStopPointOut->x = startPoint.x + ((endPoint.x - startPoint.x) * distance) / totalDistance;
-		pStopPointOut->y = startPoint.y + ((endPoint.y - startPoint.y) * distance) / totalDistance;
+		if (totalDistance != 0) {
+			pStopPointOut->x = startPoint.x + ((endPoint.x - startPoint.x) * distance) / totalDistance;
+			pStopPointOut->y = startPoint.y + ((endPoint.y - startPoint.y) * distance) / totalDistance;
+		}
+		else {
+			printf("ERROR, divided by zero\n");
+		}
 		return 0;
 	}
 }
@@ -772,9 +835,16 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 		delay = getLineDelay(startPos, pPathIn->turnPoints[i], m_config.maximumSpeed, m_config.accelerationDistance);
 		if (totalDelay + delay > stopDelayIn) {
 			//stop on the middle of a line
-			runFromePointToPoint(startPos, pPathIn->turnPoints[i], 0, m_config.maximumSpeed, m_config.accelerationDistance, 
-				stopDelayIn - totalDelay, pStopPositionOut, &taskFinishedFlag);
-			*atMiddleOfLineFlagOut = true;
+			if (stopDelayIn > totalDelay) {
+				runFromePointToPoint(startPos, pPathIn->turnPoints[i], 0, m_config.maximumSpeed, m_config.accelerationDistance,
+					stopDelayIn - totalDelay, pStopPositionOut, &taskFinishedFlag);
+				*atMiddleOfLineFlagOut = true;
+			}
+			else {
+				//stop delay is almost the same as total delay
+				*pStopPositionOut = startPos;
+				taskFinishedFlag = false;
+			}
 			break;
 		}
 		else if (totalDelay + delay == stopDelayIn) {

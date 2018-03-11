@@ -573,7 +573,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 			}
 			//after every robot take at most one action, execute all robots.
 			if ((assignedActionFlag) && (!isActionRejectedFlag)) {
-				earliestFinishTime = m_testPlatForm.getEarliestFinishTime();
+				earliestFinishTime = m_testPlatForm.getEarliestStopTime();
 				if (0 != m_testPlatForm.commitAction(earliestFinishTime, actionIndexIn, m_allianceType)) {
 					isActionRejectedFlag = true;
 					break;
@@ -590,7 +590,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 		if (!isActionRejectedFlag) {
 			//finish all pending actions
 			while ((!isActionRejectedFlag) && (m_testPlatForm.hasPendingActions())) {
-				earliestFinishTime = m_testPlatForm.getEarliestFinishTime();
+				earliestFinishTime = m_testPlatForm.getEarliestStopTime();
 				if (0 != m_testPlatForm.commitAction(earliestFinishTime, actionIndexIn, m_allianceType)) {
 					isActionRejectedFlag = true;
 					break;

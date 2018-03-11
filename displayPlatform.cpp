@@ -93,7 +93,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 	if (quitFlag) {
 		//finish all pending actions
 		while (hasPendingActions()) {
-			earliestFinishTime = getEarliestFinishTime();
+			earliestFinishTime = getEarliestStopTime();
 			if (earliestFinishTime > CLIMB_END_TIME) {
 				break;
 			}
@@ -108,7 +108,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 		return 1;
 	}
 	else {
-		earliestFinishTime = getEarliestFinishTime();
+		earliestFinishTime = getEarliestStopTime();
 		playTotheNextTime(earliestFinishTime, actionIndexIn, FRAME_DELAY_IN_MS);
 		return 0;
 	}
