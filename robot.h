@@ -36,6 +36,7 @@ typedef struct pendingActionType {
 	actionTypeType actionType;
 	double startTime;
 	double projectedFinishTime;
+	double pickUpCubeTime;
 	int actionIndex;
 	robotPathType path;
 }pendingActionType;
@@ -122,7 +123,15 @@ public:
 
 	double getPlannedActionFinishTime(void)
 	{
-		return m_plannedAction.projectedFinishTime;
+		if (m_plannedAction.path.pickUpCubeIndex != INVALID_IDX) {
+			if (m_plannedAction.pickUpCubeTime >= m_plannedAction.projectedFinishTime) {
+				printf("ERROR, pick up cube too early\n");
+			}
+			return m_plannedAction.pickUpCubeTime;
+		}
+		else {
+			return m_plannedAction.projectedFinishTime;
+		}
 	}
 
 	static bool isActionNeedCube(actionTypeType actionIn);
@@ -138,8 +147,8 @@ protected:
 		coordinateType *pStopPositionOut, int *pCubeIndexOut, double *pTrnPointDelayChangeOut,
 		bool *pGiveUpCubeFlagOut, bool *atMiddleOfLineFlagOut, bool *pJustDoneFlagOut) const;
 
-	double getActionDelayInSecInternal(actionTypeType actionIn, double currentTimeIn, const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn,
-		bool interruptFlagIn, robotPathType *pPathOut) const;
+	double getActionDelayInSecInternal(actionTypeType actionIn, double currentTimeIn, const rectangleObjectType *pStartPosIn,
+		bool hasCubeFlagIn,	bool interruptFlagIn, robotPathType *pPathOut, double *pPickUpCubeDelayOut) const;
 
 	void updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, double lineDelayChangeIn, robotPathType *pPathInOut) const;
 

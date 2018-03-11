@@ -133,6 +133,7 @@ int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType
 int robot::takeAction(actionTypeType actionIn, double timeIn, int indexIn)
 {
 	double actionDleay;
+	double pickUpCubeDelay;
 	bool hasCubeFlag = false;
 	bool interruptFlag = false;
 
@@ -146,16 +147,21 @@ int robot::takeAction(actionTypeType actionIn, double timeIn, int indexIn)
 			hasCubeFlag = true;
 		}
 
-		actionDleay = getActionDelayInSecInternal(actionIn, timeIn, &m_state.pos, hasCubeFlag, interruptFlag, &m_plannedAction.path);
+		actionDleay = getActionDelayInSecInternal(actionIn, timeIn, &m_state.pos, hasCubeFlag, interruptFlag,
+			                                      &m_plannedAction.path, &pickUpCubeDelay);
 		if (timeIn + actionDleay <= CLIMB_END_TIME) {
 			m_plannedAction.projectedFinishTime = timeIn + actionDleay;
+			m_plannedAction.pickUpCubeTime = timeIn + pickUpCubeDelay;
 		}
 		else {
 			//give up the current action
 			m_plannedAction.actionType = m_allianceType == ALLIANCE_RED ? RED_ACTION_NONE : BLUE_ACTION_NONE;
+			m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+			m_plannedAction.path.numberOfTurns = 0;
 			m_plannedAction.startTime = timeIn;
 			m_plannedAction.actionIndex = indexIn;
 			m_plannedAction.projectedFinishTime = timeIn + MINMUM_TIME_RESOLUTION;
+			m_plannedAction.pickUpCubeTime = timeIn + MINMUM_TIME_RESOLUTION;
 			return -1;
 		}
 	}
@@ -178,6 +184,7 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 	bool justTimeUpFlag;
 	int stopIndex;
 	double delayOutput;
+	double pickUpCubeDelay;
 	double turnPointDelayChange;
 
 	memcpy(&startPosition, &m_state.pos, sizeof(startPosition));
@@ -201,7 +208,8 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 
 			//switch to the new action
 			startPosition.center = stopPosition;
-			delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn, &plannedPath);
+			delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn,
+				          &plannedPath, &pickUpCubeDelay);
 		}
 	}
 	else {
@@ -215,7 +223,8 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 
 		hasCubeFlag = lastActionCubeNotUsedFlagIn;
 
-		delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn, &plannedPath);
+		delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn,
+			                                      &plannedPath, &pickUpCubeDelay);
 		//only calculate the delay of the new action, old action delay will be added by the caller
 	}
 
@@ -229,12 +238,14 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 }
 
 double robot::getActionDelayInSecInternal(actionTypeType actionIn, double currentTimeIn,
-	const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn, bool interruptFlagIn, robotPathType *pPathOut) const
+	const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn, bool interruptFlagIn,
+	robotPathType *pPathOut, double *pPickUpCubeDelayOut) const
 {
 	rectangleObjectType newPos;
 	double randomFactor = GET_RANDOM_VALUE;
 	double actionDelay;
 	double lastTurnDelay;
+	double pickUpCubeDelay;
 	coordinateType destination;
 	bool isCubeNeeded;
 	bool dumpCubeFlag;
@@ -397,6 +408,8 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 		else {
 			newPos.center = m_state.pos.center;
 		}
+
+		pickUpCubeDelay = actionDelay + calculateDelayOnPath(&pStartPosIn->center, &path2Cube);
 	}
 	else {
 		path2Cube.numberOfTurns = 0;
@@ -406,6 +419,7 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 		path2Cube.turnPointDelay[0] = 0;
 		path2Cube.firstTurnDelay = 0;
 		path2Cube.initialSpeed = 0;
+		pickUpCubeDelay = 0;
 	}
 
 	//go to destination after pick up a cube
@@ -433,53 +447,11 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 
 	actionDelay += calculateDelayOnPath(&pStartPosIn->center, pPathOut);
 
-#if 0
-	//test if action delay is correct
-	coordinateType stopPos;
-	int cubeIndex;
-	int stopIdx;
-	double delayChange;
-	double sDelay = 0;
-	bool giveUpCubeFlag;
-	bool atMiddleLine;
-	bool finishFlag;
-
-	newPos.center = pStartPosIn->center;
-	for (sDelay = 0; sDelay < actionDelay; sDelay += (double) 0.1) {
-
-		stopIdx = findStopPosition(&newPos.center, pPathOut, (double) 0.1,
-			&stopPos, &cubeIndex, &delayChange,
-			&giveUpCubeFlag, &atMiddleLine, &finishFlag);
-
-		newPos.center = stopPos;
-		updatePath(stopIdx, cubeIndex, atMiddleLine, delayChange, pPathOut);
-	}
-
-	//final move
-	stopIdx = findStopPosition(&newPos.center, pPathOut, (actionDelay + (double) 0.1) - sDelay,
-		&stopPos, &cubeIndex, &delayChange,
-		&giveUpCubeFlag, &atMiddleLine, &finishFlag);
-
-	if (!finishFlag) {
-		printf("ERROR, action cannot be finished at due time\n");
-	}
-	if (atMiddleLine) {
-		printf("ERROR, path cannot be finished at due time\n");
-	}
-	if (giveUpCubeFlag) {
-		printf("ERROR, cannot get expected cube\n");
-	}
-
-	//recover the output path after test
-	if (0 != combineTwoPathes(&path2Cube, &path2Destination, pPathOut)) {
-		return CLIMB_END_TIME + 1; //number of turns over the limitation
-	}
-#endif
-
 	//return delay must not be 0
 	if (MINMUM_TIME_RESOLUTION > actionDelay) {
 		actionDelay = MINMUM_TIME_RESOLUTION;
 	}
+	*pPickUpCubeDelayOut = pickUpCubeDelay;
 	debugCounter++;
 	return actionDelay;
 }
@@ -609,10 +581,7 @@ double robot::getLineDelay(coordinateType startPoint, coordinateType endPoint, d
 	double distance;
 	double delay;
 
-	distance = (endPoint.x - startPoint.x) * (endPoint.x - startPoint.x);
-	distance += (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y);
-
-	distance = (double)sqrt(distance);
+	distance = platform::calculateDistance(endPoint, startPoint);
 	delay = distance / maximumSpeedIn; //simple delay calculation without acceleration
 
 	return delay;
@@ -634,9 +603,7 @@ double robot::runFromePointToPoint(coordinateType startPoint, coordinateType end
 		return durationIn - finishDuration;
 	}
 	else {
-		totalDistance = (endPoint.x - startPoint.x) * (endPoint.x - startPoint.x);
-		totalDistance += (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y);
-		totalDistance = (double) sqrt(totalDistance);
+		totalDistance = platform::calculateDistance(endPoint, startPoint);
 
 		distance = maximumSpeedIn * durationIn;
 		*pIsFinishedFlagOut = false;

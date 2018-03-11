@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "config.h"
 #include "robot.h"
 
@@ -14,6 +15,37 @@ typedef enum structuresType {
 }structuresType;
 
 
+typedef enum robotMoveZoneType {
+	TOP_CORRIDOR,
+	BOTTOM_CORRIDOR,
+	LEFT_OF_RED_SWITCH,
+	RIGHT_OF_RED_SWITCH,
+	RIGHT_OF_SCALE,
+	RIGHT_OF_BLUE_SWITCH,
+	NUM_OF_ZONES,
+	INVALID_ZONE
+}robotMoveZoneType;
+
+const int NUMBER_OF_ZONES_ON_PATH = 2;
+const int MAXIMUM_PATH_NUMBER = 4;
+
+typedef struct zoneConnectionType {
+	robotMoveZoneType connections[NUMBER_OF_ZONES_ON_PATH];
+}zoneConnectionType;
+
+typedef struct zonePathType {
+	zoneConnectionType path[MAXIMUM_PATH_NUMBER];
+	int pathNUmber;
+}zonePathType;
+
+
+typedef struct zoneType {
+	rectangleObjectType area;
+	coordinateType connectionPoints[NUM_OF_ZONES]; 
+	coordinateType workaroundPoints[8];   //intermediate points to around blocking objects
+	int numberOfWorkaroundPoints;
+}zoneType;
+
 typedef struct platformLayoutType {
 
 	//still structures for collision detection
@@ -24,6 +56,7 @@ typedef struct platformLayoutType {
 	double redAutoLine;
 	double blueAutoLine;
 	rectangleObjectType structures[NUM_STILL_STRUCTURE];
+	zoneType zones[NUM_OF_ZONES];
 
 	//possible robot destination
 	rectangleObjectType redPowerCubeZone;
@@ -136,6 +169,9 @@ public:
 class platform
 {
 private:
+	zonePathType m_zone2ZonePath[NUM_OF_ZONES][NUM_OF_ZONES];
+	zonePathType m_sortedZonePath;
+
 	double m_timeInSec; 
 	double m_lastScoreUpdateTime;
 	double m_redScore;
@@ -309,6 +345,16 @@ public:
 		double robotTurnDelayIn, double robotCubeDelayIn, cubeStateType **pCubeOut, robotPathType *pPathOut);
 	int pickUpCube(coordinateType positionIn, allianceType allianceIn);
 
+	static double calculateDistance(coordinateType point1In, coordinateType point2In)
+	{
+		double distance;
+		distance = (point1In.x - point2In.x)*(point1In.x - point2In.x) + (point1In.y - point2In.y)*(point1In.y - point2In.y);
+
+		distance = sqrt(distance);
+		return distance;
+	}
+
+
 protected:
 	int updateOneAction(actionTypeType actionIn, double timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
 
@@ -329,9 +375,18 @@ protected:
 	bool collisionDectection(const rectangleObjectType *pStillObjectIn, const rectangleObjectType *pMovingObjectIn, 
 		coordinateType endPointIn);
 
-	inline bool pointInRectangle(double leftXIn, double topYIn, double bottomYIn, double rightXIn, double pointXIn, double pointY) const
+	bool pointInRectangle(coordinateType aIn, coordinateType bIn, coordinateType cIn, coordinateType dIn, double pointXIn, double pointYIn) const;
+
+	inline bool pointInObject(const rectangleObjectType *pObjectIn, double pointXIn, double pointYIn) const
 	{
-		if ((pointXIn >= leftXIn) && (pointXIn <= rightXIn) && (pointY >= bottomYIn) && (pointY <= topYIn)) {
+		double leftX, topY, bottomY, rightX;
+
+		leftX = pObjectIn->center.x - pObjectIn->sizeX / 2;
+		rightX = pObjectIn->center.x + pObjectIn->sizeX / 2;
+		topY = pObjectIn->center.y + pObjectIn->sizeY / 2;
+		bottomY = pObjectIn->center.y - pObjectIn->sizeY / 2;
+
+		if ((pointXIn >= leftX) && (pointXIn <= rightX) && (pointYIn >= bottomY) && (pointYIn <= topY)) {
 			return true;
 		}
 		else {
@@ -340,5 +395,27 @@ protected:
 	}
 
 	bool tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn, bool cubeAvailableFlagIn);
+
+	robotMoveZoneType getObjectZone(const rectangleObjectType *pObjectIn);
+	bool objectInZone(const rectangleObjectType *pZoneIn, const rectangleObjectType *pObjectIn);
+
+	robotMoveZoneType getPointZone(coordinateType pointIn)
+	{
+		rectangleObjectType object;
+		object.center = pointIn;
+		object.sizeX = 0;
+		object.sizeY = 0;
+
+		return getObjectZone(&object);
+	}
+
+	bool foundPathWithinZone(const rectangleObjectType *pRobotIn, coordinateType targetIn,
+		const zoneType *pzoneIn, robotPathType *pPathInOut);
+
+	double estimatePathDistance(coordinateType startIn, robotMoveZoneType startZoneIn,
+		coordinateType targetIn, robotMoveZoneType targetZoneIn, int pathIdIn);
+
+	void sortZoneConnections(coordinateType startIn, robotMoveZoneType startZoneIn,
+		coordinateType targetIn, robotMoveZoneType targetZoneIn, zonePathType *pPathListOut);
 };
 

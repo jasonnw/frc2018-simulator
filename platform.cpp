@@ -181,6 +181,245 @@ platform::platform()
 	m_platformStructure.structures[SCALE_ZONE].sizeY = 15 * 12;
 	m_platformStructure.structures[SCALE_ZONE].color = { 100, 100, 100 };
 
+
+	for (int i = 0; i < NUM_OF_ZONES; i++) {
+		for (int j = 0; j < NUM_OF_ZONES; j++) {
+			m_platformStructure.zones[i].connectionPoints[j] = { 0, 0 };
+		}
+	}
+
+	//LEFT_OF_RED_SWITCH
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x = (
+		    m_platformStructure.structures[RED_SWITCH_ZONE].center.x -
+			m_platformStructure.structures[RED_SWITCH_ZONE].sizeX / 2 - 20 +
+			m_platformStructure.westWall) / 2;
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y =
+		(m_platformStructure.southWall + m_platformStructure.northWall) / 2;
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX =
+		(m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.westWall) * 2;
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY;
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR] =
+	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, 
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 2 - 24};
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[TOP_CORRIDOR] =
+	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 2 + 24};
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].numberOfWorkaroundPoints = 4;
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[0] =
+	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[1] =
+	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[2] =
+	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[3] =
+	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
+
+
+	//RIGHT_OF_RED_SWITCH
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x =
+		(m_platformStructure.structures[RED_SWITCH_ZONE].center.x + m_platformStructure.structures[SCALE_ZONE].center.x) / 2;
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y =
+		(m_platformStructure.southWall + m_platformStructure.northWall) / 2;
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX =
+		m_platformStructure.structures[SCALE_ZONE].center.x - m_platformStructure.structures[RED_SWITCH_ZONE].center.x -
+		m_platformStructure.structures[SCALE_ZONE].sizeX / 2 - m_platformStructure.structures[RED_SWITCH_ZONE].sizeX/2;
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY;
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR] =
+	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 - 24};
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[TOP_CORRIDOR] =
+	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 + 24};
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].numberOfWorkaroundPoints = 4;
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[0] =
+	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[1] =
+	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[2] =
+	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[3] =
+	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+
+
+	//RIGHT_OF_SCALE
+	m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x = 
+		(m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x + m_platformStructure.structures[SCALE_ZONE].center.x) / 2;
+	m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y =
+		(m_platformStructure.southWall + m_platformStructure.northWall) / 2;
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX =
+		m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x - m_platformStructure.structures[SCALE_ZONE].center.x -
+		m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX / 2 - m_platformStructure.structures[SCALE_ZONE].sizeX / 2;
+	m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY = m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY;
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[BOTTOM_CORRIDOR] =
+	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 - 24};
+	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[TOP_CORRIDOR] =
+	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 + 24};
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].numberOfWorkaroundPoints = 4;
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[0] =
+	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX/2 - 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[1] =
+	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[2] =
+	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[3] =
+	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+
+	//RIGHT_OF_BLUE_SWITCH
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x = (20 + //cube pile size
+		 m_platformStructure.eastWall + 
+		 m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x +
+		 m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX / 2) / 2;
+
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y =
+		(m_platformStructure.southWall + m_platformStructure.northWall) / 2;
+
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX =
+		(m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x) * 2;
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY = m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY;
+
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[BOTTOM_CORRIDOR] = 
+		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 - 24};
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[TOP_CORRIDOR] =
+		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 + 24};
+
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].numberOfWorkaroundPoints = 4;
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[0] =
+	{ m_platformStructure.eastWall - 18, 
+	  m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY /4};
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[1] =
+	{ m_platformStructure.eastWall - 18,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
+
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[2] =
+	{ m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX  + 18,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[3] =
+	{ m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX + 18,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
+
+	//bottom corridor
+	m_platformStructure.zones[BOTTOM_CORRIDOR].area.center.x =
+		(m_platformStructure.eastWall - m_platformStructure.westWall) / 2;
+	m_platformStructure.zones[BOTTOM_CORRIDOR].area.center.y =
+		(m_platformStructure.structures[BLUE_SWITCH_ZONE].center.y -
+			m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY / 2 +
+			m_platformStructure.southWall) / 2;
+
+	m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeX =
+		(m_platformStructure.eastWall - m_platformStructure.westWall);
+
+	m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY =
+		(m_platformStructure.zones[BOTTOM_CORRIDOR].area.center.y - m_platformStructure.southWall) * 2;
+
+
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[LEFT_OF_RED_SWITCH] = 
+		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24};
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_RED_SWITCH] =
+		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24};
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_SCALE] =
+		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24};
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_BLUE_SWITCH] =
+		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24};
+
+	m_platformStructure.zones[BOTTOM_CORRIDOR].numberOfWorkaroundPoints = 8;
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[0] =
+		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, 18 };
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[1] =
+		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 18 };
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[2] =
+		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 18 };
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[3] =
+		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 18 };
+
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[4] =
+		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[5] =
+		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[6] =
+		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[7] =
+		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
+
+	//top corridor
+	m_platformStructure.zones[TOP_CORRIDOR].area.center.x =
+		(m_platformStructure.eastWall - m_platformStructure.westWall) / 2;
+	m_platformStructure.zones[TOP_CORRIDOR].area.center.y =
+		(m_platformStructure.northWall + 
+			m_platformStructure.structures[BLUE_SWITCH_ZONE].center.y +
+			m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeY / 2) / 2;
+
+	m_platformStructure.zones[TOP_CORRIDOR].area.sizeX =
+		(m_platformStructure.eastWall - m_platformStructure.westWall);
+
+	m_platformStructure.zones[TOP_CORRIDOR].area.sizeY =
+		(m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.center.y) * 2;
+
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[LEFT_OF_RED_SWITCH] =
+		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, 
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24};
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_RED_SWITCH] =
+		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24};
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_SCALE] =
+		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24};
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_BLUE_SWITCH] =
+		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24};
+
+	m_platformStructure.zones[TOP_CORRIDOR].numberOfWorkaroundPoints = 8;
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[0] =
+		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.northWall - 18 };
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[1] =
+		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, m_platformStructure.northWall - 18 };
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[2] =
+		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, m_platformStructure.northWall - 18 };
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[3] =
+		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, m_platformStructure.northWall - 18 };
+
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[4] =
+		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x,
+			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY };
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[5] =
+		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x,
+			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY };
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[6] =
+		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x,
+			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY };
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[7] =
+		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x,
+			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY };
+
+
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position.x = 196 + 6 + 30;
@@ -209,6 +448,263 @@ platform::platform()
 	}
 
 	//Note: center is not the actual object center. It is the position for the robot to arrive.
+
+	memset(m_zone2ZonePath, 0, sizeof(m_zone2ZonePath));
+	
+	//TOP_CORRIDOR
+	m_zone2ZonePath[TOP_CORRIDOR][BOTTOM_CORRIDOR] = {
+		{
+			{ LEFT_OF_RED_SWITCH , INVALID_ZONE },
+			{ RIGHT_OF_RED_SWITCH , INVALID_ZONE },
+			{ RIGHT_OF_SCALE , INVALID_ZONE },
+			{ RIGHT_OF_BLUE_SWITCH , INVALID_ZONE }
+		},
+		4
+	};
+	m_zone2ZonePath[TOP_CORRIDOR][LEFT_OF_RED_SWITCH] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ RIGHT_OF_RED_SWITCH , BOTTOM_CORRIDOR },
+			{ RIGHT_OF_SCALE , BOTTOM_CORRIDOR },
+			{ RIGHT_OF_BLUE_SWITCH , BOTTOM_CORRIDOR }
+		},
+		4
+	};
+	m_zone2ZonePath[TOP_CORRIDOR][RIGHT_OF_RED_SWITCH] = {
+		{
+			{ LEFT_OF_RED_SWITCH , BOTTOM_CORRIDOR },
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ RIGHT_OF_SCALE , BOTTOM_CORRIDOR },
+			{ RIGHT_OF_BLUE_SWITCH , BOTTOM_CORRIDOR }
+		},
+		4
+	};
+	m_zone2ZonePath[TOP_CORRIDOR][RIGHT_OF_SCALE] = {
+		{
+			{ LEFT_OF_RED_SWITCH , BOTTOM_CORRIDOR },
+			{ RIGHT_OF_RED_SWITCH , BOTTOM_CORRIDOR },
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ RIGHT_OF_BLUE_SWITCH , BOTTOM_CORRIDOR }
+		},
+		4
+	};
+	m_zone2ZonePath[TOP_CORRIDOR][RIGHT_OF_BLUE_SWITCH] = {
+		{
+			{ LEFT_OF_RED_SWITCH , BOTTOM_CORRIDOR },
+			{ RIGHT_OF_RED_SWITCH , BOTTOM_CORRIDOR },
+			{ RIGHT_OF_SCALE , BOTTOM_CORRIDOR },
+			{ INVALID_ZONE , INVALID_ZONE }
+		},
+		4
+	};
+
+	//BOTTOM_CORRIDOR
+	m_zone2ZonePath[BOTTOM_CORRIDOR][TOP_CORRIDOR] = {
+		{
+			{ LEFT_OF_RED_SWITCH , INVALID_ZONE },
+			{ RIGHT_OF_RED_SWITCH , INVALID_ZONE },
+			{ RIGHT_OF_SCALE , INVALID_ZONE },
+			{ RIGHT_OF_BLUE_SWITCH , INVALID_ZONE }
+		},
+		4
+	};
+	m_zone2ZonePath[BOTTOM_CORRIDOR][LEFT_OF_RED_SWITCH] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ RIGHT_OF_RED_SWITCH , TOP_CORRIDOR },
+			{ RIGHT_OF_SCALE , TOP_CORRIDOR },
+			{ RIGHT_OF_BLUE_SWITCH , TOP_CORRIDOR }
+		},
+		4
+	};
+	m_zone2ZonePath[BOTTOM_CORRIDOR][RIGHT_OF_RED_SWITCH] = {
+		{
+			{ LEFT_OF_RED_SWITCH , TOP_CORRIDOR },
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ RIGHT_OF_SCALE , TOP_CORRIDOR },
+			{ RIGHT_OF_BLUE_SWITCH , TOP_CORRIDOR }
+		},
+		4
+	};
+	m_zone2ZonePath[BOTTOM_CORRIDOR][RIGHT_OF_SCALE] = {
+		{
+			{ LEFT_OF_RED_SWITCH , TOP_CORRIDOR },
+			{ RIGHT_OF_RED_SWITCH , TOP_CORRIDOR },
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ RIGHT_OF_BLUE_SWITCH , TOP_CORRIDOR }
+		},
+		4
+	};
+	m_zone2ZonePath[BOTTOM_CORRIDOR][RIGHT_OF_BLUE_SWITCH] = {
+		{
+			{ LEFT_OF_RED_SWITCH , TOP_CORRIDOR },
+			{ RIGHT_OF_RED_SWITCH , TOP_CORRIDOR },
+			{ RIGHT_OF_SCALE , TOP_CORRIDOR },
+			{ INVALID_ZONE , INVALID_ZONE }
+		},
+		4
+	};
+
+	//LEFT_OF_RED_SWITCH
+	m_zone2ZonePath[LEFT_OF_RED_SWITCH][TOP_CORRIDOR] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_RED_SWITCH },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_SCALE },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_BLUE_SWITCH }
+		},
+		4
+	};
+	m_zone2ZonePath[LEFT_OF_RED_SWITCH][BOTTOM_CORRIDOR] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ TOP_CORRIDOR , RIGHT_OF_RED_SWITCH },
+			{ TOP_CORRIDOR , RIGHT_OF_SCALE },
+			{ TOP_CORRIDOR , RIGHT_OF_BLUE_SWITCH }
+		},
+		4
+	};
+	m_zone2ZonePath[LEFT_OF_RED_SWITCH][RIGHT_OF_RED_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	m_zone2ZonePath[LEFT_OF_RED_SWITCH][RIGHT_OF_SCALE] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	m_zone2ZonePath[LEFT_OF_RED_SWITCH][RIGHT_OF_BLUE_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	//RIGHT_OF_RED_SWITCH
+	m_zone2ZonePath[RIGHT_OF_RED_SWITCH][TOP_CORRIDOR] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , LEFT_OF_RED_SWITCH },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_SCALE },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_BLUE_SWITCH }
+		},
+		4
+	};
+	m_zone2ZonePath[RIGHT_OF_RED_SWITCH][BOTTOM_CORRIDOR] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ TOP_CORRIDOR , LEFT_OF_RED_SWITCH },
+			{ TOP_CORRIDOR , RIGHT_OF_SCALE },
+			{ TOP_CORRIDOR , RIGHT_OF_BLUE_SWITCH }
+		},
+		4
+	};
+	m_zone2ZonePath[RIGHT_OF_RED_SWITCH][LEFT_OF_RED_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	m_zone2ZonePath[RIGHT_OF_RED_SWITCH][RIGHT_OF_SCALE] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	m_zone2ZonePath[RIGHT_OF_RED_SWITCH][RIGHT_OF_BLUE_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	//RIGHT_OF_SCALE
+	m_zone2ZonePath[RIGHT_OF_SCALE][TOP_CORRIDOR] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_RED_SWITCH },
+			{ BOTTOM_CORRIDOR , LEFT_OF_RED_SWITCH },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_BLUE_SWITCH }
+		},
+		4
+	};
+	m_zone2ZonePath[RIGHT_OF_SCALE][BOTTOM_CORRIDOR] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ TOP_CORRIDOR , RIGHT_OF_RED_SWITCH },
+			{ TOP_CORRIDOR , LEFT_OF_RED_SWITCH },
+			{ TOP_CORRIDOR , RIGHT_OF_BLUE_SWITCH }
+		},
+		4
+	};
+	m_zone2ZonePath[RIGHT_OF_SCALE][RIGHT_OF_RED_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	m_zone2ZonePath[RIGHT_OF_SCALE][LEFT_OF_RED_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	m_zone2ZonePath[RIGHT_OF_SCALE][RIGHT_OF_BLUE_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	//RIGHT_OF_BLUE_SWITCH
+	m_zone2ZonePath[RIGHT_OF_BLUE_SWITCH][TOP_CORRIDOR] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_RED_SWITCH },
+			{ BOTTOM_CORRIDOR , LEFT_OF_RED_SWITCH },
+			{ BOTTOM_CORRIDOR , RIGHT_OF_SCALE }
+		},
+		4
+	};
+	m_zone2ZonePath[RIGHT_OF_BLUE_SWITCH][BOTTOM_CORRIDOR] = {
+		{
+			{ INVALID_ZONE , INVALID_ZONE },
+			{ TOP_CORRIDOR , RIGHT_OF_RED_SWITCH },
+			{ TOP_CORRIDOR , LEFT_OF_RED_SWITCH },
+			{ TOP_CORRIDOR , RIGHT_OF_SCALE }
+		},
+		4
+	};
+	m_zone2ZonePath[RIGHT_OF_BLUE_SWITCH][RIGHT_OF_RED_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	m_zone2ZonePath[RIGHT_OF_BLUE_SWITCH][LEFT_OF_RED_SWITCH] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
+	m_zone2ZonePath[RIGHT_OF_BLUE_SWITCH][RIGHT_OF_SCALE] = {
+		{
+			{ TOP_CORRIDOR , INVALID_ZONE },
+			{ BOTTOM_CORRIDOR , INVALID_ZONE },
+		},
+		2
+	};
 }
 
 
@@ -1266,8 +1762,7 @@ bool  platform::tryPickOneCube(coordinateType robotPosIn, coordinateType cubePos
 {
 	double distance;
 
-	distance = (robotPosIn.x - cubePosIn.x) * (robotPosIn.x - cubePosIn.x) + (robotPosIn.y - cubePosIn.y) * (robotPosIn.y - cubePosIn.y);
-	distance = (double) sqrt(distance);
+	distance = calculateDistance(robotPosIn, cubePosIn);
 
 	if ((distance <= PICK_UP_CUBE_DISTANCE) && (cubeAvailableFlagIn)) {
 		return true;
@@ -1281,294 +1776,115 @@ bool  platform::tryPickOneCube(coordinateType robotPosIn, coordinateType cubePos
 bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
 	bool isTargetACubeIn, double robotTurnDelayIn, robotPathType *pPathOut)
 {
-	//scan all static objects to find out a shortest path to the end point
-
 	//the path selection algorithm is,
-	//1. First, the direct path to the target position is tried. 
-	//2. If the first try failed, the program always searching for a path beside north or south walls. 
-	//3. If there is a robot block the path, go to the opposite wall and back to step 2. Otherwise, proceed to the desired x coordinate
-	//4. directly go the target position. if failed, goto the opposite wall and repeat step 2.
+	//a) find out the robot zone and the destination point zone, then, work on following cases,
+	//     1. construct candidate zone paths in order.
+	//     2. for each zone path, find out every turn points. Stop on the first non-blocking path.
+    //b) Fill up the delay on each turn point
 
-	//Note: if the target is a cube, and, the path is blocked by a cube, just stop at the cube
-
-	bool collisionDetectedFlag;
-	const rectangleObjectType *pCollisionObject;
+	bool isSearchDoneFlag;
+	bool isSearchFailedFlag;
 	rectangleObjectType movingObject;
-	int turnPointIndex = 0;
-	double distance;
-	coordinateType startPoint;
-	coordinateType arroundPos;
+	robotMoveZoneType startZone;
+	robotMoveZoneType targetZone;
+	robotMoveZoneType connectionZoneIdx;
+	coordinateType connectionPoint;
 
+	//initialize output
 	pPathOut->initialSpeed = 0;
 	pPathOut->firstTurnDelay = 0;
-	memcpy(&movingObject, pMovingObjectIn, sizeof(movingObject));
+	pPathOut->numberOfTurns = 0;
 
 	//check if it is arrived 
+	memcpy(&movingObject, pMovingObjectIn, sizeof(movingObject));
 	if ((movingObject.center.x == endPointIn.x) && (movingObject.center.y == endPointIn.y)) {
 		pPathOut->numberOfTurns = 0;
 		pPathOut->totalDistance = 0;
 		return true;
 	}
 
-	//try the shortest path
-	collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, endPointIn, &pCollisionObject);
+	//else, search for zone path
+	startZone = getObjectZone(&movingObject);
+	targetZone = getPointZone(endPointIn);
 
-	if (!collisionDetectedFlag) {
-		//return the shortest path
-		pPathOut->turnPoints[turnPointIndex] = endPointIn;
-		pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
-		turnPointIndex++;
-		pPathOut->numberOfTurns = turnPointIndex;
-		distance = (endPointIn.x - pMovingObjectIn->center.x)*(endPointIn.x - pMovingObjectIn->center.x) +
-			(endPointIn.y - pMovingObjectIn->center.y)*(endPointIn.y - pMovingObjectIn->center.y);
-
-		pPathOut->totalDistance = (double) sqrt(distance);
-		return true;
-	}
-
-	//else, try go along the wall
-
-	//Y direction first
-	coordinateType upToWall1;
-	coordinateType upToWall2;
-	coordinateType oppositeWall;
-	bool retryGoToWallFlag = false;
-	bool aroundBlockingObjectFailedFlag;
-
-	if (endPointIn.y >= pMovingObjectIn->center.y) {
-		upToWall1.x = pMovingObjectIn->center.x;
-		upToWall1.y = m_platformStructure.northWall - pMovingObjectIn->sizeY / 2 - ROBOT_TO_WALL_DISTANCE;
-
-		upToWall2.x = pMovingObjectIn->center.x;
-		upToWall2.y = m_platformStructure.southWall + pMovingObjectIn->sizeY / 2 + ROBOT_TO_WALL_DISTANCE;
-	}
-	else {
-		upToWall2.x = pMovingObjectIn->center.x;
-		upToWall2.y = m_platformStructure.northWall - pMovingObjectIn->sizeY / 2 - ROBOT_TO_WALL_DISTANCE;
-
-		upToWall1.x = pMovingObjectIn->center.x;
-		upToWall1.y = m_platformStructure.southWall + pMovingObjectIn->sizeY / 2 + ROBOT_TO_WALL_DISTANCE;
-	}
-
-	oppositeWall = upToWall2;
-	collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, upToWall1, &pCollisionObject);
-	if (collisionDetectedFlag) {
-		aroundBlockingObjectFailedFlag = true;
-		if ((pCollisionObject->objectId >= 18) && (pCollisionObject->objectId <= 23)) {
-			//try move a little around the blocking robot
-			if (upToWall1.x > pCollisionObject->sizeX) {
-				arroundPos.x = upToWall1.x - (pCollisionObject->sizeX + ROBOT_TO_WALL_DISTANCE);
-			}
-			else {
-				arroundPos.x = upToWall1.x + pCollisionObject->sizeX + ROBOT_TO_WALL_DISTANCE;
-			}
-			arroundPos.y = pMovingObjectIn->center.y;
-
-			collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, arroundPos, &pCollisionObject);
-			if (!collisionDetectedFlag) {
-				aroundBlockingObjectFailedFlag = false;
-
-				if (turnPointIndex >= MAX_TURNS_ON_PATH) {
-					printf("ERROR, turning points buffer overflow\n");
-					return false;
-				}
-				pPathOut->turnPoints[turnPointIndex] = arroundPos;
-				pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
-				turnPointIndex++;
-
-				movingObject.center = arroundPos;
-
-				//adjust x position of up to wall point
-				upToWall1.x = arroundPos.x;
-				retryGoToWallFlag = true;
-			}
-			//else, just go to the opposite wall
-		}
-
-		if(aroundBlockingObjectFailedFlag) {
-			//cannot go to the wall, try the opposite wall
-			oppositeWall = upToWall1;
-			upToWall1 = upToWall2;
-			retryGoToWallFlag = true;
-		}
-	}
-
-	for (int i = 0; i < MAX_WALL_TO_WALL_MOVES; i++) {
-
-		if (retryGoToWallFlag) {
-			collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, upToWall1, &pCollisionObject);
-			if (collisionDetectedFlag) {
-				//must find a better way to solve it, JWJW
-				//return false; //cannot find a path to the opposite wall, give up
-			}
-		}
-
-		//save the path to the wall
-		if (turnPointIndex >= MAX_TURNS_ON_PATH) {
-			printf("ERROR, turning points buffer overflow\n");
-			return false;
-		}
-		pPathOut->turnPoints[turnPointIndex] = upToWall1;
-		pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
-		turnPointIndex++;
-		movingObject.center = upToWall1;
-
-		//move the object along the wall
-		coordinateType alongWall;
-		alongWall.y = upToWall1.y;
-		alongWall.x = endPointIn.x;
-
-		//move as far as possible along the wall
-		do {
-			collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, alongWall, &pCollisionObject);
-
-			if (collisionDetectedFlag) {
-				if (alongWall.x > movingObject.center.x) {
-					alongWall.x = pCollisionObject->center.x - pCollisionObject->sizeX / 2 - movingObject.sizeX / 2 - ROBOT_TO_WALL_DISTANCE;
-
-					if (alongWall.x <= movingObject.center.x + ROBOT_TO_WALL_DISTANCE) {
-						//no move at all, ignore collision and continue
-						break;
-					}
-				}
-				else {
-					alongWall.x = pCollisionObject->center.x + pCollisionObject->sizeX / 2 + movingObject.sizeX / 2 + ROBOT_TO_WALL_DISTANCE;
-
-					if (alongWall.x >= movingObject.center.x - ROBOT_TO_WALL_DISTANCE) {
-						//no move at all, ignore collision and continue
-						break;
-					}
-
-				}
-			}
-		} while (collisionDetectedFlag);
-
-		//check again if the direct path is OK
-		movingObject.center = alongWall;
-		collisionDetectedFlag = collisionWithAllOtherObjects(&movingObject, endPointIn, &pCollisionObject);
-
-		if (!collisionDetectedFlag) {
-			//success
-			if (turnPointIndex+1 >= MAX_TURNS_ON_PATH) {
-				printf("ERROR, turning points buffer overflow\n");
+	if (startZone == targetZone) {
+		//in the same zone
+		if (true == foundPathWithinZone(&movingObject, endPointIn, &m_platformStructure.zones[startZone], pPathOut)) {
+			if (pPathOut->numberOfTurns < 1) {
+				printf("ERROR, found an empty path\n");
 				return false;
 			}
-
-			pPathOut->turnPoints[turnPointIndex] = alongWall;
-			pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
-			turnPointIndex++;
-			pPathOut->turnPoints[turnPointIndex] = endPointIn;
-			pPathOut->turnPointDelay[turnPointIndex] = 0;
-			turnPointIndex++;
-			pPathOut->numberOfTurns = turnPointIndex;
-
-			startPoint = pMovingObjectIn->center;
-			pPathOut->totalDistance = 0;
-
-			for (int p = 0; p < turnPointIndex; p++) {
-
-				distance = (pPathOut->turnPoints[p].x - startPoint.x)*(pPathOut->turnPoints[p].x - startPoint.x) +
-					(pPathOut->turnPoints[p].y - startPoint.y)*(pPathOut->turnPoints[p].y - startPoint.y);
-
-				pPathOut->totalDistance += (double)sqrt(distance);
-				startPoint = pPathOut->turnPoints[p];
+			for (int i = 0; i < pPathOut->numberOfTurns - 1; i++) {
+				pPathOut->turnPointDelay[i] = robotTurnDelayIn;
 			}
-
+			//the caller will set the delay of the last turn point, set it to 0 for now.
+			pPathOut->turnPointDelay[pPathOut->numberOfTurns - 1] = 0;
 			return true;
 		}
-
-		//TODO, please confirm that blue switch is on the right side, JWJW
-		double rightMostPath = m_platformStructure.blueSwitchSouthPlate.center.x +
-			m_platformStructure.blueSwitchSouthPlate.sizeX / 2 +
-			m_platformStructure.bluePowerCubeZone.sizeX +
-			LARGEST_ROBOT_SIZE/2 + ROBOT_TO_WALL_DISTANCE;
-		double secondRightPath = m_platformStructure.scaleSouthPlate.center.x +
-			m_platformStructure.scaleSouthPlate.sizeX / 2 +
-			LARGEST_ROBOT_SIZE / 2 + ROBOT_TO_WALL_DISTANCE;
-		double thirdRightPath = m_platformStructure.scaleSouthPlate.center.x -
-			m_platformStructure.scaleSouthPlate.sizeX / 2 -
-			LARGEST_ROBOT_SIZE / 2 - ROBOT_TO_WALL_DISTANCE;
-		double forthRightPath = m_platformStructure.redSwitchSouthPlate.center.x -
-			m_platformStructure.redSwitchSouthPlate.sizeX / 2 -
-			m_platformStructure.redPowerCubeZone.sizeX -
-			LARGEST_ROBOT_SIZE / 2 - ROBOT_TO_WALL_DISTANCE;
-
-		//else, adjust along the wall to the next opening between alongWall and upToWall1
-		if (alongWall.x > upToWall1.x) {
-			//go to right as much as possible
-			if ((alongWall.x >= rightMostPath) && (upToWall1.x <= rightMostPath)) {
-				alongWall.x = rightMostPath;
-			}
-			else if ((alongWall.x >= secondRightPath) && (upToWall1.x <= secondRightPath)) {
-				alongWall.x = secondRightPath;
-			}
-			else if ((alongWall.x >= thirdRightPath) && (upToWall1.x <= thirdRightPath)) {
-				alongWall.x = thirdRightPath;
-			}
-			else {
-				alongWall.x = forthRightPath;
-			}
-		}
 		else {
-			//go to left as much as possible
-			if ((alongWall.x <= forthRightPath) && (upToWall1.x >= forthRightPath)) {
-				alongWall.x = forthRightPath;
-			}
-			else if ((alongWall.x <= thirdRightPath) && (upToWall1.x >= thirdRightPath)) {
-				alongWall.x = thirdRightPath;
-			}
-			else if ((alongWall.x <= secondRightPath) && (upToWall1.x >= secondRightPath)) {
-				alongWall.x = secondRightPath;
-			}
-			else {
-				alongWall.x = rightMostPath;
-			}
-		}
-
-		//save the path along the wall
-		if (turnPointIndex >= MAX_TURNS_ON_PATH) {
-			printf("ERROR, turning points buffer overflow\n");
 			return false;
 		}
-
-		pPathOut->turnPoints[turnPointIndex] = alongWall;
-		pPathOut->turnPointDelay[turnPointIndex] = robotTurnDelayIn;
-		turnPointIndex++;
-		movingObject.center = alongWall;
-
-		//goto the opposite wall
-		upToWall2 = oppositeWall;
-		oppositeWall = upToWall1;
-		upToWall1 = upToWall2;
-
-		//same x but opposite y
-		upToWall1.x = movingObject.center.x;
-		retryGoToWallFlag = true;
 	}
 
-	//cannot find any path, ignore collision and directly go to the end point
-	if (turnPointIndex >= MAX_TURNS_ON_PATH) {
-		printf("ERROR, turning points buffer overflow\n");
+	//else, not in the same zone
+	sortZoneConnections(movingObject.center, startZone, endPointIn, targetZone, &m_sortedZonePath);
+	isSearchDoneFlag = false;
+	isSearchFailedFlag = false;
+
+	for (int i = 0; i < m_sortedZonePath.pathNUmber; i++) {
+		for (int j = 0; j < NUMBER_OF_ZONES_ON_PATH; j++) {
+			//to the connect point of the same zone
+			connectionZoneIdx = m_sortedZonePath.path[i].connections[j];
+
+			if (connectionZoneIdx == INVALID_ZONE) {
+				//replace it with the target zone
+				connectionZoneIdx = targetZone;
+				connectionPoint = m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx];
+				isSearchDoneFlag = true;
+			}
+			else {
+				connectionPoint = m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx];
+			}
+
+			if (true == foundPathWithinZone(&movingObject, connectionPoint, &m_platformStructure.zones[startZone], pPathOut)) {
+				movingObject.center = connectionPoint;
+				startZone = connectionZoneIdx;
+
+				if (isSearchDoneFlag) {
+					break;
+				}
+			}
+			else {
+				//search failed, give up tis path
+				isSearchFailedFlag = true;
+				isSearchDoneFlag = true;
+				break;
+			}
+		}
+
+		//search the last point
+		if (true != foundPathWithinZone(&movingObject, endPointIn, &m_platformStructure.zones[targetZone], pPathOut)) {
+			isSearchFailedFlag = true;
+		}
+
+		if ((!isSearchFailedFlag) && (isSearchDoneFlag)) {
+			break; //success
+		}
+	}
+
+	if ((!isSearchFailedFlag) && (isSearchDoneFlag)) {
+		//success
+		for (int i = 0; i < pPathOut->numberOfTurns - 1; i++) {
+			pPathOut->turnPointDelay[i] = robotTurnDelayIn;
+		}
+		//the caller will set the delay of the last turn point, set it to 0 for now.
+		pPathOut->turnPointDelay[pPathOut->numberOfTurns - 1] = 0;
+		return true;
+	}
+	else {
+		//failed
 		return false;
 	}
-	pPathOut->turnPoints[turnPointIndex] = endPointIn;
-	pPathOut->turnPointDelay[turnPointIndex] = 0;
-	turnPointIndex++;
-	pPathOut->numberOfTurns = turnPointIndex;
-
-	startPoint = pMovingObjectIn->center;
-	pPathOut->totalDistance = 0;
-
-	for (int p = 0; p < turnPointIndex; p++) {
-
-		distance = (pPathOut->turnPoints[p].x - startPoint.x)*(pPathOut->turnPoints[p].x - startPoint.x) +
-			(pPathOut->turnPoints[p].y - startPoint.y)*(pPathOut->turnPoints[p].y - startPoint.y);
-
-		pPathOut->totalDistance += (double)sqrt(distance);
-		startPoint = pPathOut->turnPoints[p];
-	}
-
-	return true;
 }
 
 bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
@@ -1577,14 +1893,8 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 	const robotStateType *pRobotState;
 	const rectangleObjectType *pRobotPosition;
 
-	for (int i = 0; i < NUM_STILL_STRUCTURE; i++) {
-		if (collisionDectection(&m_platformStructure.structures[i], pMovingObjectIn, endPointIn)) {
-			*pCollisionObjectOut = &m_platformStructure.structures[i];
-			return true;
-		}
-	}
+	*pCollisionObjectOut = NULL;
 
-	//else
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		pRobotState =  m_redRobots[i].getState();
 		pRobotPosition = &pRobotState->pos;
@@ -1592,8 +1902,12 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 		for (int j = 0; j < 2; j++) {
 			if (pRobotPosition->objectId != pMovingObjectIn->objectId) {
 				if (collisionDectection(pRobotPosition, pMovingObjectIn, endPointIn)) {
-					*pCollisionObjectOut = pRobotPosition;
-					return true;
+
+					if (false == collisionDectection(pRobotPosition, pMovingObjectIn, pMovingObjectIn->center)) {
+						*pCollisionObjectOut = pRobotPosition;
+						return true;
+					}
+					//else, collision already happens at the start position, ignore it
 				}
 			}
 
@@ -1604,56 +1918,338 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 	return false;
 }
 
+bool platform::pointInRectangle(coordinateType aIn, coordinateType bIn, coordinateType cIn, coordinateType dIn,
+	double pointXIn, double pointYIn) const
+{
+	//Note: points A, B, C, D are clockwise
+	if ((pointXIn - aIn.x) * (bIn.y - aIn.y) > (pointYIn - aIn.y) * (bIn.x - aIn.x)) {
+		if ((pointXIn - dIn.x) * (cIn.y - dIn.y) > (pointYIn - dIn.y) * (cIn.x - dIn.x)) {
+			return false;
+		}
+	}
+	else {
+		if ((pointXIn - dIn.x) * (cIn.y - dIn.y) < (pointYIn - dIn.y) * (cIn.x - dIn.x)) {
+			return false;
+		}
+	}
+
+	if ((pointXIn - aIn.x) * (dIn.y - aIn.y) > (pointYIn - aIn.y) * (dIn.x - aIn.x)) {
+		if ((pointXIn - bIn.x) * (cIn.y - bIn.y) > (pointYIn - bIn.y) * (cIn.x - bIn.x)) {
+			return false;
+		}
+	}
+	else {
+		if ((pointXIn - bIn.x) * (cIn.y - bIn.y) < (pointYIn - bIn.y) * (cIn.x - bIn.x)) {
+			return false;
+		}
+	}
+
+	return true;
+}
 
 bool platform::collisionDectection(const rectangleObjectType *pStillObjectIn, 
 	const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn)
 {
-	double mLeftX, mTopY, mBottomY, mRightX;
+	rectangleObjectType endObject;
 	double sLeftX, sTopY, sBottomY, sRightX;
+	coordinateType a, b, c, d;
 
-	//find moving object covered rectangle
-	mLeftX = pMovingObjectIn->center.x - pMovingObjectIn->sizeX / 2;
-	mRightX = pMovingObjectIn->center.x + pMovingObjectIn->sizeX / 2;
-	mTopY = pMovingObjectIn->center.y + pMovingObjectIn->sizeY / 2;
-	mBottomY = pMovingObjectIn->center.y - pMovingObjectIn->sizeY / 2;
-
-	if (endPointIn.x > pMovingObjectIn->center.x) {
-		//move to right
-		mRightX += endPointIn.x - pMovingObjectIn->center.x;
-	}
-	else {
-		//move left
-		mLeftX -= pMovingObjectIn->center.x - endPointIn.x;
-	}
-
-	if (endPointIn.y > pMovingObjectIn->center.y) {
-		//move up
-		mTopY += endPointIn.y - pMovingObjectIn->center.y;
-	}
-	else {
-		//move down
-		mBottomY -= pMovingObjectIn->center.y - endPointIn.y;
-	}
+	memcpy(&endObject, pMovingObjectIn, sizeof(endObject));
+	endObject.center = endPointIn;
 
 	//find the still object rectangle
-	sLeftX = pStillObjectIn->center.x - pStillObjectIn->sizeX/2;
-	sRightX = pStillObjectIn->center.x + pStillObjectIn->sizeX/2;
+	sLeftX = pStillObjectIn->center.x - pStillObjectIn->sizeX / 2;
+	sRightX = pStillObjectIn->center.x + pStillObjectIn->sizeX / 2;
 	sTopY = pStillObjectIn->center.y + pStillObjectIn->sizeY / 2;
 	sBottomY = pStillObjectIn->center.y - pStillObjectIn->sizeY / 2;
 
 	//test if two rectangles overlap on 4 corners
-	if (pointInRectangle(mLeftX, mTopY, mBottomY, mRightX, sLeftX, sTopY)) {
+	if (pointInObject(pMovingObjectIn, sLeftX, sTopY)) {
 		return true;
 	}
-	if (pointInRectangle(mLeftX, mTopY, mBottomY, mRightX, sRightX, sTopY)) {
+	if (pointInObject(pMovingObjectIn, sRightX, sTopY)) {
 		return true;
 	}
-	if (pointInRectangle(mLeftX, mTopY, mBottomY, mRightX, sLeftX, sBottomY)) {
+	if (pointInObject(pMovingObjectIn, sLeftX, sBottomY)) {
 		return true;
 	}
-	if (pointInRectangle(mLeftX, mTopY, mBottomY, mRightX, sRightX, sBottomY)) {
+	if (pointInObject(pMovingObjectIn, sRightX, sBottomY)) {
+		return true;
+	}
+
+	if (pointInObject(&endObject, sLeftX, sTopY)) {
+		return true;
+	}
+	if (pointInObject(&endObject, sRightX, sTopY)) {
+		return true;
+	}
+	if (pointInObject(&endObject, sLeftX, sBottomY)) {
+		return true;
+	}
+	if (pointInObject(&endObject, sRightX, sBottomY)) {
+		return true;
+	}
+
+	if ((endObject.center.x - pMovingObjectIn->center.x) * (endObject.center.y - pMovingObjectIn->center.y) >= 0) {
+		a.x = endObject.center.x + endObject.sizeX / 2;
+		a.y = endObject.center.y - endObject.sizeY / 2;
+
+		d.x = endObject.center.x - endObject.sizeX / 2;
+		d.y = endObject.center.y + endObject.sizeY / 2;
+
+		b.x = pMovingObjectIn->center.x + pMovingObjectIn->sizeX / 2;
+		b.y = pMovingObjectIn->center.y - pMovingObjectIn->sizeY / 2;
+
+		c.x = pMovingObjectIn->center.x - pMovingObjectIn->sizeX / 2;
+		c.y = pMovingObjectIn->center.y + pMovingObjectIn->sizeY / 2;
+	}
+	else {
+		a.x = endObject.center.x + endObject.sizeX / 2;
+		a.y = endObject.center.y + endObject.sizeY / 2;
+
+		d.x = endObject.center.x - endObject.sizeX / 2;
+		d.y = endObject.center.y - endObject.sizeY / 2;
+
+		b.x = pMovingObjectIn->center.x + pMovingObjectIn->sizeX / 2;
+		b.y = pMovingObjectIn->center.y + pMovingObjectIn->sizeY / 2;
+
+		c.x = pMovingObjectIn->center.x - pMovingObjectIn->sizeX / 2;
+		c.y = pMovingObjectIn->center.y - pMovingObjectIn->sizeY / 2;
+	}
+
+	if (pointInRectangle(a, b, c, d, sLeftX, sTopY)) {
+		return true;
+	}
+	if (pointInRectangle(a, b, c, d, sRightX, sTopY)) {
+		return true;
+	}
+	if (pointInRectangle(a, b, c, d, sLeftX, sBottomY)) {
+		return true;
+	}
+	if (pointInRectangle(a, b, c, d, sRightX, sBottomY)) {
 		return true;
 	}
 
 	return false;
 }
+
+double platform::estimatePathDistance(coordinateType startIn, robotMoveZoneType startZoneIn, 
+	coordinateType targetIn, robotMoveZoneType targetZoneIn, int pathIdIn)
+{
+	coordinateType connectionPoint;
+	coordinateType startPoint;
+	robotMoveZoneType connectionZoneIdx;
+	robotMoveZoneType startZoneIdx;
+	int idx;
+	double distance = 0;
+
+	if (startZoneIn == targetZoneIn) {
+		//in the same zone
+		return calculateDistance(startIn, targetIn);
+	}
+
+	if (pathIdIn >= m_zone2ZonePath[startZoneIn][targetZoneIn].pathNUmber) {
+		printf("ERROR, invalid path index\n");
+		return 0;
+	}
+
+	idx = 0;
+	distance = 0;
+	connectionZoneIdx = m_zone2ZonePath[startZoneIn][targetZoneIn].path[pathIdIn].connections[idx];
+	startZoneIdx = startZoneIn;
+	startPoint = startIn;
+
+	while (connectionZoneIdx != INVALID_ZONE) {
+		connectionPoint = m_platformStructure.zones[startZoneIdx].connectionPoints[connectionZoneIdx];
+		distance += calculateDistance(connectionPoint, startPoint);
+
+		startPoint = connectionPoint;
+		startZoneIdx = connectionZoneIdx;
+		idx++;
+		connectionZoneIdx = m_zone2ZonePath[startZoneIn][targetZoneIn].path[pathIdIn].connections[idx];
+	}
+
+	//from the last connect zone to the target zone
+	distance += calculateDistance(m_platformStructure.zones[startZoneIdx].connectionPoints[targetZoneIn], startPoint);
+	distance += calculateDistance(m_platformStructure.zones[startZoneIdx].connectionPoints[targetZoneIn], targetIn);
+	return distance;
+}
+
+void platform::sortZoneConnections(coordinateType startIn, robotMoveZoneType startZoneIn,
+	coordinateType targetIn, robotMoveZoneType targetZoneIn, zonePathType *pPathListOut)
+{
+	int index;
+	int pathIdx[MAXIMUM_PATH_NUMBER];
+	double length;
+	double distance[MAXIMUM_PATH_NUMBER];
+	int pathNumber = m_zone2ZonePath[startZoneIn][targetZoneIn].pathNUmber;
+
+	if (pathNumber < 2) {
+		printf("ERROR, the smallest path number is 2\n");
+	}
+
+	for (int i = 0; i < pathNumber; i++) {
+		pathIdx[i] = i;
+		distance[i] = estimatePathDistance(startIn, startZoneIn, targetIn, targetZoneIn, i);
+	}
+
+	for (int i = 0; i < pathNumber; i++) {
+		for (int j = 0; j < pathNumber - 1; j++) {
+			if (distance[j] > distance[j + 1]) {
+				index = pathIdx[j];
+				pathIdx[j] = pathIdx[j + 1];
+				pathIdx[j + 1] = index;
+
+				length = distance[j];
+				distance[j] = distance[j + 1];
+				distance[j + 1] = length;
+			}
+		}
+	}
+
+	//copy to the output
+	pPathListOut->pathNUmber = pathNumber;
+	for (int i = 0; i < pathNumber; i++) {
+		for (int j = 0; j < MAXIMUM_PATH_NUMBER; j++) {
+			pPathListOut->path[i].connections[j] = m_zone2ZonePath[startZoneIn][targetZoneIn].path[pathIdx[i]].connections[j];
+		}
+	}
+}
+
+
+bool platform::foundPathWithinZone(const rectangleObjectType *pRobotIn, coordinateType targetIn,
+	const zoneType *pzoneIn, robotPathType *pPathInOut)
+{
+	rectangleObjectType startPos;
+	double shortestDistance;
+	int workaroundPointIdx;
+	bool collisionDetectedFlag;
+	bool beforeWorkaroundCollision;
+	bool afterWoraroundCollision;
+	const rectangleObjectType *pCollisionObject;
+	int turnNumber = pPathInOut->numberOfTurns;
+	bool isSuccess;
+	double distanceA, distanceB, distanceC;
+
+	if (turnNumber >= MAX_TURNS_ON_PATH) {
+		return false;
+	}
+
+
+	memcpy(&startPos, pRobotIn, sizeof(rectangleObjectType));
+	isSuccess = false;
+
+	if (turnNumber != 0) {
+		//start at the last turn point
+		startPos.center = pPathInOut->turnPoints[pPathInOut->numberOfTurns - 1];
+	}
+
+	//try the path
+	collisionDetectedFlag = collisionWithAllOtherObjects(&startPos, targetIn, &pCollisionObject);
+
+	if (collisionDetectedFlag) {
+
+		if (pointInObject(pCollisionObject, targetIn.x, targetIn.y)) {
+			//the target is covered by the object
+			return false;
+		}
+
+		distanceA = calculateDistance(startPos.center, targetIn);
+		shortestDistance = 100000;
+		workaroundPointIdx = INVALID_IDX;
+
+		for (int i = 0; i < pzoneIn->numberOfWorkaroundPoints; i++) {
+
+			distanceB = calculateDistance(startPos.center, pzoneIn->workaroundPoints[i]);
+			distanceC = calculateDistance(targetIn, pzoneIn->workaroundPoints[i]);
+
+			if ((distanceB >= distanceA) || (distanceC >= distanceA)) {
+				//workaround point is not on the path to the target point
+				continue;
+			}
+
+			beforeWorkaroundCollision = collisionWithAllOtherObjects(&startPos, pzoneIn->workaroundPoints[i], &pCollisionObject);
+			startPos.center = pzoneIn->workaroundPoints[i];
+			afterWoraroundCollision = collisionWithAllOtherObjects(&startPos, targetIn, &pCollisionObject);
+
+			if (!beforeWorkaroundCollision && !afterWoraroundCollision) {
+				//just turn point, not turn delay
+				if (shortestDistance > distanceB + distanceC) {
+					workaroundPointIdx = i;
+					shortestDistance = distanceB + distanceC;
+				}
+			}
+		}
+
+		if(workaroundPointIdx != INVALID_IDX) {
+			pPathInOut->turnPoints[turnNumber] = pzoneIn->workaroundPoints[workaroundPointIdx];
+			turnNumber++;
+			isSuccess = true;
+		}
+	}
+	else {
+		isSuccess = true;
+	}
+
+	if (isSuccess) {
+		if (turnNumber >= MAX_TURNS_ON_PATH) {
+			return false;
+		}
+
+		pPathInOut->turnPoints[turnNumber] = targetIn;
+		turnNumber++;
+
+		//success
+		pPathInOut->numberOfTurns = turnNumber;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+robotMoveZoneType platform::getObjectZone(const rectangleObjectType *pObjectIn)
+{
+	for (int i = 0; i < NUM_OF_ZONES; i++) {
+		if (objectInZone(&m_platformStructure.zones[i].area, pObjectIn)) {
+			return (robotMoveZoneType)i;
+		}
+	}
+
+	printf("ERROR, the input robot is not in any zone\n");
+	return TOP_CORRIDOR;
+}
+
+bool platform::objectInZone(const rectangleObjectType *pZoneIn, const rectangleObjectType *pObjectIn)
+{
+	int inZoneCount = 0;
+	double leftX, topY, bottomY, rightX;
+
+	leftX = pObjectIn->center.x - pObjectIn->sizeX / 2;
+	rightX = pObjectIn->center.x + pObjectIn->sizeX / 2;
+	topY = pObjectIn->center.y + pObjectIn->sizeY / 2;
+	bottomY = pObjectIn->center.y - pObjectIn->sizeY / 2;
+
+	if (pointInObject(pZoneIn, leftX, topY)) {
+		inZoneCount++;
+	}
+	if (pointInObject(pZoneIn, rightX, topY)) {
+		inZoneCount++;
+	}
+	if (pointInObject(pZoneIn, leftX, bottomY)) {
+		inZoneCount++;
+	}
+	if (pointInObject(pZoneIn, rightX, bottomY)) {
+		inZoneCount++;
+	}
+
+	//must have at least two points in the zone confirm that it is in.
+	if (inZoneCount >= 2) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
