@@ -675,7 +675,8 @@ double robot::runFromePointToPoint(coordinateType startPoint, coordinateType end
 			pStopPointOut->y = startPoint.y + ((endPoint.y - startPoint.y) * distance) / totalDistance;
 		}
 		else {
-			printf("ERROR, divided by zero\n");
+			pStopPointOut->x = startPoint.x;
+			pStopPointOut->y = startPoint.y;
 		}
 		return 0;
 	}
@@ -853,13 +854,13 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 		//else, 
 		totalDelay += delay;
 		startPos = pPathIn->turnPoints[i];
+		*pStopPositionOut = pPathIn->turnPoints[i];
 
 		delay = pPathIn->turnPointDelay[i];
 		stopIndex = i;
 
 		if (totalDelay + delay > stopDelayIn + TIME_ROUNDING_ERROR ) {
 			//stop at the end of the line with less turn point delay
-			*pStopPositionOut = pPathIn->turnPoints[i];
 			*pTrnPointDelayChangeOut = stopDelayIn - totalDelay;
 			break;
 		}
