@@ -170,7 +170,7 @@ public:
 	}
 };
 
-const int MESSAGE_QUEUE_DEPTH = 1;
+const int MESSAGE_QUEUE_DEPTH = 20;
 const int PLATFORM_RESOLUSION_X = 1280;
 const int PLATFORM_RESOLUSION_y = 800;
 

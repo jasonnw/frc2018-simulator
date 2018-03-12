@@ -1897,12 +1897,15 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 {
 	const robotStateType *pRobotState;
 	const rectangleObjectType *pRobotPosition;
+	const pendingActionType *pPlannedAction;
+	rectangleObjectType futurePosition;
 
 	*pCollisionObjectOut = NULL;
 
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		pRobotState =  m_redRobots[i].getState();
 		pRobotPosition = &pRobotState->pos;
+		pPlannedAction = m_redRobots[i].getPlannedAction();
 
 		for (int j = 0; j < 2; j++) {
 			if (pRobotPosition->objectId != pMovingObjectIn->objectId) {
@@ -1920,10 +1923,28 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 					}
 					//else, collision already happens at the start position, ignore it
 				}
+
+				//future collision test
+				memcpy(&futurePosition, pRobotPosition, sizeof(futurePosition));
+				if ((pPlannedAction->path.pickUpCubeIndex != INVALID_IDX) && (pPlannedAction->path.pickUpCubeIndex != -1)) {
+					futurePosition.center = pPlannedAction->path.turnPoints[pPlannedAction->path.pickUpCubeIndex];
+					if (collisionDectection(&futurePosition, pMovingObjectIn, endPointIn)) {
+						*pCollisionObjectOut = pRobotPosition;
+						return true;
+					}
+				}
+				if (pPlannedAction->path.numberOfTurns > 0) {
+					futurePosition.center = pPlannedAction->path.turnPoints[pPlannedAction->path.numberOfTurns-1];
+					if (collisionDectection(&futurePosition, pMovingObjectIn, endPointIn)) {
+						*pCollisionObjectOut = pRobotPosition;
+						return true;
+					}
+				}
 			}
 
 			pRobotState = m_blueRobots[i].getState();
 			pRobotPosition = &pRobotState->pos;
+			pPlannedAction = m_blueRobots[i].getPlannedAction();
 		}
 	}
 	return false;
