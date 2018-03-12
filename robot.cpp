@@ -198,6 +198,12 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 			if (m_plannedAction.projectedFinishTime <= currentTimeIn) {
 				printf("ERROR: pending task is already done, but not committed\n");
 			}
+			if (m_plannedAction.path.numberOfTurns > 0) {
+				*pEndPosOut = m_plannedAction.path.turnPoints[m_plannedAction.path.numberOfTurns - 1];
+			}
+			else {
+				*pEndPosOut = lastActionStopPosIn;
+			}
 			return m_plannedAction.projectedFinishTime - currentTimeIn;
 		}
 		else {
@@ -217,13 +223,7 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 	}
 	else {
 		//start the task after the current task is done
-		if (m_plannedAction.path.numberOfTurns != 0) {
-			startPosition.center = m_plannedAction.path.turnPoints[m_plannedAction.path.numberOfTurns - 1];
-		}
-		else {
-			startPosition.center = m_state.pos.center;
-		}
-
+		startPosition.center = lastActionStopPosIn;
 		hasCubeFlag = lastActionCubeNotUsedFlagIn;
 
 		delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn,
@@ -235,7 +235,7 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 		*pEndPosOut = plannedPath.turnPoints[plannedPath.numberOfTurns - 1];
 	}
 	else {
-		pEndPosOut->x = pEndPosOut->y = 0;
+		*pEndPosOut = lastActionStopPosIn;;
 	}
 	return delayOutput;
 }
