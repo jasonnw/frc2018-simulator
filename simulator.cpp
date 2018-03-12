@@ -73,8 +73,8 @@ static DWORD WINAPI displayThreadEntry(LPVOID lpParameter)
 	showPlatform.drawPlatform(1000);
 
 	do {
-		returnVal = showPlatform.updatePlatform(actionCount);
 		actionCount++;
+		returnVal = showPlatform.updatePlatform(actionCount);
 	} while (returnVal == 0);
 
 	return 0;

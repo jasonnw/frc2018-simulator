@@ -117,14 +117,16 @@ bool robot::isHumanPlayerAction(actionTypeType actionIn)
 
 int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, double timeIn, int indexIn)
 {
-	double actionDleay = pPlannedActionIn->projectedFinishTime - pPlannedActionIn->startTime;
+	double actionDelay = pPlannedActionIn->projectedFinishTime - pPlannedActionIn->startTime;
+	double picupCubeDelay = pPlannedActionIn->pickUpCubeTime - pPlannedActionIn->startTime;
 
 	//sync the current robot position
 	m_state.pos.center = startPosIn;
 
 	memcpy(&m_plannedAction, pPlannedActionIn, sizeof(pendingActionType));
 	m_plannedAction.startTime = timeIn;
-	m_plannedAction.projectedFinishTime = timeIn + actionDleay;
+	m_plannedAction.projectedFinishTime = timeIn + actionDelay;
+	m_plannedAction.pickUpCubeTime = timeIn + picupCubeDelay;
 	m_plannedAction.actionIndex = indexIn;
 
 	return 0;
@@ -551,7 +553,8 @@ void robot::updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, do
 					pPathInOut->firstTurnDelay = pPathInOut->turnPointDelay[stopIdxIn];
 				}
 				else {
-					printf("ERROR, robot stay at turn point longer than expected\n");
+					pPathInOut->firstTurnDelay = 0;
+					//ignore rounding error
 				}
 			}
 			else {
@@ -578,7 +581,8 @@ void robot::updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, do
 				pPathInOut->firstTurnDelay -= lineDelayChangeIn;
 			}
 			else {
-				printf("ERROR, robot stay at star point longer than expected\n");
+				pPathInOut->firstTurnDelay = 0;
+				//ignore rounding error
 			}
 		}
 	}
@@ -834,17 +838,10 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 
 		delay = getLineDelay(startPos, pPathIn->turnPoints[i], m_config.maximumSpeed, m_config.accelerationDistance);
 		if (totalDelay + delay > stopDelayIn) {
-			//stop on the middle of a line
-			if (stopDelayIn > totalDelay) {
-				runFromePointToPoint(startPos, pPathIn->turnPoints[i], 0, m_config.maximumSpeed, m_config.accelerationDistance,
+			//stop at the middle of a line
+			runFromePointToPoint(startPos, pPathIn->turnPoints[i], 0, m_config.maximumSpeed, m_config.accelerationDistance,
 					stopDelayIn - totalDelay, pStopPositionOut, &taskFinishedFlag);
 				*atMiddleOfLineFlagOut = true;
-			}
-			else {
-				//stop delay is almost the same as total delay
-				*pStopPositionOut = startPos;
-				taskFinishedFlag = false;
-			}
 			break;
 		}
 		else if (totalDelay + delay == stopDelayIn) {
@@ -860,7 +857,7 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 		delay = pPathIn->turnPointDelay[i];
 		stopIndex = i;
 
-		if (totalDelay + delay > stopDelayIn) {
+		if (totalDelay + delay > stopDelayIn + TIME_ROUNDING_ERROR ) {
 			//stop at the end of the line with less turn point delay
 			*pStopPositionOut = pPathIn->turnPoints[i];
 			*pTrnPointDelayChangeOut = stopDelayIn - totalDelay;
