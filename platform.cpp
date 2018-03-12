@@ -11,6 +11,7 @@
 platform::platform()
 {
 	memset(&m_state, 0, sizeof(m_state));
+	memset(&m_platformStructure, 0, sizeof(m_platformStructure));
 	m_timeInSec = 0;
 	m_lastScoreUpdateTime = 0;
 	m_redScore = 0;
@@ -226,13 +227,14 @@ platform::platform()
 
 	//RIGHT_OF_RED_SWITCH
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x =
-		(m_platformStructure.structures[RED_SWITCH_ZONE].center.x + m_platformStructure.structures[SCALE_ZONE].center.x) / 2;
+		(m_platformStructure.structures[RED_SWITCH_ZONE].center.x + m_platformStructure.structures[RED_SWITCH_ZONE].sizeX / 2 +
+		 m_platformStructure.structures[SCALE_ZONE].center.x - m_platformStructure.structures[SCALE_ZONE].sizeX / 2) / 2;
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y =
 		(m_platformStructure.southWall + m_platformStructure.northWall) / 2;
 
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX =
 		m_platformStructure.structures[SCALE_ZONE].center.x - m_platformStructure.structures[RED_SWITCH_ZONE].center.x -
-		m_platformStructure.structures[SCALE_ZONE].sizeX / 2 - m_platformStructure.structures[RED_SWITCH_ZONE].sizeX/2;
+		m_platformStructure.structures[RED_SWITCH_ZONE].sizeX/2 - 18;
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR] =
@@ -260,13 +262,14 @@ platform::platform()
 
 	//RIGHT_OF_SCALE
 	m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x = 
-		(m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x + m_platformStructure.structures[SCALE_ZONE].center.x) / 2;
+		(m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x - m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX / 2 +
+		 m_platformStructure.structures[SCALE_ZONE].center.x + m_platformStructure.structures[SCALE_ZONE].sizeX / 2) / 2;
 	m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y =
 		(m_platformStructure.southWall + m_platformStructure.northWall) / 2;
 
 	m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX =
 		m_platformStructure.structures[BLUE_SWITCH_ZONE].center.x - m_platformStructure.structures[SCALE_ZONE].center.x -
-		m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX / 2 - m_platformStructure.structures[SCALE_ZONE].sizeX / 2;
+		m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX / 2 - 18;
 	m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
 	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[BOTTOM_CORRIDOR] =
