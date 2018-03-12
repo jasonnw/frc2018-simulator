@@ -279,6 +279,8 @@ void alliance::findBestAction(int actionIndexIn)
 			if ((bestScoreIdx == 0) || (numPendingAction == 0)) {
 				printf("ERROR: cannot find any useful actions\n");
 			}
+			//recover platform state for the next search iteration
+			m_testPlatForm = m_referencePlatForm;
 			callCounter++;
 			//bestScoreIdx of the last pending action iteration is the best action list of all
 		}

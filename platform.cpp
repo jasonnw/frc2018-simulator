@@ -1785,6 +1785,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	bool isSearchDoneFlag;
 	bool isSearchFailedFlag;
 	rectangleObjectType movingObject;
+	robotMoveZoneType firstZone;
 	robotMoveZoneType startZone;
 	robotMoveZoneType targetZone;
 	robotMoveZoneType connectionZoneIdx;
@@ -1804,12 +1805,12 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	}
 
 	//else, search for zone path
-	startZone = getObjectZone(&movingObject);
+	firstZone = getObjectZone(&movingObject);
 	targetZone = getPointZone(endPointIn);
 
-	if (startZone == targetZone) {
+	if (firstZone == targetZone) {
 		//in the same zone
-		if (true == foundPathWithinZone(&movingObject, endPointIn, &m_platformStructure.zones[startZone], pPathOut)) {
+		if (true == foundPathWithinZone(&movingObject, endPointIn, &m_platformStructure.zones[firstZone], pPathOut)) {
 			if (pPathOut->numberOfTurns < 1) {
 				printf("ERROR, found an empty path\n");
 				return false;
@@ -1827,11 +1828,14 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	}
 
 	//else, not in the same zone
-	sortZoneConnections(movingObject.center, startZone, endPointIn, targetZone, &m_sortedZonePath);
+	sortZoneConnections(movingObject.center, firstZone, endPointIn, targetZone, &m_sortedZonePath);
 
 	for (int i = 0; i < m_sortedZonePath.pathNUmber; i++) {
 		isSearchDoneFlag = false;
 		isSearchFailedFlag = false;
+		movingObject.center = pMovingObjectIn->center;
+		startZone = firstZone;
+
 		for (int j = 0; j < NUMBER_OF_ZONES_ON_PATH; j++) {
 			//to the connect point of the same zone
 			connectionZoneIdx = m_sortedZonePath.path[i].connections[j];
