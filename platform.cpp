@@ -2254,6 +2254,7 @@ bool platform::foundPathWithinZone(const rectangleObjectType *pRobotIn, coordina
 	const zoneType *pzoneIn, robotPathType *pPathInOut)
 {
 	rectangleObjectType startPos;
+	rectangleObjectType searchPos;
 	double shortestDistance;
 	int workaroundPointIdx;
 	bool collisionDetectedFlag;
@@ -2270,6 +2271,8 @@ bool platform::foundPathWithinZone(const rectangleObjectType *pRobotIn, coordina
 
 
 	memcpy(&startPos, pRobotIn, sizeof(rectangleObjectType));
+	memcpy(&searchPos, pRobotIn, sizeof(rectangleObjectType));
+
 	isSuccess = false;
 
 	if (turnNumber != 0) {
@@ -2290,6 +2293,7 @@ bool platform::foundPathWithinZone(const rectangleObjectType *pRobotIn, coordina
 		distanceA = calculateDistance(startPos.center, targetIn);
 		shortestDistance = 100000;
 		workaroundPointIdx = INVALID_IDX;
+		searchPos.center = startPos.center;
 
 		for (int i = 0; i < pzoneIn->numberOfWorkaroundPoints; i++) {
 
@@ -2302,8 +2306,8 @@ bool platform::foundPathWithinZone(const rectangleObjectType *pRobotIn, coordina
 			}
 
 			beforeWorkaroundCollision = collisionWithAllOtherObjects(&startPos, pzoneIn->workaroundPoints[i], &pCollisionObject);
-			startPos.center = pzoneIn->workaroundPoints[i];
-			afterWoraroundCollision = collisionWithAllOtherObjects(&startPos, targetIn, &pCollisionObject);
+			searchPos.center = pzoneIn->workaroundPoints[i];
+			afterWoraroundCollision = collisionWithAllOtherObjects(&searchPos, targetIn, &pCollisionObject);
 
 			if (!beforeWorkaroundCollision && !afterWoraroundCollision) {
 				//just turn point, not turn delay
