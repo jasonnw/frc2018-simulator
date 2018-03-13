@@ -628,7 +628,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 
 		//save the final score with the last pending action entry
 		m_pSearchList[exeIdx].projectedFinalScore = score;
-		m_testPlatForm.logFinalScore();
+		m_testPlatForm.logFinalRanking();
 
 		if (score > bestScore) {
 			bestScoreIdx = actionChain[0].actionIndex;

@@ -16,6 +16,13 @@ platform::platform()
 	m_lastScoreUpdateTime = 0;
 	m_redScore = 0;
 	m_blueScore = 0;
+
+	m_redRank = 0;
+	m_blueRank = 0;
+	m_redAutonomousLineCount = 0;
+	m_blueAutonomousLineCount = 0;
+	m_autonomousRankingDoneFlag = false;
+
 	m_pLogFIle = NULL;
 	m_liftRedRobotIndex = INVALID_IDX;
 	m_liftBlueRobotIndex = INVALID_IDX;
@@ -751,11 +758,41 @@ platform::~platform()
 
 void platform::getFinalScore(int *pRedScoreOut, int *pBlueScoreOut)
 {
+	int liftRedRebotCount;
+	int liftBlueRebotCount;
+
 	if (CLIMB_END_TIME > m_timeInSec) {
 		updateScore(CLIMB_END_TIME - m_lastScoreUpdateTime);
 	}
+
 	*pRedScoreOut = (int) floor(getRedScore() + 0.5);
 	*pBlueScoreOut = (int) floor(getBlueScore() + 0.5);
+
+	if (*pRedScoreOut > *pBlueScoreOut) {
+		m_redRank += 2;
+	}
+	else if (*pRedScoreOut == *pBlueScoreOut) {
+		m_redRank++;
+		m_blueRank++;
+	}
+	else {
+		m_blueRank += 2;
+	}
+
+	liftRedRebotCount = 0;
+	liftBlueRebotCount = 0;
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		liftRedRebotCount += (m_state.redLiftFlag[i] == true);
+		liftBlueRebotCount += (m_state.blueLiftFlag[i] == true);
+	}
+
+	if (liftRedRebotCount == NUMBER_OF_ROBOTS) {
+		m_redRank++;
+	}
+	if (liftBlueRebotCount == NUMBER_OF_ROBOTS) {
+		m_blueRank++;
+	}
+
 	return;
 }
 
@@ -988,6 +1025,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 
 				m_state.redCrossAutoFlag[i] = true;
 				m_redScore += 5;
+				m_redAutonomousLineCount++;
 			}
 
 			switch(actionResult) {
@@ -1035,6 +1073,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 
 				m_state.blueCrossAutoFlag[i] = true;
 				m_blueScore += 5;
+				m_blueAutonomousLineCount++;
 			}
 
 			switch (actionResult) {
@@ -1316,6 +1355,17 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 	default:
 		printf("ERROR: invalid action %d\n", actionIn);
 		break;
+	}
+
+	if (!m_autonomousRankingDoneFlag && m_lastScoreUpdateTime >= AUTONOMOUS_END_TIME) {
+		if ((m_redAutonomousLineCount >= 3) && (m_state.switchRedOwner == ALLIANCE_RED)) {
+			m_redRank++;
+		}
+		if ((m_blueAutonomousLineCount >= 3) && (m_state.switchBlueOwner == ALLIANCE_BLUE)) {
+			m_blueRank++;
+		}
+
+		m_autonomousRankingDoneFlag = true;
 	}
 
 	if (timeIn < m_timeInSec) {
@@ -1669,15 +1719,13 @@ void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexI
 	}
 }
 
-void platform::logFinalScore(void)
+void platform::logFinalRanking(void)
 {
-	int finalRedScore, finalBlueScore;
 	if (m_pLogFIle == NULL) {
 		return;
 	}
-	getFinalScore(&finalRedScore, &finalBlueScore);
-	fprintf(m_pLogFIle, "================= The final score is (red score %d, blue score %d) ================\n",
-		finalRedScore, finalBlueScore);
+	fprintf(m_pLogFIle, "================= The final ranking is (blue ranking %d, red ranking %d) ================\n",
+		m_redRank, m_blueRank);
 	fflush(m_pLogFIle);
 }
 

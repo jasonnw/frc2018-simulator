@@ -101,7 +101,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 			playTotheNextTime(earliestFinishTime, actionIndexIn, FRAME_DELAY_IN_MS);
 		}
 
-		logFinalScore();
+		logFinalRanking();
 
 		updateField();
 		drawPlatform(0);
@@ -356,6 +356,18 @@ void displayPlatform::updateField(void)
 		drawInteger(&m_platformStructure.scaleSouthPlate, m_state.scaleRedBlockCount, "", 2.0);
 	}
 
+	//display rank
+	blueScoreBoard.sizeX = 80;
+	blueScoreBoard.sizeY = 60;
+	redScoreBoard.sizeX = 80;
+	redScoreBoard.sizeY = 60;
+
+	blueScoreBoard.center = { 580, 390 };
+	redScoreBoard.center = { 30, 390 };
+	drawInteger(&blueScoreBoard, getRedRanking(), "Rank: ", 1, { 200, 30, 30 });
+	drawInteger(&redScoreBoard, getBlueRanking(), "Rank: ", 1, { 30, 30, 200 });
+
+
 	//display time
 	timeBoard.center = { 260, 400 };
 	timeBoard.sizeX = 80;
@@ -364,12 +376,7 @@ void displayPlatform::updateField(void)
 
 	//display scores
 	blueScoreBoard.center = { 580, 400 };
-	blueScoreBoard.sizeX = 80;
-	blueScoreBoard.sizeY = 60;
-
 	redScoreBoard.center = { 30, 400 };
-	redScoreBoard.sizeX = 80;
-	redScoreBoard.sizeY = 60;
 
 	drawInteger(&blueScoreBoard, (int)getBlueScore(), "", 2.0, { 200, 30, 30 });
 	drawInteger(&redScoreBoard, (int)getRedScore(), "", 2.0, { 30, 30, 200 });

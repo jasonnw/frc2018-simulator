@@ -113,6 +113,12 @@ private:
 	zonePathType m_zone2ZonePath[NUM_OF_ZONES][NUM_OF_ZONES];
 	zonePathType m_sortedZonePath;
 
+	int m_redRank;
+	int m_blueRank;
+	int m_redAutonomousLineCount;
+	int m_blueAutonomousLineCount;
+	bool m_autonomousRankingDoneFlag;
+
 	double m_timeInSec; 
 	double m_lastScoreUpdateTime;
 	double m_redScore;
@@ -147,6 +153,9 @@ public:
 	const cubeStateType *getCubes(void) const { return m_cubes; }
 	const robot * getRedRobots(void) const { return m_redRobots; }
 	const robot * getBlueRobots(void) const { return m_blueRobots; }
+
+	int getRedRanking(void) { return m_redRank; }
+	int getBlueRanking(void) { return m_blueRank; }
 
 	double getScaleX(void) { return m_platformStructure.scaleNorthPlate.center.x; }
 	double getScaleNorthY(void) { 
@@ -276,7 +285,7 @@ public:
 
 	int isGameTimeOver(void);
 	void getFinalScore(int *pRedScoreOut, int *pBlueScoreOut);
-	void logFinalScore(void);
+	void logFinalRanking(void);
 	bool isRobotLifted(allianceType allianceIn, int robotIdxIn);
 	bool hasPendingAction(int robotIndexIn, allianceType allianceIn);
 

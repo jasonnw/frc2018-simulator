@@ -265,7 +265,7 @@ int main(int argc, char** argv)
 	}
 
 	//print the final score
-	gamePlatform.logFinalScore();
+	gamePlatform.logFinalRanking();
 
 	redEnd.x = blueEnd.x = POINTS_PER_SECOND * (int)floor(gamePlatform.getTime() + 0.5);
 	redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getRedScore();
