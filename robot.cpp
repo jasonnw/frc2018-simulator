@@ -848,6 +848,7 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 		else if (totalDelay + delay == stopDelayIn) {
 			//stop at the end of a line but no change on turn point delay
 			*pStopPositionOut = pPathIn->turnPoints[i];
+			stopIndex = i;
 			break;
 		}
 
