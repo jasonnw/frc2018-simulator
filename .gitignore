@@ -17,3 +17,5 @@
 *.o
 Release/simulator
 Debug/simulator
+*.bak
+*.bak

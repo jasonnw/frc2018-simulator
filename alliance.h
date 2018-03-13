@@ -8,6 +8,13 @@
 typedef struct actionChainType {
 	int actionIndex;
 	int isActionExecutedFlag;
+
+public:
+	actionChainType()
+	{
+		actionIndex = isActionExecutedFlag = 0;
+	}
+
 }actionChainType;
 
 class alliance

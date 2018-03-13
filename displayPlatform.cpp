@@ -12,6 +12,7 @@ displayPlatform::displayPlatform()
 {
 	int errorCode;
 	m_pQueue = new messageQueue <actionMessageType> (MESSAGE_QUEUE_DEPTH, &errorCode);
+	m_isDisplayPlatform = true;
 
 	if (m_pQueue != NULL) {
 		if (errorCode != 0) {

@@ -277,7 +277,8 @@ void alliance::findBestAction(int actionIndexIn)
 			//After an action tree is created, search which action sequence can get the best score
 			bestScoreIdx = findBestScoreBranch(previousLayerStartIndex, previousLayerEndIndex, actionIndexIn, &numPendingAction);
 			if ((bestScoreIdx == 0) || (numPendingAction == 0)) {
-				printf("ERROR: cannot find any useful actions\n");
+				//printf("ERROR: cannot find any useful actions\n");
+				break;
 			}
 			//recover platform state for the next search iteration
 			m_testPlatForm = m_referencePlatForm;
@@ -291,7 +292,7 @@ void alliance::findBestAction(int actionIndexIn)
 	}
 
 	if (bestScoreIdx == 0) {
-		printf("ERROR: cannot find any actions, check why NO-ACTION is not used\n");
+		//printf("ERROR: cannot find any actions, check why NO-ACTION is not used\n");
 		searchFailedFlag = true;
 	}
 
@@ -405,8 +406,10 @@ void alliance::findBestAction(int actionIndexIn)
 			//cannot find any new actions
 		}
 		else {
-			noNewActionFlag = false;
-			bestScoreIdx = newBestScoreIdx;
+			if (m_pSearchList[newBestScoreIdx].projectedFinalScore > INT_MIN) {
+				noNewActionFlag = false;
+				bestScoreIdx = newBestScoreIdx;
+			}
 		}
 	}
 
@@ -495,6 +498,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 	bool firstActionFlag[NUMBER_OF_ROBOTS];
 	int score, finalRedScore, finalBlueScore;
 	double earliestFinishTime;
+	bool isAllNoneActionFlag;
 
 	*pBranchLengthOut = 0;
 
@@ -505,19 +509,28 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 		//for each last step action, find out all actions before it
 		previousActionIndex = exeIdx;
 		pendingIdx = 0;
+		isAllNoneActionFlag = true;
 		while (m_pSearchList[previousActionIndex].previousIndex != INVALID_IDX) {
 
 			if (pendingIdx >= MAXIMUM_PENDING_ACTIONS + NUMBER_OF_ROBOTS) {
 				printf("Error: actionChain size too small, too many pending actions\n");
 				break;
 			}
+
+			if ((m_pSearchList[previousActionIndex].actionType != RED_ACTION_NONE) &&
+				(m_pSearchList[previousActionIndex].actionType != BLUE_ACTION_NONE) &&
+				(m_pSearchList[previousActionIndex].actionType != INVALID_ACTION)) {
+				isAllNoneActionFlag = false;
+			}
+
 			actionChain[pendingIdx].actionIndex = previousActionIndex;
 			actionChain[pendingIdx].isActionExecutedFlag = 0;
 			pendingIdx++;
 			previousActionIndex = m_pSearchList[previousActionIndex].previousIndex;
 		}
 
-		if (pendingIdx == 0) {
+		if ((pendingIdx == 0) || (isAllNoneActionFlag)) {
+			m_pSearchList[previousActionIndex].projectedFinalScore = INT32_MIN;
 			continue; //empty chine, it only has the initial no-action entry
 		}
 

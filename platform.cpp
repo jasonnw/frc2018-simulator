@@ -20,6 +20,7 @@ platform::platform()
 	m_liftRedRobotIndex = INVALID_IDX;
 	m_liftBlueRobotIndex = INVALID_IDX;
 	m_debugCounter = 0;
+	m_isDisplayPlatform = false;
 
 	//give each robot access with the platform
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -1072,12 +1073,21 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 	switch (actionIn) {
 	case CUBE_RED_OFFENCE_SWITCH:
 		m_state.switchRed_RedBlockCount++;
+		if (!m_isDisplayPlatform) {
+			m_redScore += CUBE_REWARD_SCORE;
+		}
 		break;
 	case CUBE_RED_DEFENCE_SWITCH:
 		m_state.switchBlue_RedBlockCount++;
+		if (!m_isDisplayPlatform) {
+			m_redScore += CUBE_REWARD_SCORE;
+		}
 		break;
 	case CUBE_RED_SCALE:
 		m_state.scaleRedBlockCount++;
+		if (!m_isDisplayPlatform) {
+			m_redScore += CUBE_REWARD_SCORE;
+		}
 		break;
 	case CUBE_RED_FORCE_VAULT:
 		if (timeIn <= AUTONOMOUS_END_TIME) {
@@ -1170,12 +1180,21 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		////////////////////
 	case CUBE_BLUE_OFFENCE_SWITCH:
 		m_state.switchBlue_BlueBlockCount++;
+		if (!m_isDisplayPlatform) {
+			m_redScore += CUBE_REWARD_SCORE;
+		}
 		break;
 	case CUBE_BLUE_DEFENCE_SWITCH:
 		m_state.switchRed_BlueBlockCount++;
+		if (!m_isDisplayPlatform) {
+			m_redScore += CUBE_REWARD_SCORE;
+		}
 		break;
 	case CUBE_BLUE_SCALE:
 		m_state.scaleBlueBlockCount++;
+		if (!m_isDisplayPlatform) {
+			m_redScore += CUBE_REWARD_SCORE;
+		}
 		break;
 	case CUBE_BLUE_FORCE_VAULT:
 		if (timeIn <= AUTONOMOUS_END_TIME) {

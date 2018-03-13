@@ -25,12 +25,26 @@ typedef struct rectangleObjectType {
 	double sizeY;
 	int objectId; //a unique ID for each object on the field
 	cv::Scalar color;
+
+public:
+	rectangleObjectType()
+	{
+		memset(this, 0, sizeof(struct rectangleObjectType));
+	}
+
 }rectangleObjectType;
 
 typedef struct  cubeStateType
 {
 	coordinateType position;
 	bool availbleFlag;
+
+public:
+	cubeStateType()
+	{
+		memset(this, 0, sizeof(struct cubeStateType));
+	}
+
 }cubeStateType;
 
 //Robot delay configurations in number of second
@@ -42,7 +56,7 @@ typedef struct robotConfigurationType {
 	double inOutTakeDelay;
 	double turnDelay;
 	double maximumSpeed;
-	double accelerationDistance;
+	double accelerationDistance;	
 }robotConfigurationType;
 
 typedef enum ownerShipType {
@@ -140,6 +154,8 @@ typedef struct platformStateType {
 	vaultButtonStateType blueLiftButton;
 }platformStateType;
 
+//AI configuration
+const int CUBE_REWARD_SCORE = 3;
 const int MAX_WALL_TO_WALL_MOVES = 4;
 const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 8;
 //maximum turning points on the path
@@ -153,6 +169,12 @@ typedef struct robotPathType {
 	double totalDistance;
 	int numberOfTurns;  //the number of turns on the path.
 	int pickUpCubeIndex; //the turning point to pick up a cube
+
+public:
+	robotPathType()
+	{
+		memset(this, 0, sizeof(struct robotPathType));
+	}
 }robotPathType;
 
 const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 1; //minimum 2 blocks to own scale or switch

@@ -20,6 +20,13 @@ typedef struct searchActionType {
 	int actionIndex;
 	int robotIndex;
 	int previousIndex;
+
+	searchActionType()
+	{
+		memset(this, 0, sizeof(struct searchActionType));
+
+	}
+
 }searchActionType;
 
 typedef enum actionResultType {
@@ -39,6 +46,14 @@ typedef struct pendingActionType {
 	double pickUpCubeTime;
 	int actionIndex;
 	robotPathType path;
+
+public:
+	pendingActionType()
+	{
+		memset(this, 0, sizeof(struct pendingActionType));
+
+	}
+
 }pendingActionType;
 
 class platform;

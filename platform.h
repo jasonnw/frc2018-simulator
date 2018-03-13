@@ -76,6 +76,14 @@ typedef struct platformLayoutType {
 
 	rectangleObjectType redLiftZone;
 	rectangleObjectType blueLiftZone;
+
+public:
+	platformLayoutType()
+	{
+		memset(this, 0, sizeof(struct platformLayoutType));
+
+	}
+
 }platformLayoutType;
 
 //the indexes to all cubes in the cube array
@@ -186,7 +194,7 @@ protected:
 	platformLayoutType m_platformStructure;
 	robot m_redRobots[NUMBER_OF_ROBOTS];
 	robot m_blueRobots[NUMBER_OF_ROBOTS];
-
+	bool m_isDisplayPlatform;
 
 	cubeStateType m_cubes[MAX_CUBES];
 	//6 cubes by each switch
