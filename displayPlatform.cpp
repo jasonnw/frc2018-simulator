@@ -127,7 +127,7 @@ void displayPlatform::playTotheNextTime(double nextTimeIn, int actionIndexIn, do
 	for (double i = currentTime + frameDelay; i < nextTimeIn; i += frameDelay)
 	{
 		if (0 != commitAction(i, actionIndexIn, INVALID_ALLIANCE)) {
-			printf("ERROR, cannot display invalid action");
+			printf("ERROR, cannot display invalid action\n");
 		}
 		updateField();
 		drawPlatform((int) floor(frameDelay * 2000));
@@ -170,15 +170,14 @@ void displayPlatform::drawObject(const rectangleObjectType *pObjectIn)
 	rectangle(*m_pPlatform, point1, point2, pObjectIn->color, CV_FILLED, 8, 0);
 }
 
-void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numberIn, double sizeIn)
+void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
 {
 	Point point1;
-	char robotIdxStr[4];
-	cv::Scalar color(200, 200, 200);
+	char robotIdxStr[128];
 
-	sprintf_s(robotIdxStr, "%d", numberIn);
+	sprintf_s(robotIdxStr, "%s%d", strIn, numberIn);
 	point1 = coordinateToPoint(pObjectIn->center.x - 4, pObjectIn->center.y - 8);
-	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, color, 1, CV_AA);
+	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, colorIn, 1, CV_AA);
 }
 
 
@@ -205,7 +204,7 @@ void displayPlatform::drawRobot(const rectangleObjectType *pObjectIn, int robotI
 	}
 }
 
-void displayPlatform::drawCube(coordinateType positionIn)
+void displayPlatform::drawCube(coordinateType positionIn, int indexIn)
 {
 	Point point1;
 	Point point2;
@@ -213,6 +212,15 @@ void displayPlatform::drawCube(coordinateType positionIn)
 
 	point1 = coordinateToPoint(positionIn.x + 8, positionIn.y + 8);
 	point2 = coordinateToPoint(positionIn.x - 8, positionIn.y - 8);
+
+	if ((indexIn >= CUBE_BY_RED_SWITCH) && (indexIn < CUBE_BY_BLUE_SWITCH)) {
+		point1.x -= 20;
+		point2.x -= 20;
+	}
+	if ((indexIn >= CUBE_BY_BLUE_SWITCH) && (indexIn < CUBE_BY_RED_POWER_ZONE)) {
+		point1.x += 20;
+		point2.x += 20;
+	}
 
 	rectangle(*m_pPlatform, point1, point2, cubeColor, CV_FILLED, 8, 0);
 }
@@ -239,19 +247,27 @@ void displayPlatform::drawField(void)
 	lineEnd = coordinateToPoint(m_platformStructure.eastWall, m_platformStructure.northWall);
 	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
 
+	lineStart = coordinateToPoint(m_platformStructure.redAutoLine, 0);
+	lineEnd = coordinateToPoint(m_platformStructure.redAutoLine, m_platformStructure.northWall);
+	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
+
+	lineStart = coordinateToPoint(m_platformStructure.blueAutoLine, 0);
+	lineEnd = coordinateToPoint(m_platformStructure.blueAutoLine, m_platformStructure.northWall);
+	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
+
 	for (int i = RED_SWITCH_ZONE; i < NUM_STILL_STRUCTURE; i++) {
 		drawObject(&m_platformStructure.structures[i]);
 	}
 
 	drawObject(&m_platformStructure.blueExchangeZone);
 	drawObject(&m_platformStructure.blueLiftZone);
-	drawObject(&m_platformStructure.bluePlatformZone);
+	//drawObject(&m_platformStructure.bluePlatformZone);
 	drawObject(&m_platformStructure.bluePowerCubeZone);
 	drawObject(&m_platformStructure.blueSwitchNorthPlate);
 	drawObject(&m_platformStructure.blueSwitchSouthPlate);
 	drawObject(&m_platformStructure.redExchangeZone);
 	drawObject(&m_platformStructure.redLiftZone);
-	drawObject(&m_platformStructure.redPlatformZone);
+	//drawObject(&m_platformStructure.redPlatformZone);
 	drawObject(&m_platformStructure.redPowerCubeZone);
 	drawObject(&m_platformStructure.redSwitchNorthPlate);
 	drawObject(&m_platformStructure.redSwitchSouthPlate);
@@ -260,29 +276,41 @@ void displayPlatform::drawField(void)
 
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
 		if (m_cubes[i].availbleFlag) {
-			drawCube(m_cubes[i].position);
+			drawCube(m_cubes[i].position, m_cubes[i].index);
 		}
 	}
 	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
 		if (m_cubes[i].availbleFlag) {
-			drawCube(m_cubes[i].position);
+			drawCube(m_cubes[i].position, m_cubes[i].index);
 		}
 	}
 	for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
 		if (m_cubes[i].availbleFlag) {
-			drawCube(m_cubes[i].position);
+			drawCube(m_cubes[i].position, m_cubes[i].index);
 		}
 	}
 	for (int i = CUBE_BY_BLUE_POWER_ZONE; i < CUBE_BY_RED_EXCHANGE_ZONE; i++) {
 		if (m_cubes[i].availbleFlag) {
-			drawCube(m_cubes[i].position);
+			drawCube(m_cubes[i].position, m_cubes[i].index);
 		}
 	}
+}
+
+void displayPlatform::drawButton(coordinateType positionIn, int pushStateIn, const Scalar& colorIn)
+{
+	Point center = coordinateToPoint(positionIn.x, positionIn.y);
+	int radius = 10;
+
+	circle(*m_pPlatform, center, radius, colorIn, pushStateIn);
 
 }
 
 void displayPlatform::updateField(void)
 {
+	rectangleObjectType blueScoreBoard;
+	rectangleObjectType redScoreBoard;
+	int buttonState;
+
 	//erase all
 	*m_pPlatform = Scalar(0, 0, 0);
 	drawField();
@@ -292,30 +320,106 @@ void displayPlatform::updateField(void)
 	}
 	
 	if (BLUE_NORTH_SWITCH_FLAG) {
-		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_BlueBlockCount, 2.0);
-		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_RedBlockCount, 2.0);
+		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_BlueBlockCount, "", 2.0);
+		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_RedBlockCount, "", 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_RedBlockCount, 2.0);
-		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_BlueBlockCount, 2.0);
+		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_RedBlockCount, "", 2.0);
+		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_BlueBlockCount, "", 2.0);
 	}
 
 	if (RED_NORTH_SWITCH_FLAG) {
-		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_RedBlockCount, 2.0);
-		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_BlueBlockCount, 2.0);
+		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_RedBlockCount, "", 2.0);
+		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_BlueBlockCount, "", 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_BlueBlockCount, 2.0);
-		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_RedBlockCount, 2.0);
+		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_BlueBlockCount, "", 2.0);
+		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_RedBlockCount, "", 2.0);
 	}
 
 	if (RED_NORTH_SCALE_FLAG) {
-		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleRedBlockCount, 2.0);
-		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleBlueBlockCount, 2.0);
+		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleRedBlockCount, "", 2.0);
+		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleBlueBlockCount, "", 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleBlueBlockCount, 2.0);
-		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleRedBlockCount, 2.0);
+		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleBlueBlockCount, "", 2.0);
+		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleRedBlockCount, "", 2.0);
 	}
+
+	//display scores
+	blueScoreBoard.center = { 600, 400 };
+	blueScoreBoard.sizeX = 80;
+	blueScoreBoard.sizeY = 60;
+
+	redScoreBoard.center = { 40, 400 };
+	redScoreBoard.sizeX = 80;
+	redScoreBoard.sizeY = 60;
+
+	drawNumber(&blueScoreBoard, (int)getBlueScore(), "", 2.0, { 200, 30, 30 });
+	drawNumber(&redScoreBoard, (int)getRedScore(), "", 2.0, { 30, 30, 200 });
+
+	blueScoreBoard.center = { 450, 405 };
+	redScoreBoard.center = { 110, 405 };
+	drawNumber(&blueScoreBoard, m_state.boostBlueBlockCount, "Blue Boost: ", 1.0, { 200, 30, 30 });
+	drawNumber(&redScoreBoard, m_state.boostRedBlockCount, "Red Boost: ", 1.0, { 30, 30, 200 });
+
+	if ((m_state.blueBoostButton >= BUTTON_PUSH) && (m_state.blueBoostButton < BUTTON_PUSH_OVER_10SEC)) {
+		buttonState = -1;
+	}
+	else {
+		buttonState = 1;
+	}
+	drawButton({ 434, 400 }, buttonState, { 200, 30, 30 });
+
+	if ((m_state.redBoostButton >= BUTTON_PUSH) && (m_state.redBoostButton < BUTTON_PUSH_OVER_10SEC)) {
+		buttonState = -1;
+	}
+	else {
+		buttonState = 1;
+	}
+	drawButton({ 94, 400 }, buttonState, { 30, 30, 200});
+
+	blueScoreBoard.center = { 450, 390 };
+	redScoreBoard.center = { 110, 390 };
+	drawNumber(&blueScoreBoard, m_state.forceBlueBlockCount, "Blue Force: ", 1.0, { 200, 30, 30 });
+	drawNumber(&redScoreBoard, m_state.forceRedBlockCount, "Red Force: ", 1.0, { 30, 30, 200 });
+
+	if ((m_state.blueForceButton >= BUTTON_PUSH) && (m_state.blueForceButton < BUTTON_PUSH_OVER_10SEC)) {
+		buttonState = -1;
+	}
+	else {
+		buttonState = 1;
+	}
+	drawButton({ 434, 385 }, buttonState, { 200, 30, 30 });
+
+	if ((m_state.redForceButton >= BUTTON_PUSH) && (m_state.redForceButton < BUTTON_PUSH_OVER_10SEC)) {
+		buttonState = -1;
+	}
+	else {
+		buttonState = 1;
+	}
+	drawButton({ 94, 385 }, buttonState, { 30, 30, 200 });
+
+	blueScoreBoard.center = { 450, 375 };
+	redScoreBoard.center = { 110, 375 };
+	drawNumber(&blueScoreBoard, m_state.liftBlueBlockCount, "Blue Lift: ", 1.0, { 200, 30, 30 });
+	drawNumber(&redScoreBoard, m_state.liftRedBlockCount, "Red Lift: ", 1.0, { 30, 30, 200 });
+
+	if ((m_state.blueLiftButton >= BUTTON_PUSH) && (m_state.blueLiftButton < BUTTON_PUSH_OVER_10SEC)) {
+		buttonState = -1;
+	}
+	else {
+		buttonState = 1;
+	}
+	drawButton({ 434, 370 }, buttonState, { 200, 30, 30 });
+
+	if ((m_state.redLiftButton >= BUTTON_PUSH) && (m_state.redLiftButton < BUTTON_PUSH_OVER_10SEC)) {
+		buttonState = -1;
+	}
+	else {
+		buttonState = 1;
+	}
+	drawButton({ 94, 370 }, buttonState, { 30, 30, 200 });
+
 }
 

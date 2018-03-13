@@ -41,9 +41,9 @@ platform::platform()
 	m_platformStructure.blueExchangeZone.color = { 100, 10, 10 };
 
 	m_platformStructure.blueLiftZone.objectId = 2;
-	m_platformStructure.blueLiftZone.center.x = (double) ((288 * 2 + 72) - 261.74);
+	m_platformStructure.blueLiftZone.center.x = ((288 * 2 + 72) - 261.74) - 20;
 	m_platformStructure.blueLiftZone.center.y = (264 + 48 * 2) / 2;
-	m_platformStructure.blueLiftZone.sizeX = (double) ((288 * 2 + 72)/2 - 261.74);
+	m_platformStructure.blueLiftZone.sizeX = ((288 * 2 + 72)/2 - 261.74);
 	m_platformStructure.blueLiftZone.sizeY = 9 * 12;
 	m_platformStructure.blueLiftZone.color = { 100, 0, 0 };
 
@@ -96,9 +96,9 @@ platform::platform()
 	m_platformStructure.redExchangeZone.color = { 10, 10, 100 };
 
 	m_platformStructure.redLiftZone.objectId = 8;
-	m_platformStructure.redLiftZone.center.x = (double) 261.74;
+	m_platformStructure.redLiftZone.center.x = 261.74 + 20;
 	m_platformStructure.redLiftZone.center.y = (264 + 48 * 2) / 2;
-	m_platformStructure.redLiftZone.sizeX = (double)((288 * 2 + 72) / 2 - 261.74);
+	m_platformStructure.redLiftZone.sizeX = ((288 * 2 + 72) / 2 - 261.74);
 	m_platformStructure.redLiftZone.sizeY = 9 * 12;
 	m_platformStructure.redLiftZone.color = { 0, 0, 100 };
 
@@ -425,28 +425,34 @@ platform::platform()
 
 
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
+		m_cubes[i].index = i;
 		m_cubes[i].availbleFlag = true;
-		m_cubes[i].position.x = 196 + 6 + 30;
+		m_cubes[i].position.x = 196 + 6 + 10;
 		m_cubes[i].position.y = (double) ((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_RED_SWITCH) * 30);
 	}
 	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
+		m_cubes[i].index = i;
 		m_cubes[i].availbleFlag = true;
-		m_cubes[i].position.x = (288 * 2 + 72) - 196 - 6 - 30;
+		m_cubes[i].position.x = (288 * 2 + 72) - 196 - 6 - 10;
 		m_cubes[i].position.y = (double)((264 + 48 * 2) / 2 - (12 * 12 + 9.5) / 2 + (i- CUBE_BY_BLUE_SWITCH) * 30);
 	}
 	for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
+		m_cubes[i].index = i;
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position = m_platformStructure.redPowerCubeZone.center;
 	}
 	for (int i = CUBE_BY_BLUE_POWER_ZONE; i < CUBE_BY_RED_EXCHANGE_ZONE; i++) {
+		m_cubes[i].index = i;
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position = m_platformStructure.bluePowerCubeZone.center;
 	}
 	for (int i = CUBE_BY_RED_EXCHANGE_ZONE; i < CUBE_BY_BLUE_EXCHANGE_ZONE; i++) {
+		m_cubes[i].index = i;
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position = m_platformStructure.redExchangeZone.center;
 	}
 	for (int i = CUBE_BY_BLUE_EXCHANGE_ZONE; i < CUBE_LAST; i++) {
+		m_cubes[i].index = i;
 		m_cubes[i].availbleFlag = true;
 		m_cubes[i].position = m_platformStructure.blueExchangeZone.center;
 	}
@@ -1139,6 +1145,9 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		if (timeIn <= AUTONOMOUS_END_TIME) {
 			return -1;
 		}
+		if (m_state.forceRedBlockCount <= 2) {
+			return -1;
+		}
 		if (m_state.redForceButton == BUTTON_NOT_PUSH) {
 			m_state.redForceButton = BUTTON_PUSH;
 			m_state.redForceButtonTime = 0;
@@ -1150,6 +1159,9 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		break;
 	case PUSH_RED_BOOST_BUTTON:
 		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
+		if (m_state.boostRedBlockCount <= 2) {
 			return -1;
 		}
 		if (m_state.redBoostButton == BUTTON_NOT_PUSH) {
@@ -1245,6 +1257,9 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		if (timeIn <= AUTONOMOUS_END_TIME) {
 			return -1;
 		}
+		if (m_state.forceBlueBlockCount <= 2) {
+			return -1;
+		}
 		if (m_state.blueForceButton == BUTTON_NOT_PUSH) {
 			m_state.blueForceButton = BUTTON_PUSH;
 			m_state.blueForceButtonTime = 0;
@@ -1256,6 +1271,9 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		break;
 	case PUSH_BLUE_BOOST_BUTTON:
 		if (timeIn <= AUTONOMOUS_END_TIME) {
+			return -1;
+		}
+		if (m_state.boostBlueBlockCount <= 2) {
 			return -1;
 		}
 		if (m_state.blueBoostButton == BUTTON_NOT_PUSH) {

@@ -38,6 +38,7 @@ typedef struct  cubeStateType
 {
 	coordinateType position;
 	bool availbleFlag;
+	int index;
 
 public:
 	cubeStateType()

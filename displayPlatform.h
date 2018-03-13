@@ -210,10 +210,11 @@ protected:
 	void updateField(void);
 	void playTotheNextTime(double nextTimeIn, int actionIndexIn, double delayIn);
 
-	void drawCube(coordinateType positionIn);
+	void drawCube(coordinateType positionIn, int indexIn);
+	void drawButton(coordinateType positionIn, int pushStateIn, const Scalar& colorIn);
 	void drawObject(const rectangleObjectType *pObjectIn);
 	void drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn);
-	void drawNumber(const rectangleObjectType *pObjectIn, int numberIn, double sizeIn);
+	void drawNumber(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn);
 	void drawField(void);
 };
 
