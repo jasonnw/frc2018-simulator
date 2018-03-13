@@ -214,7 +214,8 @@ protected:
 	void drawButton(coordinateType positionIn, int pushStateIn, const Scalar& colorIn);
 	void drawObject(const rectangleObjectType *pObjectIn);
 	void drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn);
-	void drawNumber(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn);
+	void drawInteger(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn);
+	void drawFloat(const rectangleObjectType *pObjectIn, double numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn);
 	void drawField(void);
 };
 

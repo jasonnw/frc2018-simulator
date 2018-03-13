@@ -170,7 +170,7 @@ void displayPlatform::drawObject(const rectangleObjectType *pObjectIn)
 	rectangle(*m_pPlatform, point1, point2, pObjectIn->color, CV_FILLED, 8, 0);
 }
 
-void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
+void displayPlatform::drawInteger(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
 {
 	Point point1;
 	char robotIdxStr[128];
@@ -180,6 +180,15 @@ void displayPlatform::drawNumber(const rectangleObjectType *pObjectIn, int numbe
 	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, colorIn, 1, CV_AA);
 }
 
+void displayPlatform::drawFloat(const rectangleObjectType *pObjectIn, double numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
+{
+	Point point1;
+	char robotIdxStr[128];
+
+	sprintf_s(robotIdxStr, "%s%3.1f", strIn, numberIn);
+	point1 = coordinateToPoint(pObjectIn->center.x - 4, pObjectIn->center.y - 8);
+	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, colorIn, 1, CV_AA);
+}
 
 void displayPlatform::drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn)
 {
@@ -309,6 +318,7 @@ void displayPlatform::updateField(void)
 {
 	rectangleObjectType blueScoreBoard;
 	rectangleObjectType redScoreBoard;
+	rectangleObjectType timeBoard;
 	int buttonState;
 
 	//erase all
@@ -320,48 +330,54 @@ void displayPlatform::updateField(void)
 	}
 	
 	if (BLUE_NORTH_SWITCH_FLAG) {
-		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_BlueBlockCount, "", 2.0);
-		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_RedBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_BlueBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_RedBlockCount, "", 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_RedBlockCount, "", 2.0);
-		drawNumber(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_BlueBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.blueSwitchNorthPlate, m_state.switchBlue_RedBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.blueSwitchSouthPlate, m_state.switchBlue_BlueBlockCount, "", 2.0);
 	}
 
 	if (RED_NORTH_SWITCH_FLAG) {
-		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_RedBlockCount, "", 2.0);
-		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_BlueBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_RedBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_BlueBlockCount, "", 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_BlueBlockCount, "", 2.0);
-		drawNumber(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_RedBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.redSwitchNorthPlate, m_state.switchRed_BlueBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.redSwitchSouthPlate, m_state.switchRed_RedBlockCount, "", 2.0);
 	}
 
 	if (RED_NORTH_SCALE_FLAG) {
-		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleRedBlockCount, "", 2.0);
-		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleBlueBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.scaleNorthPlate, m_state.scaleRedBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.scaleSouthPlate, m_state.scaleBlueBlockCount, "", 2.0);
 	}
 	else {
-		drawNumber(&m_platformStructure.scaleNorthPlate, m_state.scaleBlueBlockCount, "", 2.0);
-		drawNumber(&m_platformStructure.scaleSouthPlate, m_state.scaleRedBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.scaleNorthPlate, m_state.scaleBlueBlockCount, "", 2.0);
+		drawInteger(&m_platformStructure.scaleSouthPlate, m_state.scaleRedBlockCount, "", 2.0);
 	}
 
+	//display time
+	timeBoard.center = { 260, 400 };
+	timeBoard.sizeX = 80;
+	timeBoard.sizeY = 60;
+	drawFloat(&timeBoard, getTime(), "Time: ", 1.5);
+
 	//display scores
-	blueScoreBoard.center = { 600, 400 };
+	blueScoreBoard.center = { 580, 400 };
 	blueScoreBoard.sizeX = 80;
 	blueScoreBoard.sizeY = 60;
 
-	redScoreBoard.center = { 40, 400 };
+	redScoreBoard.center = { 30, 400 };
 	redScoreBoard.sizeX = 80;
 	redScoreBoard.sizeY = 60;
 
-	drawNumber(&blueScoreBoard, (int)getBlueScore(), "", 2.0, { 200, 30, 30 });
-	drawNumber(&redScoreBoard, (int)getRedScore(), "", 2.0, { 30, 30, 200 });
+	drawInteger(&blueScoreBoard, (int)getBlueScore(), "", 2.0, { 200, 30, 30 });
+	drawInteger(&redScoreBoard, (int)getRedScore(), "", 2.0, { 30, 30, 200 });
 
 	blueScoreBoard.center = { 450, 405 };
 	redScoreBoard.center = { 110, 405 };
-	drawNumber(&blueScoreBoard, m_state.boostBlueBlockCount, "Blue Boost: ", 1.0, { 200, 30, 30 });
-	drawNumber(&redScoreBoard, m_state.boostRedBlockCount, "Red Boost: ", 1.0, { 30, 30, 200 });
+	drawInteger(&blueScoreBoard, m_state.boostBlueBlockCount, "Blue Boost: ", 1.0, { 200, 30, 30 });
+	drawInteger(&redScoreBoard, m_state.boostRedBlockCount, "Red Boost: ", 1.0, { 30, 30, 200 });
 
 	if ((m_state.blueBoostButton >= BUTTON_PUSH) && (m_state.blueBoostButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = -1;
@@ -381,8 +397,8 @@ void displayPlatform::updateField(void)
 
 	blueScoreBoard.center = { 450, 390 };
 	redScoreBoard.center = { 110, 390 };
-	drawNumber(&blueScoreBoard, m_state.forceBlueBlockCount, "Blue Force: ", 1.0, { 200, 30, 30 });
-	drawNumber(&redScoreBoard, m_state.forceRedBlockCount, "Red Force: ", 1.0, { 30, 30, 200 });
+	drawInteger(&blueScoreBoard, m_state.forceBlueBlockCount, "Blue Force: ", 1.0, { 200, 30, 30 });
+	drawInteger(&redScoreBoard, m_state.forceRedBlockCount, "Red Force: ", 1.0, { 30, 30, 200 });
 
 	if ((m_state.blueForceButton >= BUTTON_PUSH) && (m_state.blueForceButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = -1;
@@ -402,8 +418,8 @@ void displayPlatform::updateField(void)
 
 	blueScoreBoard.center = { 450, 375 };
 	redScoreBoard.center = { 110, 375 };
-	drawNumber(&blueScoreBoard, m_state.liftBlueBlockCount, "Blue Lift: ", 1.0, { 200, 30, 30 });
-	drawNumber(&redScoreBoard, m_state.liftRedBlockCount, "Red Lift: ", 1.0, { 30, 30, 200 });
+	drawInteger(&blueScoreBoard, m_state.liftBlueBlockCount, "Blue Lift: ", 1.0, { 200, 30, 30 });
+	drawInteger(&redScoreBoard, m_state.liftRedBlockCount, "Red Lift: ", 1.0, { 30, 30, 200 });
 
 	if ((m_state.blueLiftButton >= BUTTON_PUSH) && (m_state.blueLiftButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = -1;

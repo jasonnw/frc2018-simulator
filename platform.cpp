@@ -950,6 +950,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 	const pendingActionType *pPlannetAction;
 	actionTypeType actionType;
 	allianceType passiveAlliance;
+	bool actionCommitFlag;
 
 	if (m_timeInSec >= CLIMB_END_TIME) {
 		return updateActionResult; //game is over, do nothing
@@ -970,6 +971,8 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 		updateScore(CLIMB_END_TIME - m_lastScoreUpdateTime);
 		return updateActionResult;
 	}
+
+	actionCommitFlag = false;
 
 	//run action of each robot
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -994,6 +997,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 				break;
 			case ACTION_DONE:
 				updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_RED, indexIn);
+				actionCommitFlag = true;
 				//action done log is printed inside updateOneAction()
 				break;
 			case ACTION_IN_PROGRESS:
@@ -1040,6 +1044,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 				break;
 			case ACTION_DONE:
 				updateActionResult = updateOneAction(actionType, earliestFinishTime, i, ALLIANCE_BLUE, indexIn);
+				actionCommitFlag = true;
 				//action done log is printed inside updateOneAction()
 				break;
 			case ACTION_IN_PROGRESS:
@@ -1064,6 +1069,11 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 				return updateActionResult;
 			}
 		}
+	}
+
+	if (!actionCommitFlag) {
+		//just update the score without action
+		updateOneAction(RED_ACTION_NONE, earliestFinishTime, 0, ALLIANCE_RED, indexIn);
 	}
 
 	//success
@@ -1312,7 +1322,10 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		printf("Error, time reverse, from %3.2f to %3.2f\n", m_timeInSec, timeIn);
 	}
 	updateScore(timeIn - m_lastScoreUpdateTime);
-	logAction(actionIn, timeIn, robotIndexIn, indexIn, true);
+
+	if ((actionIn != RED_ACTION_NONE) && (actionIn != BLUE_ACTION_NONE)) {
+		logAction(actionIn, timeIn, robotIndexIn, indexIn, true);
+	}
 	return 0;
 }
 
