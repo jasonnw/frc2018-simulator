@@ -910,7 +910,7 @@ int platform::setRobotAction(searchActionType *pActionListInOut, allianceType al
 		pRobots = m_blueRobots;
 	}
 
-	rvalue = pRobots[robotIdx].takeAction(pActionListInOut->actionType, m_timeInSec, indexIn);
+	rvalue = pRobots[robotIdx].takeAction(pActionListInOut->actionType, pActionListInOut->actionDonePos, m_timeInSec, indexIn);
 	//update the projected start and finished time
 	pActionListInOut->startTime = m_timeInSec;
 	pActionListInOut->projectedFinishTime = pRobots[robotIdx].getPlannedActionFinishTime();
@@ -1331,6 +1331,8 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		break;
 	case RED_ACTION_NONE:
 	case BLUE_ACTION_NONE:
+	case RED_ROBOT_GOTO_POS:
+	case BLUE_ROBOT_GOTO_POS:
 		break; //no action, just time pass
 	default:
 		printf("ERROR: invalid action %d\n", actionIn);
@@ -1624,6 +1626,7 @@ void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexI
 	case PUSH_RED_BOOST_BUTTON:
 	case LIFT_ONE_RED_ROBOT:
 	case RED_ACTION_NONE:
+	case RED_ROBOT_GOTO_POS:
 		fprintf(m_pLogFIle, "%d. Time %3.2f (sec), Red alliance robot[%d]: ", indexIn, timeIn, robotIndexIn);
 		break;
 	case CUBE_BLUE_OFFENCE_SWITCH:
@@ -1636,6 +1639,7 @@ void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexI
 	case PUSH_BLUE_BOOST_BUTTON:
 	case LIFT_ONE_BLUE_ROBOT:
 	case BLUE_ACTION_NONE:
+	case BLUE_ROBOT_GOTO_POS:
 		fprintf(m_pLogFIle, "%d. Time %3.2f (sec), Blue alliance robot[%d]: ", indexIn, timeIn, robotIndexIn);
 		break;
 	default:
@@ -1686,6 +1690,8 @@ void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexI
 		break;
 	case RED_ACTION_NONE:
 	case BLUE_ACTION_NONE:
+	case RED_ROBOT_GOTO_POS:
+	case BLUE_ROBOT_GOTO_POS:
 		fprintf(m_pLogFIle, "no action");
 		break;
 	default:

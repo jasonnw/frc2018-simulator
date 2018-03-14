@@ -151,6 +151,11 @@ public:
 	const robot * getRedRobots(void) const { return m_redRobots; }
 	const robot * getBlueRobots(void) const { return m_blueRobots; }
 
+	const zoneType *getZone(int indexIn) const
+	{
+		return &m_platformStructure.zones[indexIn];
+	}
+
 	int getRedRanking(void) const{ return m_redRank; }
 	int getBlueRanking(void) const { return m_blueRank; }
 

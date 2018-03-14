@@ -118,30 +118,35 @@ bool robot::isHumanPlayerAction(actionTypeType actionIn)
 
 int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, double timeIn, int indexIn)
 {
+	actionTypeType gotoMove = (m_allianceType == ALLIANCE_RED) ? RED_ROBOT_GOTO_POS : BLUE_ROBOT_GOTO_POS;
 	double actionDelay = pPlannedActionIn->projectedFinishTime - pPlannedActionIn->startTime;
 	double picupCubeDelay = pPlannedActionIn->pickUpCubeTime - pPlannedActionIn->startTime;
 
 	//sync the current robot position
 	m_state.pos.center = startPosIn;
 
-	memcpy(&m_plannedAction, pPlannedActionIn, sizeof(pendingActionType));
-	m_plannedAction.startTime = timeIn;
-	m_plannedAction.projectedFinishTime = timeIn + actionDelay;
-	m_plannedAction.pickUpCubeTime = timeIn + picupCubeDelay;
-	m_plannedAction.actionIndex = indexIn;
+	if ((pPlannedActionIn->actionType != gotoMove) || (m_plannedAction.actionType != INVALID_ACTION)) {
+		//don't break running action by goto
+		memcpy(&m_plannedAction, pPlannedActionIn, sizeof(pendingActionType));
+		m_plannedAction.startTime = timeIn;
+		m_plannedAction.projectedFinishTime = timeIn + actionDelay;
+		m_plannedAction.pickUpCubeTime = timeIn + picupCubeDelay;
+		m_plannedAction.actionIndex = indexIn;
+	}
 
 	return 0;
 }
 
 
-int robot::takeAction(actionTypeType actionIn, double timeIn, int indexIn)
+int robot::takeAction(actionTypeType actionIn, coordinateType actionDonePosIn, double timeIn, int indexIn)
 {
 	double actionDleay;
 	double pickUpCubeDelay;
 	bool hasCubeFlag = false;
 	bool interruptFlag = false;
+	actionTypeType gotoMove = (m_allianceType == ALLIANCE_RED) ? RED_ROBOT_GOTO_POS : BLUE_ROBOT_GOTO_POS;
 
-	if (m_plannedAction.actionType != actionIn) {
+	if ((m_plannedAction.actionType != actionIn) && (actionIn != gotoMove)) {
 		//stop the current action and start a new action
 		m_plannedAction.actionType = actionIn;
 		m_plannedAction.startTime = timeIn;
@@ -151,7 +156,7 @@ int robot::takeAction(actionTypeType actionIn, double timeIn, int indexIn)
 			hasCubeFlag = true;
 		}
 
-		actionDleay = getActionDelayInSecInternal(actionIn, timeIn, &m_state.pos, hasCubeFlag, interruptFlag,
+		actionDleay = getActionDelayInSecInternal(actionIn, actionDonePosIn, timeIn, &m_state.pos, hasCubeFlag, interruptFlag,
 			                                      &m_plannedAction.path, &pickUpCubeDelay);
 		if (timeIn + actionDleay <= CLIMB_END_TIME) {
 			m_plannedAction.projectedFinishTime = timeIn + actionDleay;
@@ -209,7 +214,7 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 				hasCubeFlag = true; //may have cube from the previous action or before stop point
 			}
 
-			delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn,
+			delayOutput = getActionDelayInSecInternal(actionIn, lastActionStopPosIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn,
 				          &plannedPath, &pickUpCubeDelay);
 		}
 	}
@@ -218,7 +223,7 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 		startPosition.center = lastActionStopPosIn;
 		hasCubeFlag = lastActionCubeNotUsedFlagIn;
 
-		delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn,
+		delayOutput = getActionDelayInSecInternal(actionIn, lastActionStopPosIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn,
 			                                      &plannedPath, &pickUpCubeDelay);
 		//only calculate the delay of the new action, old action delay will be added by the caller
 	}
@@ -232,7 +237,7 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 	return delayOutput;
 }
 
-double robot::getActionDelayInSecInternal(actionTypeType actionIn, double currentTimeIn,
+double robot::getActionDelayInSecInternal(actionTypeType actionIn, coordinateType actionDonePosIn, double currentTimeIn,
 	const rectangleObjectType *pStartPosIn, bool hasCubeFlagIn, bool interruptFlagIn,
 	robotPathType *pPathOut, double *pPickUpCubeDelayOut) const
 {
@@ -272,6 +277,7 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 	case PUSH_RED_BOOST_BUTTON:
 	case RED_ACTION_NONE:
 	case LIFT_ONE_RED_ROBOT:
+	case RED_ROBOT_GOTO_POS:
 		alliance = ALLIANCE_RED;
 		break;
 	case CUBE_BLUE_OFFENCE_SWITCH:
@@ -284,6 +290,7 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 	case PUSH_BLUE_BOOST_BUTTON:
 	case BLUE_ACTION_NONE:
 	case LIFT_ONE_BLUE_ROBOT:
+	case BLUE_ROBOT_GOTO_POS:
 		alliance = ALLIANCE_BLUE;
 		break;
 	default:
@@ -380,6 +387,12 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 		targetCenter.y = m_pPlatform->getBlueExchangeZoneY();
 		offsetY = offsetX = 0;
 		break;
+	case RED_ROBOT_GOTO_POS:
+		targetCenter = actionDonePosIn;
+		offsetY = offsetX = 0;
+		//no delay
+		actionDelay = 0;
+		break;
 	case PUSH_RED_FORCE_BUTTON:
 	case PUSH_RED_BOOST_BUTTON:
 	case PUSH_BLUE_FORCE_BUTTON:
@@ -404,6 +417,12 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 		offsetY = offsetX = 0;
 		lastTurnDelay += m_config.liftRobotDelay;
 		break;
+	case BLUE_ROBOT_GOTO_POS:
+		targetCenter = actionDonePosIn;
+		offsetY = offsetX = 0;
+		//no delay
+		actionDelay = 0;
+		break;
 	default:
 		printf("ERROR: invalid action %d\n", actionIn);
 		break;
@@ -418,30 +437,37 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, double curren
 		if (offsetY*offsetX == 0) {
 			return CLIMB_END_TIME + 1; //no other position available
 		}
-		//pick the closest x
-		if (pStartPosIn->center.x >= targetCenter.x) {
-			destination.x = targetCenter.x + offsetX;
+
+		if ((actionIn == BLUE_ROBOT_GOTO_POS) || (actionIn == RED_ROBOT_GOTO_POS)) {
+			//don't move
+			destination = m_state.pos.center;
 		}
 		else {
-			destination.x = targetCenter.x - offsetX;
-		}
-		destination.y = targetCenter.y;
-		newPos.center = destination;
-
-		if (m_pPlatform->collisionWithAllOtherObjects(&newPos, destination, &pCollisionObject)) {
-			//take the far side x
+			//pick the closest x
 			if (pStartPosIn->center.x >= targetCenter.x) {
-				destination.x = targetCenter.x - offsetX;
+				destination.x = targetCenter.x + offsetX;
 			}
 			else {
-				destination.x = targetCenter.x + offsetX;
+				destination.x = targetCenter.x - offsetX;
 			}
 			destination.y = targetCenter.y;
 			newPos.center = destination;
 
 			if (m_pPlatform->collisionWithAllOtherObjects(&newPos, destination, &pCollisionObject)) {
-				//no available position to finish the task
-				return CLIMB_END_TIME + 1; //task cannot be done
+				//take the far side x
+				if (pStartPosIn->center.x >= targetCenter.x) {
+					destination.x = targetCenter.x - offsetX;
+				}
+				else {
+					destination.x = targetCenter.x + offsetX;
+				}
+				destination.y = targetCenter.y;
+				newPos.center = destination;
+
+				if (m_pPlatform->collisionWithAllOtherObjects(&newPos, destination, &pCollisionObject)) {
+					//no available position to finish the task
+					return CLIMB_END_TIME + 1; //task cannot be done
+				}
 			}
 		}
 	}
@@ -744,7 +770,7 @@ actionResultType robot::moveToNextTime(double timeIn)
 				//action failed, likely pick up cube failed
 				//reschedule the task
 				m_plannedAction.actionType = INVALID_ACTION;
-				if (0 != takeAction(actionType, timeIn, -1)) {
+				if (0 != takeAction(actionType, m_state.pos.center, timeIn, -1)) {
 					returnResult = ACTION_TIME_OUT;
 					m_plannedAction.actionType = INVALID_ACTION;
 					m_plannedAction.path.numberOfTurns = 0;
@@ -765,7 +791,7 @@ actionResultType robot::moveToNextTime(double timeIn)
 		//action failed, likely pick up cube failed
 		//reschedule the task
 		m_plannedAction.actionType = INVALID_ACTION;
-		if (0 != takeAction(actionType, timeIn, -1)) {
+		if (0 != takeAction(actionType, m_state.pos.center, timeIn, -1)) {
 			returnResult = ACTION_TIME_OUT;
 			m_plannedAction.actionType = INVALID_ACTION;
 			m_plannedAction.path.numberOfTurns = 0;

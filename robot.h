@@ -144,7 +144,7 @@ public:
 		return srcIn;
 	}
 
-	int takeAction(actionTypeType actionIn, double timeIn, int indexIn);
+	int takeAction(actionTypeType actionIn, coordinateType actionDonePosIn, double timeIn, int indexIn);
 	int forceAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, double timeIn, int indexIn);
 
 	double getPlannedActionFinishTime(void)
@@ -177,7 +177,7 @@ protected:
 		coordinateType *pStopPositionOut, int *pCubeIndexOut, double *pTrnPointDelayChangeOut,
 		bool *pGiveUpCubeFlagOut, bool *atMiddleOfLineFlagOut, bool *pJustDoneFlagOut) const;
 
-	double getActionDelayInSecInternal(actionTypeType actionIn, double currentTimeIn, const rectangleObjectType *pStartPosIn,
+	double getActionDelayInSecInternal(actionTypeType actionIn, coordinateType actionDonePosIn, double currentTimeIn, const rectangleObjectType *pStartPosIn,
 		bool hasCubeFlagIn,	bool interruptFlagIn, robotPathType *pPathOut, double *pPickUpCubeDelayOut) const;
 
 	void updatePath(int stopIdxIn, int cubeIdxIn, bool middleOfLineFlagIn, double lineDelayChangeIn, robotPathType *pPathInOut) const;

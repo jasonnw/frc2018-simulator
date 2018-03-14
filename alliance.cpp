@@ -126,6 +126,7 @@ void alliance::findBestAction(int actionIndexIn)
 	actionTypeType startAction = (m_allianceType == ALLIANCE_RED) ? CUBE_RED_OFFENCE_SWITCH : CUBE_BLUE_OFFENCE_SWITCH;
 	actionTypeType endAction = (m_allianceType == ALLIANCE_RED) ? PUSH_RED_BOOST_BUTTON : PUSH_BLUE_BOOST_BUTTON;
 	actionTypeType endRealAction = (m_allianceType == ALLIANCE_RED) ? RED_ACTION_NONE : BLUE_ACTION_NONE;
+	actionTypeType randomMove = (m_allianceType == ALLIANCE_RED) ? RED_ROBOT_GOTO_POS : BLUE_ROBOT_GOTO_POS;
 
 	//reset best action
 	memset(m_bestAction, 0, sizeof(m_bestAction));
@@ -445,13 +446,26 @@ void alliance::findBestAction(int actionIndexIn)
 
 	//reset the output
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_bestAction[i].actionType = INVALID_ACTION;
+		m_bestAction[i].actionType = randomMove;
 		m_bestAction[i].startTime = currentTime;
 		m_bestAction[i].projectedFinishTime = currentTime + 1;
 		m_bestAction[i].actionIndex = actionIndexIn;
 		m_bestAction[i].previousIndex = INVALID_IDX;
 		m_bestAction[i].projectedFinalScore = 0;
 		m_bestAction[i].robotIndex = i;
+		//find a random connection point for the robot
+		int zoneIdx = (rand() * NUM_OF_ZONES) / (RAND_MAX);
+		const zoneType *pZone;
+		if (zoneIdx >= NUM_OF_ZONES) {
+			zoneIdx = NUM_OF_ZONES - 1;
+		}
+		pZone = m_testPlatForm.getZone(zoneIdx);
+		for (int j = 0; j < NUM_OF_ZONES; j++) {
+			if (pZone->connectionPoints[j].x != 0) {
+				m_bestAction[i].actionDonePos = pZone->connectionPoints[j];
+				break; //find a valid workaround point
+			}
+		}
 	}
 
 	if (searchFailedFlag) {

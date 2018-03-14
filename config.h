@@ -100,6 +100,7 @@ typedef enum actionTypeType {
 	RED_ACTION_NONE,
 	PUSH_RED_FORCE_BUTTON,
 	PUSH_RED_BOOST_BUTTON,
+	RED_ROBOT_GOTO_POS,
 	CUBE_BLUE_OFFENCE_SWITCH = 100, //blue team starts here to search the best action
 	CUBE_BLUE_DEFENCE_SWITCH,
 	CUBE_BLUE_SCALE,
@@ -110,6 +111,7 @@ typedef enum actionTypeType {
 	BLUE_ACTION_NONE,
 	PUSH_BLUE_FORCE_BUTTON,
 	PUSH_BLUE_BOOST_BUTTON,
+	BLUE_ROBOT_GOTO_POS,
 	INVALID_ACTION
 }actionTypeType;
 
