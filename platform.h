@@ -317,7 +317,7 @@ protected:
 
 	double findOneCube(double shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
 		const rectangleObjectType *pMovingObjectIn, double robotTurnDelayIn, double robotCubeDelayIn, 
-		cubeStateType **pCubeOut, robotPathType *pPathOut);
+		double xOffsetIn, double yOffsetIn,	cubeStateType **pCubeOut, robotPathType *pPathOut);
 
 	void updateScore(double secondsPassedIn);
 	double updateScaleSwitchScore(double secondsIn, int vaultForceBlockCountIn, int vaultBoostBlockCountIn, int balanceBlockDifferenceIn,

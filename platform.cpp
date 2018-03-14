@@ -1713,18 +1713,57 @@ void platform::logFinalRanking(void)
 
 double platform::findOneCube(double shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
 	const rectangleObjectType *pMovingObjectIn, double robotTurnDelayIn, double robotCubeDelayIn,
-	cubeStateType **pCubeOut, robotPathType *pPathOut)
+	double xOffsetIn, double yOffsetIn,	cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
 	double shortestPath = shortestPathIn;
 	robotPathType nextPath;
+	coordinateType cubePos;
+	bool findACubeFlag;
 
 	//search for cubs by the switch
 	for (int i = startSearchIdxIn; i < endSearchIdxIn; i++) {
 		if (!m_cubes[i].availbleFlag) {
 			continue;
 		}
+		cubePos = m_cubes[i].position;
+		nextPath.numberOfTurns = 0;
+		findACubeFlag = false;
 
 		if (findAvailablePath(pMovingObjectIn, m_cubes[i].position, true, robotTurnDelayIn, &nextPath)) {
+			findACubeFlag = true;
+		}
+
+		if ((isAllCubeSameFlag) && (findACubeFlag == false)) {
+			//try other offset
+			cubePos = m_cubes[i].position;
+			cubePos.x += xOffsetIn;
+			nextPath.numberOfTurns = 0;
+			if (findAvailablePath(pMovingObjectIn, cubePos, true, robotTurnDelayIn, &nextPath)) {
+				findACubeFlag = true;
+			}
+		}
+
+		if ((isAllCubeSameFlag) && (findACubeFlag == false)) {
+			//try other offset
+			cubePos = m_cubes[i].position;
+			cubePos.y += yOffsetIn;
+			nextPath.numberOfTurns = 0;
+			if (findAvailablePath(pMovingObjectIn, cubePos, true, robotTurnDelayIn, &nextPath)) {
+				findACubeFlag = true;
+			}
+		}
+
+		if ((isAllCubeSameFlag) && (findACubeFlag == false)) {
+			//try other offset
+			cubePos = m_cubes[i].position;
+			cubePos.y -= yOffsetIn;
+			nextPath.numberOfTurns = 0;
+			if (findAvailablePath(pMovingObjectIn, cubePos, true, robotTurnDelayIn, &nextPath)) {
+				findACubeFlag = true;
+			}
+		}
+
+		if(findACubeFlag) {
 			if (nextPath.numberOfTurns != 0) {
 				nextPath.turnPointDelay[nextPath.numberOfTurns - 1] += robotCubeDelayIn;
 			}
@@ -1733,7 +1772,7 @@ double platform::findOneCube(double shortestPathIn, int startSearchIdxIn, int en
 			}
 			if (shortestPath > nextPath.totalDistance) {
 				memcpy(pPathOut, &nextPath, sizeof(robotPathType));
-				*pCubeOut =  &m_cubes[i];
+				*pCubeOut = &m_cubes[i];
 				shortestPath = nextPath.totalDistance;
 			}
 		}
@@ -1773,25 +1812,25 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 	if (allianceIn == ALLIANCE_RED) {
 		for (int i = 0; i < cubeListSize - 1; i++) {
 			shortestPath = findOneCube(shortestPath, redCubeSearchRange[i].startIdx, redCubeSearchRange[i].endIdx, 
-				redCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
+				redCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, -40, 35, pCubeOut, pPathOut);
 
 		}
 		//exchange zone
 		if (m_timeInSec >= AUTONOMOUS_END_TIME) {
 			shortestPath = findOneCube(shortestPath, redCubeSearchRange[cubeListSize - 1].startIdx, redCubeSearchRange[cubeListSize - 1].endIdx,
-				redCubeSearchRange[cubeListSize - 1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
+				redCubeSearchRange[cubeListSize - 1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, 40, 35, pCubeOut, pPathOut);
 		}
 	}
 	else {
 		for (int i = 0; i < cubeListSize - 1; i++) {
 			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[i].startIdx, blueCubeSearchRange[i].endIdx,
-				blueCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
+				blueCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, 40, 35, pCubeOut, pPathOut);
 
 		}
 		//exchange zone
 		if (m_timeInSec >= AUTONOMOUS_END_TIME) {
 			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[cubeListSize - 1].startIdx, blueCubeSearchRange[cubeListSize - 1].endIdx,
-				blueCubeSearchRange[cubeListSize - 1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, pCubeOut, pPathOut);
+				blueCubeSearchRange[cubeListSize - 1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, -40, 35, pCubeOut, pPathOut);
 		}
 	}
 
@@ -2010,29 +2049,14 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 
 				//future collision test
 				memcpy(&futurePosition, pRobotPosition, sizeof(futurePosition));
-				/*
 				if ((pPlannedAction->path.pickUpCubeIndex != INVALID_IDX) && (pPlannedAction->path.pickUpCubeIndex != -1)) {
 
 					futurePosition.center = pPlannedAction->path.turnPoints[pPlannedAction->path.pickUpCubeIndex];
-					if (pointInObject(&m_platformStructure.blueExchangeZone, futurePosition.center.x, futurePosition.center.y)) {
-						//don't check blue exchange zone
+					if (collisionDectection(&futurePosition, pMovingObjectIn, endPointIn)) {
+						*pCollisionObjectOut = pRobotPosition;
+						return true;
 					}
-					else if (pointInObject(&m_platformStructure.redExchangeZone, futurePosition.center.x, futurePosition.center.y)) {
-						//don't check red exchange zone
-					}
-					else if (pointInObject(&m_platformStructure.bluePowerCubeZone, futurePosition.center.x, futurePosition.center.y)) {
-						//don't check blue power cube zone
-					}
-					else if (pointInObject(&m_platformStructure.redPowerCubeZone, futurePosition.center.x, futurePosition.center.y)) {
-						//don't check red exchange zone
-					}
-					else {
-						if (collisionDectection(&futurePosition, pMovingObjectIn, endPointIn)) {
-							*pCollisionObjectOut = pRobotPosition;
-							return true;
-						}
-					}
-				}*/
+				}
 				if (pPlannedAction->path.numberOfTurns > 0) {
 					futurePosition.center = pPlannedAction->path.turnPoints[pPlannedAction->path.numberOfTurns-1];
 					if (collisionDectection(&futurePosition, pMovingObjectIn, endPointIn)) {

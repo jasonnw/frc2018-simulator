@@ -31,7 +31,7 @@ const int MAXIMUM_Y = 20;
 const int SECONDS_PER_LABEL = 10;
 const int POINTS_PER_SECOND = 7;
 const int SCORES_PER_LABEL = 20;
-const int POINTS_PER_SCORE = 4;
+const int POINTS_PER_SCORE = 1;
 
 const int LABAL_OFFSET_Y = 780;
 
