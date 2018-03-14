@@ -453,18 +453,25 @@ void alliance::findBestAction(int actionIndexIn)
 		m_bestAction[i].previousIndex = INVALID_IDX;
 		m_bestAction[i].projectedFinalScore = 0;
 		m_bestAction[i].robotIndex = i;
-		//find a random connection point for the robot
-		int zoneIdx = (rand() * NUM_OF_ZONES) / (RAND_MAX);
-		const zoneType *pZone;
-		if (zoneIdx >= NUM_OF_ZONES) {
-			zoneIdx = NUM_OF_ZONES - 1;
-		}
-		pZone = m_testPlatForm.getZone(zoneIdx);
-		for (int j = 0; j < NUM_OF_ZONES; j++) {
-			if (pZone->connectionPoints[j].x != 0) {
-				m_bestAction[i].actionDonePos = pZone->connectionPoints[j];
-				break; //find a valid workaround point
+
+		if (currentTime < COMPETITION_END_TIME) {
+			//find a random connection point for the robot
+			int zoneIdx = (rand() * NUM_OF_ZONES) / (RAND_MAX);
+			const zoneType *pZone;
+			if (zoneIdx >= NUM_OF_ZONES) {
+				zoneIdx = NUM_OF_ZONES - 1;
 			}
+			pZone = m_testPlatForm.getZone(zoneIdx);
+			for (int j = 0; j < NUM_OF_ZONES; j++) {
+				if (pZone->connectionPoints[j].x != 0) {
+					m_bestAction[i].actionDonePos = pZone->connectionPoints[j];
+					break; //find a valid workaround point
+				}
+			}
+		}
+		else {
+			m_bestAction[i].actionType = INVALID_ACTION;
+			m_bestAction[i].actionDonePos = { 0, 0 };
 		}
 	}
 
@@ -517,6 +524,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 
 	int bestScore = INT32_MIN;
 	int bestRanking = 0;
+	int time2ScoreFactor;
 	double bestScoreFinishTime = 0;
 	int bestScoreIdx = 0;
 	double lastFinishTime = 0;
@@ -665,18 +673,22 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 
 		//save the final score with the last pending action entry
 		m_pSearchList[exeIdx].projectedFinalScore = score;
-		m_testPlatForm.logFinalRanking();
+		time2ScoreFactor = (int) floor((lastFinishTime - bestScoreFinishTime) * TIME_TO_SCORE_FACTOR);
 
+		m_testPlatForm.logFinalRanking();
 		newBranchIsBetter = false;
-		if ((ranking > bestRanking) && (score > INT_MIN)) {
-			//ranking is the most important
-			newBranchIsBetter = true;
-		}else if (score > bestScore) {
-			newBranchIsBetter = true;
-		}
-		else if ((score == bestScore) && (bestScoreFinishTime > lastFinishTime)) {
-			//favor the same score and finished earlier
-			newBranchIsBetter = true;
+		if (score > INT_MIN) {
+			if (ranking > bestRanking)  {
+				//ranking is the most important
+				newBranchIsBetter = true;
+			}
+			else if (score + time2ScoreFactor > bestScore)  {
+				newBranchIsBetter = true;
+			}
+			else if ((score == bestScore) && (bestScoreFinishTime > lastFinishTime)) {
+				//favor the same score and finished earlier
+				newBranchIsBetter = true;
+			}
 		}
 
 		if (newBranchIsBetter) {

@@ -198,6 +198,7 @@ const double CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after comp
 															 //Note: To simplify the simulator, auto session result will be used to initialize the game state.
 															 //      Auto session time is excluded from game time. The game starts on COMPITATION_START_TIME
 //action search control parameters
+const double TIME_TO_SCORE_FACTOR = 0.1;                     //punish very long delay operation 
 const int MAXIMUM_PENDING_ACTIONS = 4;                       //maximum number of look forward actions to search for the best move
 const int NUM_OF_POSSIBLE_ACTIONS = PUSH_RED_BOOST_BUTTON + 1;     //the number of possible actions per robot
 const int MIN_SCORE_CHECKING_STEP = 4;                       //start check if the action worth to continue

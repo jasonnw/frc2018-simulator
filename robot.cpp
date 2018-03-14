@@ -125,7 +125,7 @@ int robot::forceAction(const pendingActionType *pPlannedActionIn, coordinateType
 	//sync the current robot position
 	m_state.pos.center = startPosIn;
 
-	if ((pPlannedActionIn->actionType != gotoMove) || (m_plannedAction.actionType != INVALID_ACTION)) {
+	if ((pPlannedActionIn->actionType != gotoMove) || (m_plannedAction.actionType == INVALID_ACTION)) {
 		//don't break running action by goto
 		memcpy(&m_plannedAction, pPlannedActionIn, sizeof(pendingActionType));
 		m_plannedAction.startTime = timeIn;
@@ -146,7 +146,8 @@ int robot::takeAction(actionTypeType actionIn, coordinateType actionDonePosIn, d
 	bool interruptFlag = false;
 	actionTypeType gotoMove = (m_allianceType == ALLIANCE_RED) ? RED_ROBOT_GOTO_POS : BLUE_ROBOT_GOTO_POS;
 
-	if ((m_plannedAction.actionType != actionIn) && (actionIn != gotoMove)) {
+	if (((m_plannedAction.actionType != actionIn) && (actionIn != gotoMove)) ||
+		((actionIn == gotoMove) && (m_plannedAction.actionType == INVALID_ACTION))) {
 		//stop the current action and start a new action
 		m_plannedAction.actionType = actionIn;
 		m_plannedAction.startTime = timeIn;
