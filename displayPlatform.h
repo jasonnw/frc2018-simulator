@@ -216,6 +216,7 @@ protected:
 	void drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn);
 	void drawInteger(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn);
 	void drawFloat(const rectangleObjectType *pObjectIn, double numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn);
+	void drawString(const rectangleObjectType *pObjectIn, const char *strIn, double sizeIn, cv::Scalar colorIn);
 	void drawField(void);
 };
 

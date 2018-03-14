@@ -1579,7 +1579,7 @@ void platform::updateScore(double secondsPassedIn)
 
 		//blue lifting
 		if ((m_state.blueLiftButton == BUTTON_PUSH) && (m_state.liftBlueBlockCount >= 3)) {
-			m_blueRank += 30;
+			m_blueRank += 1;
 			m_state.blueLiftButton = BUTTON_PUSH_OVER_10SEC;
 		}
 		else if (m_state.liftBlueButtonPushBlockCount < 3) {

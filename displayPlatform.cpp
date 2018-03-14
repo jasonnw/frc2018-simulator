@@ -64,6 +64,8 @@ int displayPlatform::sendAction(const actionMessageType *pActionIn)
 
 int displayPlatform::updatePlatform(int actionIndexIn)
 {
+	rectangleObjectType gameOverDisplay;
+
 	actionMessageType message;
 	bool commitMessageFlag;
 	bool quitFlag;
@@ -102,10 +104,16 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 			playTotheNextTime(earliestFinishTime, actionIndexIn, FRAME_DELAY_IN_MS);
 		}
 
+		if (earliestFinishTime < CLIMB_END_TIME) {
+			playTotheNextTime(CLIMB_END_TIME, actionIndexIn, FRAME_DELAY_IN_MS);
+		}
+
 		getFinalScore(&redScore, &blueScore);
 		logFinalRanking();
 
 		updateField();
+		gameOverDisplay.center = { 150, 180 };
+		drawString(&gameOverDisplay, "Game Over, Press Any Key", 3, { 128, 128, 128 });
 		drawPlatform(0);
 
 		return 1;
@@ -178,6 +186,16 @@ void displayPlatform::drawInteger(const rectangleObjectType *pObjectIn, int numb
 	char robotIdxStr[128];
 
 	sprintf_s(robotIdxStr, "%s%d", strIn, numberIn);
+	point1 = coordinateToPoint(pObjectIn->center.x - 4, pObjectIn->center.y - 8);
+	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, colorIn, 1, CV_AA);
+}
+
+void displayPlatform::drawString(const rectangleObjectType *pObjectIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
+{
+	Point point1;
+	char robotIdxStr[128];
+
+	sprintf_s(robotIdxStr, "%s", strIn);
 	point1 = coordinateToPoint(pObjectIn->center.x - 4, pObjectIn->center.y - 8);
 	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, colorIn, 1, CV_AA);
 }
