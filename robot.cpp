@@ -18,6 +18,7 @@ robot::robot()
 	m_pPlatform = NULL;
 	m_plannedAction.actionType = INVALID_ACTION;
 	m_plannedAction.projectedFinishTime = CLIMB_END_TIME;
+	m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
 }
 
 robot::~robot()
@@ -178,18 +179,11 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 	bool interruptFlagIn, coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn,
 	coordinateType *pEndPosOut, bool *pDontInterruptFlagOut) const
 {
-	coordinateType stopPosition;
 	rectangleObjectType startPosition;
 	robotPathType plannedPath;
-	int cubeIndex;
 	bool hasCubeFlag = false;
-	bool giveUpCubeFlag = false;
-	bool middleOfLineFlag;
-	bool justTimeUpFlag;
-	int stopIndex;
 	double delayOutput;
 	double pickUpCubeDelay;
-	double turnPointDelayChange;
 
 	memcpy(&startPosition, &m_state.pos, sizeof(startPosition));
 	*pDontInterruptFlagOut = false;
@@ -211,15 +205,10 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 		}
 		else {
 			//stop the current task and start the new task
-			stopIndex = findStopPosition(&startPosition.center, &m_plannedAction.path, currentTimeIn, &stopPosition,
-				&cubeIndex, &turnPointDelayChange, &giveUpCubeFlag, &middleOfLineFlag, &justTimeUpFlag);
-
-			if ((m_state.cubeIdx != INVALID_IDX) || (cubeIndex != INVALID_IDX)) {
+			if (m_state.cubeIdx != INVALID_IDX) {
 				hasCubeFlag = true; //may have cube from the previous action or before stop point
 			}
 
-			//switch to the new action
-			startPosition.center = stopPosition;
 			delayOutput = getActionDelayInSecInternal(actionIn, currentTimeIn, &startPosition, hasCubeFlag, interruptFlagIn,
 				          &plannedPath, &pickUpCubeDelay);
 		}

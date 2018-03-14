@@ -1918,6 +1918,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 		isSearchFailedFlag = false;
 		movingObject.center = pMovingObjectIn->center;
 		startZone = firstZone;
+		pPathOut->numberOfTurns = 0;
 
 		for (int j = 0; j < NUMBER_OF_ZONES_ON_PATH; j++) {
 			//to the connect point of the same zone
@@ -2009,13 +2010,29 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 
 				//future collision test
 				memcpy(&futurePosition, pRobotPosition, sizeof(futurePosition));
+				/*
 				if ((pPlannedAction->path.pickUpCubeIndex != INVALID_IDX) && (pPlannedAction->path.pickUpCubeIndex != -1)) {
+
 					futurePosition.center = pPlannedAction->path.turnPoints[pPlannedAction->path.pickUpCubeIndex];
-					if (collisionDectection(&futurePosition, pMovingObjectIn, endPointIn)) {
-						*pCollisionObjectOut = pRobotPosition;
-						return true;
+					if (pointInObject(&m_platformStructure.blueExchangeZone, futurePosition.center.x, futurePosition.center.y)) {
+						//don't check blue exchange zone
 					}
-				}
+					else if (pointInObject(&m_platformStructure.redExchangeZone, futurePosition.center.x, futurePosition.center.y)) {
+						//don't check red exchange zone
+					}
+					else if (pointInObject(&m_platformStructure.bluePowerCubeZone, futurePosition.center.x, futurePosition.center.y)) {
+						//don't check blue power cube zone
+					}
+					else if (pointInObject(&m_platformStructure.redPowerCubeZone, futurePosition.center.x, futurePosition.center.y)) {
+						//don't check red exchange zone
+					}
+					else {
+						if (collisionDectection(&futurePosition, pMovingObjectIn, endPointIn)) {
+							*pCollisionObjectOut = pRobotPosition;
+							return true;
+						}
+					}
+				}*/
 				if (pPlannedAction->path.numberOfTurns > 0) {
 					futurePosition.center = pPlannedAction->path.turnPoints[pPlannedAction->path.numberOfTurns-1];
 					if (collisionDectection(&futurePosition, pMovingObjectIn, endPointIn)) {
