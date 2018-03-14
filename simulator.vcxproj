@@ -154,6 +154,9 @@
     <ClInclude Include="displayPlatform.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="robot.h" />
+    <ClInclude Include="robot_blue0.h" />
+    <ClInclude Include="robot_blue1.h" />
+    <ClInclude Include="robot_blue2.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="alliance.cpp" />

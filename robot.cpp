@@ -19,6 +19,7 @@ robot::robot()
 	m_plannedAction.actionType = INVALID_ACTION;
 	m_plannedAction.projectedFinishTime = CLIMB_END_TIME;
 	m_plannedAction.path.pickUpCubeIndex = INVALID_IDX;
+	m_isAiRobotFlag = true;
 }
 
 robot::~robot()

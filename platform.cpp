@@ -5,6 +5,9 @@
 #include <string.h>
 #include <math.h>
 #include "platform.h"
+#include "robot_blue0.h"
+#include "robot_blue1.h"
+#include "robot_blue2.h"
 
 #define ROUNDING_METHOD(x) ((int)floor((x)))
 
@@ -26,10 +29,33 @@ platform::platform()
 	m_debugCounter = 0;
 	m_isDisplayPlatform = false;
 
+	if (NUMBER_OF_ROBOTS != 3) {
+		printf("ERROR, The number of robots are not expected");
+		return;
+	}
+
+	m_pRedRobots[0] = new robot;
+	m_pRedRobots[1] = new robot;
+	m_pRedRobots[2] = new robot;
+
+	m_pBlueRobots[0] = new robotBlue0;
+	m_pBlueRobots[1] = new robotBlue1;
+	m_pBlueRobots[2] = new robotBlue2;
+
+	if ((m_pRedRobots[0] == NULL) ||
+		(m_pRedRobots[1] == NULL) ||
+		(m_pRedRobots[2] == NULL) ||
+		(m_pBlueRobots[0] == NULL) ||
+		(m_pBlueRobots[1] == NULL) ||
+		(m_pBlueRobots[2] == NULL)) {
+		printf("ERROR, allocate robots failed\n");
+		return;
+	}
+
 	//give each robot access with the platform
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_redRobots[i].setPlatformAndCube(this, i+ CUBE_ON_RED_ROBOTS);
-		m_blueRobots[i].setPlatformAndCube(this, i + CUBE_ON_BLUE_ROBOTS);
+		m_pRedRobots[i]->setPlatformAndCube(this, i+ CUBE_ON_RED_ROBOTS);
+		m_pBlueRobots[i]->setPlatformAndCube(this, i + CUBE_ON_BLUE_ROBOTS);
 	}
 
 	//field layout, in unit of inch,
@@ -722,36 +748,50 @@ platform::platform()
 }
 
 
+
+platform::~platform()
+{
+	if ((m_pRedRobots[0] == NULL) ||
+		(m_pRedRobots[1] == NULL) ||
+		(m_pRedRobots[2] == NULL) ||
+		(m_pBlueRobots[0] == NULL) ||
+		(m_pBlueRobots[1] == NULL) ||
+		(m_pBlueRobots[2] == NULL)) {
+		printf("ERROR, allocate robots failed\n");
+		return;
+	}
+	else {
+		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+			delete m_pRedRobots[i];
+			delete m_pBlueRobots[i];
+		}
+	}
+
+}
 //Robot object ID is from 18 to 23, should convert these IDs to an enum, JWJW
 void platform::configRedRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
 {
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_redRobots[i].setConfiguration(&config1In[i], this, i);
-		m_redRobots[i].setAllianceType(ALLIANCE_RED);
+		m_pRedRobots[i]->setConfiguration(&config1In[i], this, i);
+		m_pRedRobots[i]->setAllianceType(ALLIANCE_RED);
 	}
 	//set robot initial positions
-	m_redRobots[0].setPosition(config1In[0].sizeX / 2, config1In[0].sizeY * 2, 18);
-	m_redRobots[1].setPosition(config1In[1].sizeX / 2, (264 + 48 * 2) / 2, 19);
-	m_redRobots[2].setPosition(config1In[0].sizeX / 2, (264 + 48 * 2) - config1In[0].sizeY * 2, 20);
+	m_pRedRobots[0]->setPosition(config1In[0].sizeX / 2, config1In[0].sizeY * 2, 18);
+	m_pRedRobots[1]->setPosition(config1In[1].sizeX / 2, (264 + 48 * 2) / 2, 19);
+	m_pRedRobots[2]->setPosition(config1In[0].sizeX / 2, (264 + 48 * 2) - config1In[0].sizeY * 2, 20);
 }
 
 void platform::configBlueRobots(const robotConfigurationType config1In[NUMBER_OF_ROBOTS])
 {
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_blueRobots[i].setConfiguration(&config1In[i], this, i);
-		m_blueRobots[i].setAllianceType(ALLIANCE_BLUE);
+		m_pBlueRobots[i]->setConfiguration(&config1In[i], this, i);
+		m_pBlueRobots[i]->setAllianceType(ALLIANCE_BLUE);
 	}
 	//set robot initial positions
-	m_blueRobots[0].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, config1In[0].sizeY * 2, 21);
-	m_blueRobots[1].setPosition((288 * 2 + 72) - config1In[1].sizeX / 2, (264 + 48 * 2) / 2, 22);
-	m_blueRobots[2].setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, (264 + 48 * 2) - config1In[0].sizeY * 2, 23);
+	m_pBlueRobots[0]->setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, config1In[0].sizeY * 2, 21);
+	m_pBlueRobots[1]->setPosition((288 * 2 + 72) - config1In[1].sizeX / 2, (264 + 48 * 2) / 2, 22);
+	m_pBlueRobots[2]->setPosition((288 * 2 + 72) - config1In[0].sizeX / 2, (264 + 48 * 2) - config1In[0].sizeY * 2, 23);
 }
-
-
-platform::~platform()
-{
-}
-
 
 void platform::getFinalScore(int *pRedScoreOut, int *pBlueScoreOut)
 {
@@ -788,17 +828,17 @@ bool platform::isRobotLifted(allianceType allianceIn, int robotIdxIn)
 
 bool platform::hasPendingAction(int robotIndexIn, allianceType allianceIn)
 {
-	robot *pRobots;
+	robot **pRobots;
 	const pendingActionType *pPlannedAction;
 
 	if (allianceIn == ALLIANCE_RED) {
-		pRobots = m_redRobots;
+		pRobots = m_pRedRobots;
 	}
 	else {
-		pRobots = m_blueRobots;
+		pRobots = m_pBlueRobots;
 	}
 
-	pPlannedAction = pRobots[robotIndexIn].getPlannedAction();
+	pPlannedAction = pRobots[robotIndexIn]->getPlannedAction();
 	if (pPlannedAction->actionType != INVALID_ACTION) {
 		return true;
 	}
@@ -811,7 +851,7 @@ void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, coord
 	allianceType allianceIn, int robotIdxIn, int indexIn)
 {
 	static int debugCounter = 0;
-	robot *pRobots;
+	robot **pRobots;
 	coordinateType currentPos = getRobotPos(allianceIn, robotIdxIn);
 	bool currentHasCubeFlag = getRobotHasCubeFlag(allianceIn, robotIdxIn);
 
@@ -833,87 +873,87 @@ void platform::forceRobotAction(const pendingActionType *pPlannedActionIn, coord
 	}
 
 	if (allianceIn == ALLIANCE_RED) {
-		pRobots = m_redRobots;
+		pRobots = m_pRedRobots;
 	}
 	else {
-		pRobots = m_blueRobots;
+		pRobots = m_pBlueRobots;
 	}
 
-	pRobots[robotIdxIn].forceAction(pPlannedActionIn, startPosIn, m_timeInSec, indexIn);
+	pRobots[robotIdxIn]->forceAction(pPlannedActionIn, startPosIn, m_timeInSec, indexIn);
 	debugCounter++;
 }
 
 coordinateType platform::getRobotPos(allianceType allianceIn, int robotIdxIn) const
 {
-	const robot *pRobots;
+	const robot *const* pRobots;
 	const rectangleObjectType *pPos;
 
 	if (allianceIn == ALLIANCE_RED) {
-		pRobots = m_redRobots;
+		pRobots = m_pRedRobots;
 	}
 	else {
-		pRobots = m_blueRobots;
+		pRobots = m_pBlueRobots;
 	}
-	pPos = pRobots[robotIdxIn].getPosition();
+	pPos = pRobots[robotIdxIn]->getPosition();
 	return pPos->center;
 }
 
 bool platform::getRobotHasCubeFlag(allianceType allianceIn, int robotIdxIn) const
 {
-	const robot *pRobots;
+	const robot *const *pRobots;
 
 	if (allianceIn == ALLIANCE_RED) {
-		pRobots = m_redRobots;
+		pRobots = m_pRedRobots;
 	}
 	else {
-		pRobots = m_blueRobots;
+		pRobots = m_pBlueRobots;
 	}
-	return pRobots[robotIdxIn].hasCube();
+	return pRobots[robotIdxIn]->hasCube();
 }
 
 int platform::getRobotCubeIdx(allianceType allianceIn, int robotIdxIn) const
 {
-	const robot *pRobots;
+	const robot *const *pRobots;
 
 	if (allianceIn == ALLIANCE_RED) {
-		pRobots = m_redRobots;
+		pRobots = m_pRedRobots;
 	}
 	else {
-		pRobots = m_blueRobots;
+		pRobots = m_pBlueRobots;
 	}
-	return pRobots[robotIdxIn].getCubeIdx();
+	return pRobots[robotIdxIn]->getCubeIdx();
 }
 
 const pendingActionType *platform::getRobotAction(allianceType allianceIn, int robotIdxIn) const
 {
-	const robot *pRobots;
+	const robot *const* pRobots;
 
 	if (allianceIn == ALLIANCE_RED) {
-		pRobots = m_redRobots;
+		pRobots = m_pRedRobots;
 	}
 	else {
-		pRobots = m_blueRobots;
+		pRobots = m_pBlueRobots;
 	}
-	return pRobots[robotIdxIn].getPlannedAction();
+	return pRobots[robotIdxIn]->getPlannedAction();
 }
 
 int platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn)
 {
 	int rvalue;
-	robot *pRobots;
+	robot *const * pRobots;
 	int robotIdx = pActionListInOut->robotIndex;
 
 	if (allianceIn == ALLIANCE_RED) {
-		pRobots = m_redRobots;
+		pRobots = m_pRedRobots;
 	}
 	else {
-		pRobots = m_blueRobots;
+		pRobots = m_pBlueRobots;
 	}
 
-	rvalue = pRobots[robotIdx].takeAction(pActionListInOut->actionType, pActionListInOut->actionDonePos, m_timeInSec, indexIn);
+	rvalue = pRobots[robotIdx]->takeAction(pActionListInOut->actionType, pActionListInOut->actionDonePos, m_timeInSec, indexIn);
 	//update the projected start and finished time
 	pActionListInOut->startTime = m_timeInSec;
-	pActionListInOut->projectedFinishTime = pRobots[robotIdx].getPlannedActionFinishTime();
+	pActionListInOut->projectedFinishTime = pRobots[robotIdx]->getPlannedActionFinishTime();
 	//Note: pActionListInOut only has estimated start and stop time. After moves of other robots, the
 	//      start and finish time may change.
 
@@ -945,13 +985,13 @@ double platform::getEarliestStopTime(void)
 	earliestFinishTime = CLIMB_END_TIME + 1;
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		if (hasPendingAction(i, ALLIANCE_RED)) {
-			if (earliestFinishTime > m_redRobots[i].getNextStopTime()) {
-				earliestFinishTime = m_redRobots[i].getNextStopTime();
+			if (earliestFinishTime > m_pRedRobots[i]->getNextStopTime()) {
+				earliestFinishTime = m_pRedRobots[i]->getNextStopTime();
 			}
 		}
 		if (hasPendingAction(i, ALLIANCE_BLUE)) {
-			if (earliestFinishTime > m_blueRobots[i].getNextStopTime()) {
-				earliestFinishTime = m_blueRobots[i].getNextStopTime();
+			if (earliestFinishTime > m_pBlueRobots[i]->getNextStopTime()) {
+				earliestFinishTime = m_pBlueRobots[i]->getNextStopTime();
 			}
 		}
 	}
@@ -993,12 +1033,12 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 
 	//run action of each robot
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		pPlannetAction = m_redRobots[i].getPlannedAction();
+		pPlannetAction = m_pRedRobots[i]->getPlannedAction();
 		actionType = pPlannetAction->actionType;
 		if (actionType != INVALID_ACTION) {
-			actionResult = m_redRobots[i].moveToNextTime(earliestFinishTime);
+			actionResult = m_pRedRobots[i]->moveToNextTime(earliestFinishTime);
 
-			pRobotPos = m_redRobots[i].getPosition();
+			pRobotPos = m_pRedRobots[i]->getPosition();
 			if ((pRobotPos->center.x + pRobotPos->sizeX / 2 >= m_platformStructure.redAutoLine)
 				&& (earliestFinishTime <= AUTONOMOUS_END_TIME)
 				&& (!m_state.redCrossAutoFlag[i])) {
@@ -1020,7 +1060,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 				break;
 			case ACTION_IN_PROGRESS:
 				//check if action passed due time
-				if (m_redRobots[i].getPlannedActionFinishTime() <= earliestFinishTime) {
+				if (m_pRedRobots[i]->getPlannedActionFinishTime() <= earliestFinishTime) {
 					logAction(actionType, earliestFinishTime, i, indexIn, false);
 					updateActionResult = -1;
 				}
@@ -1041,12 +1081,12 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 			}
 		}
 
-		pPlannetAction = m_blueRobots[i].getPlannedAction();
+		pPlannetAction = m_pBlueRobots[i]->getPlannedAction();
 		actionType = pPlannetAction->actionType;
 		if (actionType != INVALID_ACTION) {
-			actionResult = m_blueRobots[i].moveToNextTime(earliestFinishTime);
+			actionResult = m_pBlueRobots[i]->moveToNextTime(earliestFinishTime);
 
-			pRobotPos = m_blueRobots[i].getPosition();
+			pRobotPos = m_pBlueRobots[i]->getPosition();
 			if ((pRobotPos->center.x - pRobotPos->sizeX / 2 <= m_platformStructure.blueAutoLine)
 				&& (earliestFinishTime <= AUTONOMOUS_END_TIME)
 				&& (!m_state.blueCrossAutoFlag[i])) {
@@ -1068,7 +1108,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 				break;
 			case ACTION_IN_PROGRESS:
 				//check if action passed due time
-				if (m_blueRobots[i].getPlannedActionFinishTime() <= earliestFinishTime) {
+				if (m_pBlueRobots[i]->getPlannedActionFinishTime() <= earliestFinishTime) {
 					logAction(actionType, earliestFinishTime, i, indexIn, false);
 					updateActionResult = -1;
 				}
@@ -1579,7 +1619,7 @@ void platform::updateScore(double secondsPassedIn)
 
 		//blue lifting
 		if ((m_state.blueLiftButton == BUTTON_PUSH) && (m_state.liftBlueBlockCount >= 3)) {
-			m_blueRank += 1;
+			m_blueScore += 30;
 			m_state.blueLiftButton = BUTTON_PUSH_OVER_10SEC;
 		}
 		else if (m_state.liftBlueButtonPushBlockCount < 3) {
@@ -1597,7 +1637,7 @@ void platform::updateScore(double secondsPassedIn)
 			liftRebotCount += (m_state.blueLiftFlag[i] == true);
 
 		if ((liftRebotCount == NUMBER_OF_ROBOTS) && (!m_state.allBlueRobotsLiftFlag)) {
-			m_blueScore += 1;
+			m_blueRank += 1;
 			m_state.allBlueRobotsLiftFlag = true;
 		}
 	}
@@ -2032,9 +2072,9 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 	*pCollisionObjectOut = NULL;
 
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		pRobotState =  m_redRobots[i].getState();
+		pRobotState =  m_pRedRobots[i]->getState();
 		pRobotPosition = &pRobotState->pos;
-		pPlannedAction = m_redRobots[i].getPlannedAction();
+		pPlannedAction = m_pRedRobots[i]->getPlannedAction();
 
 		for (int j = 0; j < 2; j++) {
 			if (pRobotPosition->objectId != pMovingObjectIn->objectId) {
@@ -2072,9 +2112,9 @@ bool platform::collisionWithAllOtherObjects(const rectangleObjectType *pMovingOb
 				}
 			}
 
-			pRobotState = m_blueRobots[i].getState();
+			pRobotState = m_pBlueRobots[i]->getState();
 			pRobotPosition = &pRobotState->pos;
-			pPlannedAction = m_blueRobots[i].getPlannedAction();
+			pPlannedAction = m_pBlueRobots[i]->getPlannedAction();
 		}
 	}
 	return false;

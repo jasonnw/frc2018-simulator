@@ -48,6 +48,7 @@ int alliance::initAlliance(allianceType typeIn, FILE *pLogFile,
 	const robotConfigurationType config1In[NUMBER_OF_ROBOTS],
 	const platform &platformIn)
 {
+	const robot *const* ppRobots;
 	if (m_pSearchList == NULL) {
 		return -1;
 	}
@@ -57,10 +58,14 @@ int alliance::initAlliance(allianceType typeIn, FILE *pLogFile,
 	m_testPlatForm = platformIn;
 
 	if (typeIn == ALLIANCE_RED) {
-		m_pRobots = m_testPlatForm.getRedRobots();
+		ppRobots = m_testPlatForm.getRedRobots();
 	}
 	else {
-		m_pRobots = m_testPlatForm.getBlueRobots();
+		ppRobots = m_testPlatForm.getBlueRobots();
+	}
+
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		m_pRobots[i] = ppRobots[i];
 	}
 	return 0;
 }
@@ -197,8 +202,8 @@ void alliance::findBestAction(int actionIndexIn)
 					previousActionIndex = prevIdx;
 					previousFinishTime = 0;
 					interruptFlag = true;
-					actionDonePos = m_pRobots[robot].getPosition()->center;
-					actionDoneWithCube = m_pRobots[robot].hasCube();
+					actionDonePos = m_pRobots[robot]->getPosition()->center;
+					actionDoneWithCube = m_pRobots[robot]->hasCube();
 					startTime = currentTime;
 
 					if (m_referencePlatForm.isRobotLifted(m_allianceType, robot) &&
@@ -234,7 +239,7 @@ void alliance::findBestAction(int actionIndexIn)
 					}
 
 					//the current action finish time
-					finishTime = m_pRobots[robot].estimateActionDelayInSec((actionTypeType)act, currentTime, interruptFlag, 
+					finishTime = m_pRobots[robot]->estimateActionDelayInSec((actionTypeType)act, currentTime, interruptFlag, 
 						actionDonePos, actionDoneWithCube, &actionNewPos, &dontInterruptFlag);
 					finishTime += previousFinishTime;
 
@@ -322,8 +327,8 @@ void alliance::findBestAction(int actionIndexIn)
 		previousActionIndex = bestScoreIdx;
 		previousFinishTime = 0;
 		interruptFlag = true;
-		actionDonePos = m_pRobots[robot].getPosition()->center;
-		actionDoneWithCube = m_pRobots[robot].hasCube();
+		actionDonePos = m_pRobots[robot]->getPosition()->center;
+		actionDoneWithCube = m_pRobots[robot]->hasCube();
 		startTime = currentTime;
 
 		do {
@@ -371,7 +376,7 @@ void alliance::findBestAction(int actionIndexIn)
 				}
 
 				//the current action finish time
-				finishTime = m_pRobots[robot].estimateActionDelayInSec((actionTypeType)act, previousFinishTime,
+				finishTime = m_pRobots[robot]->estimateActionDelayInSec((actionTypeType)act, previousFinishTime,
 					interruptFlag, actionDonePos, actionDoneWithCube, &actionNewPos, &dontInterruptFlag);
 				finishTime += previousFinishTime;
 

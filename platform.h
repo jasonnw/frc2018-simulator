@@ -128,8 +128,8 @@ private:
 protected:
 	platformStateType m_state;
 	platformLayoutType m_platformStructure;
-	robot m_redRobots[NUMBER_OF_ROBOTS];
-	robot m_blueRobots[NUMBER_OF_ROBOTS];
+	robot *m_pRedRobots[NUMBER_OF_ROBOTS];
+	robot *m_pBlueRobots[NUMBER_OF_ROBOTS];
 	bool m_isDisplayPlatform;
 
 	cubeStateType m_cubes[MAX_CUBES];
@@ -148,8 +148,8 @@ public:
 	double getRedScore(void) const { return m_redScore; }
 	double getBlueScore(void) const { return m_blueScore; }
 	const cubeStateType *getCubes(void) const { return m_cubes; }
-	const robot * getRedRobots(void) const { return m_redRobots; }
-	const robot * getBlueRobots(void) const { return m_blueRobots; }
+	const robot *const* getRedRobots(void) const { return m_pRedRobots; }
+	const robot *const* getBlueRobots(void) const { return m_pBlueRobots; }
 
 	const zoneType *getZone(int indexIn) const
 	{
@@ -235,14 +235,14 @@ public:
 	void setRedLiftRobotIndex(int idxIn) { m_liftRedRobotIndex = idxIn; }
 	void setBlueLiftRobotIndex(int idxIn) { m_liftBlueRobotIndex = idxIn; }
 
-	void setRedRobots(const robot *pRobotsIn) {
+	void setRedRobots(const robot *const* pRobotsIn) {
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-			m_redRobots[i] = pRobotsIn[i];
+			*m_pRedRobots[i] = *pRobotsIn[i];
 		}
 	}
-	void setBlueRobots(const robot *pRobotsIn) {
+	void setBlueRobots(const robot *const* pRobotsIn) {
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-			m_blueRobots[i] = pRobotsIn[i];
+			*m_pBlueRobots[i] = *pRobotsIn[i];
 		}
 	}
 

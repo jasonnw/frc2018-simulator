@@ -112,7 +112,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 		logFinalRanking();
 
 		updateField();
-		gameOverDisplay.center = { 150, 180 };
+		gameOverDisplay.center = { 100, 180 };
 		drawString(&gameOverDisplay, "Game Over, Press Any Key", 3, { 128, 128, 128 });
 		drawPlatform(0);
 
@@ -169,7 +169,7 @@ void displayPlatform::drawPlatform(int delayIn)
 	waitKey(delayIn);
 }
 
-void displayPlatform::drawObject(const rectangleObjectType *pObjectIn)
+void displayPlatform::drawObject(const rectangleObjectType *pObjectIn, bool hightLightFlagIn = false)
 {
 	Point point1;
 	Point point2;
@@ -178,6 +178,12 @@ void displayPlatform::drawObject(const rectangleObjectType *pObjectIn)
 	point2 = coordinateToPoint(pObjectIn->center.x - pObjectIn->sizeX / 2, pObjectIn->center.y - pObjectIn->sizeY / 2);
 
 	rectangle(*m_pPlatform, point1, point2, pObjectIn->color, CV_FILLED, 8, 0);
+
+	if (hightLightFlagIn) {
+		point1 = coordinateToPoint(pObjectIn->center.x + pObjectIn->sizeX / 2 + 2, pObjectIn->center.y + pObjectIn->sizeY / 2 + 2);
+		point2 = coordinateToPoint(pObjectIn->center.x - pObjectIn->sizeX / 2 - 2, pObjectIn->center.y - pObjectIn->sizeY / 2 - 2);
+		rectangle(*m_pPlatform, point1, point2, { 200, 200, 200 }, 4, 8, 0);
+	}
 }
 
 void displayPlatform::drawInteger(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
@@ -210,15 +216,16 @@ void displayPlatform::drawFloat(const rectangleObjectType *pObjectIn, double num
 	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, colorIn, 1, CV_AA);
 }
 
-void displayPlatform::drawRobot(const rectangleObjectType *pObjectIn, int robotIdxIn, bool hasCubeFlagIn)
+void displayPlatform::drawRobot(const rectangleObjectType *pObjectIn, allianceType allianceIn, int robotIdxIn, bool hasCubeFlagIn)
 {
 	Point point1;
 	Point point2;
 	char robotIdxStr[4];
 	cv::Scalar color(50, 20, 20);
 	cv::Scalar cubeColor(20, 120, 20);
+	bool isLifted = isRobotLifted(allianceIn, robotIdxIn);
 
-	drawObject(pObjectIn);
+	drawObject(pObjectIn, isLifted);
 	sprintf_s(robotIdxStr, "%d", robotIdxIn);
 
 	point1 = coordinateToPoint(pObjectIn->center.x - 4, pObjectIn->center.y - 15);
@@ -345,8 +352,8 @@ void displayPlatform::updateField(void)
 	*m_pPlatform = Scalar(0, 0, 0);
 	drawField();
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		drawRobot(m_redRobots[i].getPosition(), i, m_redRobots[i].hasCube());
-		drawRobot(m_blueRobots[i].getPosition(), i, m_blueRobots[i].hasCube());
+		drawRobot(m_pRedRobots[i]->getPosition(), ALLIANCE_RED, i, m_pRedRobots[i]->hasCube());
+		drawRobot(m_pBlueRobots[i]->getPosition(), ALLIANCE_BLUE, i, m_pBlueRobots[i]->hasCube());
 	}
 	
 	if (BLUE_NORTH_SWITCH_FLAG) {

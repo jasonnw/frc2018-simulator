@@ -68,9 +68,22 @@ private:
 	allianceType m_allianceType;
 	int m_robotIndex;
 
+protected:
+	bool m_isAiRobotFlag;  //robot is controlled by AI
+
 public:
 	robot();
 	~robot();
+
+	virtual void getNextAction(searchActionType * pActionOut)
+	{
+		pActionOut->actionType = INVALID_ACTION;
+	}
+
+	bool getAiControlledFlag(void)
+	{
+		return m_isAiRobotFlag;
+	}
 
 	allianceType getAlliance(void) const
 	{
