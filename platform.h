@@ -115,9 +115,6 @@ private:
 
 	int m_redRank;
 	int m_blueRank;
-	int m_redAutonomousLineCount;
-	int m_blueAutonomousLineCount;
-	bool m_autonomousRankingDoneFlag;
 
 	double m_timeInSec; 
 	double m_lastScoreUpdateTime;
@@ -154,8 +151,11 @@ public:
 	const robot * getRedRobots(void) const { return m_redRobots; }
 	const robot * getBlueRobots(void) const { return m_blueRobots; }
 
-	int getRedRanking(void) { return m_redRank; }
-	int getBlueRanking(void) { return m_blueRank; }
+	int getRedRanking(void) const{ return m_redRank; }
+	int getBlueRanking(void) const { return m_blueRank; }
+
+	void setRedRanking(int rankIn) { m_redRank = rankIn; }
+	void setBlueRanking(int rankIn) { m_blueRank = rankIn; }
 
 	double getScaleX(void) { return m_platformStructure.scaleNorthPlate.center.x; }
 	double getScaleNorthY(void) { 
@@ -246,6 +246,8 @@ public:
 		setState(srcIn.getState());
 		setTime(srcIn.getTime());
 		setScoreUpdateTime(getScoreUpdateTime());
+		setRedRanking(srcIn.getRedRanking());
+		setBlueRanking(srcIn.getBlueRanking());
 		setRedScore(srcIn.getRedScore());
 		setBlueScore(srcIn.getBlueScore());
 		setCubes(srcIn.getCubes());

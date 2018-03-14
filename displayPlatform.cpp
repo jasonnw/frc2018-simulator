@@ -68,6 +68,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 	bool commitMessageFlag;
 	bool quitFlag;
 	double earliestFinishTime;
+	int blueScore, redScore;
 
 	if (m_pQueue == NULL) {
 		printf("ERROR, message queue is invalid\n");
@@ -101,6 +102,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 			playTotheNextTime(earliestFinishTime, actionIndexIn, FRAME_DELAY_IN_MS);
 		}
 
+		getFinalScore(&redScore, &blueScore);
 		logFinalRanking();
 
 		updateField();
@@ -364,8 +366,8 @@ void displayPlatform::updateField(void)
 
 	blueScoreBoard.center = { 580, 390 };
 	redScoreBoard.center = { 30, 390 };
-	drawInteger(&blueScoreBoard, getRedRanking(), "Rank: ", 1, { 200, 30, 30 });
-	drawInteger(&redScoreBoard, getBlueRanking(), "Rank: ", 1, { 30, 30, 200 });
+	drawInteger(&blueScoreBoard, getBlueRanking(), "Rank: ", 1, { 200, 30, 30 });
+	drawInteger(&redScoreBoard, getRedRanking(), "Rank: ", 1, { 30, 30, 200 });
 
 
 	//display time

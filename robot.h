@@ -131,7 +131,8 @@ public:
 	void dumpOneCube(void);
 
 	double estimateActionDelayInSec(actionTypeType actionIn, double currentTimeIn, bool interruptFlagIn,
-		  coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn, coordinateType *pEndPosOut) const;
+		  coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn,
+		  coordinateType *pEndPosOut, bool *pDontInterruptFlagOut) const;
 
 	const robot & operator = (const robot &srcIn)
 	{

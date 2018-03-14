@@ -139,6 +139,11 @@ typedef struct platformStateType {
 	int boostBlueButtonPushBlockCount;
 	int liftRedButtonPushBlockCount;
 	int liftBlueButtonPushBlockCount;
+	int redAutonomousLineCount;
+	int blueAutonomousLineCount;
+	bool autonomousRankingDoneFlag;
+	bool allRedRobotsLiftFlag;
+	bool allBlueRobotsLiftFlag;
 	bool redCrossAutoFlag[NUMBER_OF_ROBOTS];
 	bool blueCrossAutoFlag[NUMBER_OF_ROBOTS];
 	bool redLiftFlag[NUMBER_OF_ROBOTS];
@@ -241,6 +246,11 @@ const platformStateType initState =
 	0, //int boostBlueButtonPushBlockCount;
 	0, //int liftRedButtonPushBlockCount;
 	0, //int liftBlueButtonPushBlockCount;
+	0, //int redAutonomousLineCount
+	0, //int blueAutonomousLineCount
+	false, //bool autonomousRankingDoneFlag
+	false, //bool allRedRobotsLiftFlag
+	false, //bool allBlueRobotsLiftFlag
 	{ false, false, false }, //bool redCrossAutoFlag[3];
 	{ false, false, false }, //bool blueCrossAutoFlag[3];
 	{ false, false, false }, //bool liftRedRobotFlag[3];

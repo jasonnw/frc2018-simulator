@@ -121,6 +121,7 @@ void alliance::findBestAction(int actionIndexIn)
 	coordinateType bestRobotNewPos;
 	bool bestRobotDoneWithCube;
 	bool noNewActionFlag;
+	bool dontInterruptFlag; 
 
 	actionTypeType startAction = (m_allianceType == ALLIANCE_RED) ? CUBE_RED_OFFENCE_SWITCH : CUBE_BLUE_OFFENCE_SWITCH;
 	actionTypeType endAction = (m_allianceType == ALLIANCE_RED) ? PUSH_RED_BOOST_BUTTON : PUSH_BLUE_BOOST_BUTTON;
@@ -173,9 +174,15 @@ void alliance::findBestAction(int actionIndexIn)
 
 			for (int act = startAction; act <= endAction; act++) {
 
+				//skip non-action
+				if (act == endRealAction) {
+					continue;
+				}
+
 				if ((!robot::isAutonomousAction((actionTypeType)act)) && (currentTime <= AUTONOMOUS_END_TIME)) {
 					continue;
 				}
+
 
 				//find out if the action is a real robot moving action
 				isRealActionFlag = !robot::isHumanPlayerAction((actionTypeType) act);
@@ -227,15 +234,20 @@ void alliance::findBestAction(int actionIndexIn)
 
 					//the current action finish time
 					finishTime = m_pRobots[robot].estimateActionDelayInSec((actionTypeType)act, currentTime, interruptFlag, 
-						actionDonePos, actionDoneWithCube, &actionNewPos);
+						actionDonePos, actionDoneWithCube, &actionNewPos, &dontInterruptFlag);
 					finishTime += previousFinishTime;
 
-					if (finishTime < bestFinishTime) {
+					if ((finishTime < bestFinishTime) || (dontInterruptFlag)) {
 						bestFinishTime = finishTime;
 						bestFinishRobotIdx = robot;
 						bestRobotNewPos = actionNewPos;
 						bestRobotDoneWithCube = actionDoneWithCube;
 						bestStartTime = previousFinishTime;
+					}
+
+					//if don't interrupt flag is set, let the current robot to do the job and don't pick another robot
+					if (dontInterruptFlag) {
+						break;
 					}
 				}
 
@@ -347,13 +359,19 @@ void alliance::findBestAction(int actionIndexIn)
 		for (int prevIdx = previousLayerStartIndex; prevIdx < previousLayerEndIndex; prevIdx++) {
 			for (int act = startAction; act <= endRealAction; act++) {
 
+				//skip non-action
+				if (act == endRealAction) {
+					continue;
+				}
+
+
 				if ((!robot::isAutonomousAction((actionTypeType)act)) && (currentTime <= AUTONOMOUS_END_TIME)) {
 					continue;
 				}
 
 				//the current action finish time
 				finishTime = m_pRobots[robot].estimateActionDelayInSec((actionTypeType)act, previousFinishTime,
-					interruptFlag, actionDonePos, actionDoneWithCube, &actionNewPos);
+					interruptFlag, actionDonePos, actionDoneWithCube, &actionNewPos, &dontInterruptFlag);
 				finishTime += previousFinishTime;
 
 				if (finishTime >= CLIMB_END_TIME) {
@@ -484,6 +502,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 	actionChainType actionChain[MAXIMUM_PENDING_ACTIONS + NUMBER_OF_ROBOTS];
 
 	int bestScore = INT32_MIN;
+	int bestRanking = 0;
 	double bestScoreFinishTime = 0;
 	int bestScoreIdx = 0;
 	double lastFinishTime = 0;
@@ -492,11 +511,13 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 	int chainIndex;
 	bool isActionRejectedFlag;
 	bool assignedActionFlag;
+	bool newBranchIsBetter;
+
 	int previousActionIndex;
 	int pendingIdx;
 	int executedActionCount;
 	bool firstActionFlag[NUMBER_OF_ROBOTS];
-	int score, finalRedScore, finalBlueScore;
+	int score, ranking, finalRedScore, finalBlueScore;
 	double earliestFinishTime;
 	bool isAllNoneActionFlag;
 
@@ -620,9 +641,11 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 			m_testPlatForm.getFinalScore(&finalRedScore, &finalBlueScore);
 			if (m_allianceType == ALLIANCE_RED) {
 				score = finalRedScore - finalBlueScore;
+				ranking = m_testPlatForm.getRedRanking();
 			}
 			else {
 				score = finalBlueScore - finalRedScore;
+				ranking = m_testPlatForm.getBlueRanking();
 			}
 		}
 
@@ -630,16 +653,22 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 		m_pSearchList[exeIdx].projectedFinalScore = score;
 		m_testPlatForm.logFinalRanking();
 
-		if (score > bestScore) {
-			bestScoreIdx = actionChain[0].actionIndex;
-			bestScore = score;
-			bestScoreFinishTime = lastFinishTime;
-			*pBranchLengthOut = pendingIdx;
+		newBranchIsBetter = false;
+		if ((ranking > bestRanking) && (score > INT_MIN)) {
+			//ranking is the most important
+			newBranchIsBetter = true;
+		}else if (score > bestScore) {
+			newBranchIsBetter = true;
 		}
 		else if ((score == bestScore) && (bestScoreFinishTime > lastFinishTime)) {
 			//favor the same score and finished earlier
+			newBranchIsBetter = true;
+		}
+
+		if (newBranchIsBetter) {
 			bestScoreIdx = actionChain[0].actionIndex;
 			bestScore = score;
+			bestRanking = ranking;
 			bestScoreFinishTime = lastFinishTime;
 			*pBranchLengthOut = pendingIdx;
 		}

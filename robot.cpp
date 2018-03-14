@@ -175,7 +175,8 @@ int robot::takeAction(actionTypeType actionIn, double timeIn, int indexIn)
 
 
 double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTimeIn, 
-	bool interruptFlagIn, coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn, coordinateType *pEndPosOut) const
+	bool interruptFlagIn, coordinateType lastActionStopPosIn, bool lastActionCubeNotUsedFlagIn,
+	coordinateType *pEndPosOut, bool *pDontInterruptFlagOut) const
 {
 	coordinateType stopPosition;
 	rectangleObjectType startPosition;
@@ -191,6 +192,7 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 	double turnPointDelayChange;
 
 	memcpy(&startPosition, &m_state.pos, sizeof(startPosition));
+	*pDontInterruptFlagOut = false;
 
 	if (interruptFlagIn) {
 		if (m_plannedAction.actionType == actionIn) {
@@ -204,6 +206,7 @@ double robot::estimateActionDelayInSec(actionTypeType actionIn, double currentTi
 			else {
 				*pEndPosOut = lastActionStopPosIn;
 			}
+			*pDontInterruptFlagOut = true;
 			return m_plannedAction.projectedFinishTime - currentTimeIn;
 		}
 		else {

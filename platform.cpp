@@ -19,9 +19,6 @@ platform::platform()
 
 	m_redRank = 0;
 	m_blueRank = 0;
-	m_redAutonomousLineCount = 0;
-	m_blueAutonomousLineCount = 0;
-	m_autonomousRankingDoneFlag = false;
 
 	m_pLogFIle = NULL;
 	m_liftRedRobotIndex = INVALID_IDX;
@@ -758,9 +755,6 @@ platform::~platform()
 
 void platform::getFinalScore(int *pRedScoreOut, int *pBlueScoreOut)
 {
-	int liftRedRebotCount;
-	int liftBlueRebotCount;
-
 	if (CLIMB_END_TIME > m_timeInSec) {
 		updateScore(CLIMB_END_TIME - m_lastScoreUpdateTime);
 	}
@@ -777,20 +771,6 @@ void platform::getFinalScore(int *pRedScoreOut, int *pBlueScoreOut)
 	}
 	else {
 		m_blueRank += 2;
-	}
-
-	liftRedRebotCount = 0;
-	liftBlueRebotCount = 0;
-	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		liftRedRebotCount += (m_state.redLiftFlag[i] == true);
-		liftBlueRebotCount += (m_state.blueLiftFlag[i] == true);
-	}
-
-	if (liftRedRebotCount == NUMBER_OF_ROBOTS) {
-		m_redRank++;
-	}
-	if (liftBlueRebotCount == NUMBER_OF_ROBOTS) {
-		m_blueRank++;
 	}
 
 	return;
@@ -1025,7 +1005,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 
 				m_state.redCrossAutoFlag[i] = true;
 				m_redScore += 5;
-				m_redAutonomousLineCount++;
+				m_state.redAutonomousLineCount++;
 			}
 
 			switch(actionResult) {
@@ -1073,7 +1053,7 @@ int platform::commitAction(double nextTimeIn, int indexIn, allianceType activeAl
 
 				m_state.blueCrossAutoFlag[i] = true;
 				m_blueScore += 5;
-				m_blueAutonomousLineCount++;
+				m_state.blueAutonomousLineCount++;
 			}
 
 			switch (actionResult) {
@@ -1357,15 +1337,15 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		break;
 	}
 
-	if (!m_autonomousRankingDoneFlag && m_lastScoreUpdateTime >= AUTONOMOUS_END_TIME) {
-		if ((m_redAutonomousLineCount >= 3) && (m_state.switchRedOwner == ALLIANCE_RED)) {
+	if (!m_state.autonomousRankingDoneFlag && m_lastScoreUpdateTime >= AUTONOMOUS_END_TIME) {
+		if ((m_state.redAutonomousLineCount >= 3) && (m_state.switchRedOwner == ALLIANCE_RED)) {
 			m_redRank++;
 		}
-		if ((m_blueAutonomousLineCount >= 3) && (m_state.switchBlueOwner == ALLIANCE_BLUE)) {
+		if ((m_state.blueAutonomousLineCount >= 3) && (m_state.switchBlueOwner == ALLIANCE_BLUE)) {
 			m_blueRank++;
 		}
 
-		m_autonomousRankingDoneFlag = true;
+		m_state.autonomousRankingDoneFlag = true;
 	}
 
 	if (timeIn < m_timeInSec) {
@@ -1590,13 +1570,14 @@ void platform::updateScore(double secondsPassedIn)
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++)
 			liftRebotCount += (m_state.redLiftFlag[i] == true);
 
-		if (liftRebotCount == NUMBER_OF_ROBOTS) {
-			m_redScore += 1;
+		if ((liftRebotCount == NUMBER_OF_ROBOTS) && (!m_state.allRedRobotsLiftFlag)) {
+			m_redRank += 1;
+			m_state.allRedRobotsLiftFlag = true;
 		}
 
 		//blue lifting
 		if ((m_state.blueLiftButton == BUTTON_PUSH) && (m_state.liftBlueBlockCount >= 3)) {
-			m_blueScore += 30;
+			m_blueRank += 30;
 			m_state.blueLiftButton = BUTTON_PUSH_OVER_10SEC;
 		}
 		else if (m_state.liftBlueButtonPushBlockCount < 3) {
@@ -1613,8 +1594,9 @@ void platform::updateScore(double secondsPassedIn)
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++)
 			liftRebotCount += (m_state.blueLiftFlag[i] == true);
 
-		if (liftRebotCount == NUMBER_OF_ROBOTS) {
+		if ((liftRebotCount == NUMBER_OF_ROBOTS) && (!m_state.allBlueRobotsLiftFlag)) {
 			m_blueScore += 1;
+			m_state.allBlueRobotsLiftFlag = true;
 		}
 	}
 	else {
@@ -1725,7 +1707,7 @@ void platform::logFinalRanking(void)
 		return;
 	}
 	fprintf(m_pLogFIle, "================= The final ranking is (blue ranking %d, red ranking %d) ================\n",
-		m_redRank, m_blueRank);
+		 m_blueRank, m_redRank);
 	fflush(m_pLogFIle);
 }
 
