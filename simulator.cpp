@@ -29,7 +29,7 @@ const int MAXIMUM_X = 1270;
 const int MAXIMUM_Y = 20;
 
 const int SECONDS_PER_LABEL = 10;
-const int POINTS_PER_SECOND = 7;
+const int POINTS_PER_SECOND = 5;
 const int SCORES_PER_LABEL = 40;
 const int POINTS_PER_SCORE = 1;
 
@@ -98,7 +98,7 @@ static void initDisplay(void)
 	putText(gameScore, "Score", cvPoint(5, MAXIMUM_Y),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
 
-	for (int i = 0; i < 18; i++) {
+	for (int i = 0; i < 22; i++) {
 		sprintf_s(numberString, "%d", i*SECONDS_PER_LABEL);
 		putText(gameScore, numberString, cvPoint(36 + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, LABAL_OFFSET_Y),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);

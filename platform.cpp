@@ -1849,6 +1849,7 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 	double robotTurnDelayIn, double robotCubeDelayIn,
 	cubeStateType **pCubeOut, robotPathType *pPathOut)
 {
+	static int debugCounter = 0;
 	double shortestPath = DISTANCE_OUT_OF_RANGE;
 	int cubeListSize = sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType);
 
@@ -1861,6 +1862,12 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 				redCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, -40, 35, pCubeOut, pPathOut);
 
 		}
+		//opponent power zone
+		if (m_cubes[CUBE_BY_BLUE_POWER_ZONE].availbleFlag == false) {
+			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[1].startIdx, blueCubeSearchRange[1].endIdx,
+				blueCubeSearchRange[1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, 40, 35, pCubeOut, pPathOut);
+		}
+
 		//exchange zone
 		if (m_timeInSec >= AUTONOMOUS_END_TIME) {
 			shortestPath = findOneCube(shortestPath, redCubeSearchRange[cubeListSize - 1].startIdx, redCubeSearchRange[cubeListSize - 1].endIdx,
@@ -1873,8 +1880,14 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 				blueCubeSearchRange[i].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, 40, 35, pCubeOut, pPathOut);
 
 		}
-		//exchange zone
+		//opponent power zone
+		if (m_cubes[CUBE_BY_RED_POWER_ZONE].availbleFlag == false) {
+			shortestPath = findOneCube(shortestPath, redCubeSearchRange[1].startIdx, redCubeSearchRange[1].endIdx,
+				redCubeSearchRange[1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, -40, 35, pCubeOut, pPathOut);
+		}
+
 		if (m_timeInSec >= AUTONOMOUS_END_TIME) {
+			//exchange zone
 			shortestPath = findOneCube(shortestPath, blueCubeSearchRange[cubeListSize - 1].startIdx, blueCubeSearchRange[cubeListSize - 1].endIdx,
 				blueCubeSearchRange[cubeListSize - 1].allCubeSameFlag, pMovingObjectIn, robotTurnDelayIn, robotCubeDelayIn, -40, 35, pCubeOut, pPathOut);
 		}
@@ -1884,7 +1897,7 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 		return false;
 	}
 
-	if (pPathOut->numberOfTurns == 0) {
+	if ((pPathOut->numberOfTurns == 0) && (shortestPath == 0)) {
 		//pick up cube without moving
 		pPathOut->numberOfTurns = 1;
 		pPathOut->totalDistance = 0;
@@ -1898,6 +1911,7 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 		//the last turn point is the point to pick up a cube
 		pPathOut->pickUpCubeIndex = pPathOut->numberOfTurns - 1;
 	}
+	debugCounter++;
 	return true;
 }
 
@@ -1906,6 +1920,15 @@ int platform::pickUpCube(coordinateType positionIn, allianceType allianceIn)
 	if (allianceIn == ALLIANCE_RED) {
 		for (int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
 			for (int j = redCubeSearchRange[i].startIdx; j < redCubeSearchRange[i].endIdx; j++) {
+				if (tryPickOneCube(positionIn, m_cubes[j].position, m_cubes[j].availbleFlag)) {
+					m_cubes[j].availbleFlag = false;
+					return j;
+				}
+			}
+		}
+		//opponent power zone
+		if (m_cubes[CUBE_BY_BLUE_POWER_ZONE].availbleFlag == false) {
+			for (int j = blueCubeSearchRange[1].startIdx; j < blueCubeSearchRange[1].endIdx; j++) {
 				if (tryPickOneCube(positionIn, m_cubes[j].position, m_cubes[j].availbleFlag)) {
 					m_cubes[j].availbleFlag = false;
 					return j;
@@ -1922,6 +1945,16 @@ int platform::pickUpCube(coordinateType positionIn, allianceType allianceIn)
 				}
 			}
 		}
+		//opponent power zone
+		if (m_cubes[CUBE_BY_RED_POWER_ZONE].availbleFlag == false) {
+			for (int j = redCubeSearchRange[1].startIdx; j < redCubeSearchRange[1].endIdx; j++) {
+				if (tryPickOneCube(positionIn, m_cubes[j].position, m_cubes[j].availbleFlag)) {
+					m_cubes[j].availbleFlag = false;
+					return j;
+				}
+			}
+		}
+
 	}
 	return INVALID_IDX;
 }
@@ -1983,8 +2016,12 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 				printf("ERROR, found an empty path\n");
 				return false;
 			}
+			pPathOut->totalDistance = 0;
+			connectionPoint = pMovingObjectIn->center;
 			for (int i = 0; i < pPathOut->numberOfTurns - 1; i++) {
 				pPathOut->turnPointDelay[i] = robotTurnDelayIn;
+				pPathOut->totalDistance += platform::calculateDistance(connectionPoint, pPathOut->turnPoints[i]);
+				connectionPoint = pPathOut->turnPoints[i];
 			}
 			//the caller will set the delay of the last turn point, set it to 0 for now.
 			pPathOut->turnPointDelay[pPathOut->numberOfTurns - 1] = 0;
@@ -2048,8 +2085,13 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 
 	if ((!isSearchFailedFlag) && (isSearchDoneFlag)) {
 		//success
+		pPathOut->totalDistance = 0;
+		connectionPoint = pMovingObjectIn->center;
+
 		for (int i = 0; i < pPathOut->numberOfTurns - 1; i++) {
 			pPathOut->turnPointDelay[i] = robotTurnDelayIn;
+			pPathOut->totalDistance += platform::calculateDistance(connectionPoint, pPathOut->turnPoints[i]);
+			connectionPoint = pPathOut->turnPoints[i];
 		}
 		//the caller will set the delay of the last turn point, set it to 0 for now.
 		pPathOut->turnPointDelay[pPathOut->numberOfTurns - 1] = 0;

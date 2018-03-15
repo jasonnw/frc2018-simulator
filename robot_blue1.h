@@ -22,12 +22,6 @@ public:
 		bool robotHasCubeFlag = pRobotState->cubeIdx == INVALID_IDX ? false : true;
 
 		initTaskToNoAction(pActionOut);
-		pPlannedAction = getPlannedAction();
-		if (pPlannedAction->actionType != INVALID_ACTION) {
-			//robot still busy, don't create a new task
-			return;
-		}
-		//else
 
 		//the first priority is lifting other robots
 		if (currentTime > COMPETITION_END_TIME) {
@@ -44,7 +38,14 @@ public:
 			}
 		}
 
-		//second priority, this robot is assigned to control blue switch
+		//the second priority is the previous task
+		pPlannedAction = getPlannedAction();
+		if (pPlannedAction->actionType != INVALID_ACTION) {
+			//robot still busy, don't create a new task
+			return;
+		}
+
+		//third priority, this robot is assigned to control blue switch
 		if (pPlatformState->switchBlue_BlueBlockCount < pPlatformState->switchBlue_RedBlockCount + 2) {
 			//we want to keep our side two blocks more than the opponent
 
@@ -60,8 +61,8 @@ public:
 			}
 		}
 
-		//else, try the third priority action, lift vault
-		if (pPlatformState->boostBlueBlockCount < 3) {
+		//fourth priority action, lift vault
+		if (pPlatformState->liftBlueBlockCount < 3) {
 			pActionOut->actionType = CUBE_BLUE_LIFT_VAULT;
 			//check if the action is feasible
 			if (checkIfActionFeasible(

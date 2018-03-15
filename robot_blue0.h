@@ -21,12 +21,6 @@ public:
 		bool robotHasCubeFlag = pRobotState->cubeIdx == INVALID_IDX ? false : true;
 
 		initTaskToNoAction(pActionOut);
-		pPlannedAction = getPlannedAction();
-		if (pPlannedAction->actionType != INVALID_ACTION) {
-			//robot still busy, don't create a new task
-			return;
-		}
-		//else
 
 		//the first priority is lifting
 		if (currentTime > COMPETITION_END_TIME + 5) {
@@ -42,7 +36,14 @@ public:
 			}
 		}
 
-		//second priority, this robot is assigned to the scale
+		//second priority is the previous task
+		pPlannedAction = getPlannedAction();
+		if (pPlannedAction->actionType != INVALID_ACTION) {
+			//robot still busy, don't create a new task
+			return;
+		}
+
+		//third priority, this robot is assigned to the scale
 		if (pPlatformState->scaleBlueBlockCount < pPlatformState->scaleRedBlockCount + 2) {
 			//we want to keep our side two blocks more than the opponent
 
@@ -58,7 +59,7 @@ public:
 			}
 		}
 
-		//else, try the third priority action, force vault
+		//fourth priority action, force vault
 		if (pPlatformState->forceBlueBlockCount < 3) {
 			pActionOut->actionType = CUBE_BLUE_FORCE_VAULT;
 			//check if the action is feasible
@@ -77,10 +78,18 @@ public:
 			return; //push button always success, no checking for this action
 		}
 
-		//else, try the fourth priority action, block opponent robots
+		//fifth priority action, block opponent robots
 		//at the top of left switch zone
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
-		pActionOut->actionDonePos = { 60, 250 };
+		if (pRobotState->pos.center.y <= 180) {
+			pActionOut->actionDonePos = { 60, 280 };
+		}
+		else if (pRobotState->pos.center.y >= 280) {
+			pActionOut->actionDonePos = { 60, 50 };
+		}
+		else {
+			pActionOut->actionDonePos = { 60, 180 };
+		}
 
 		return;
 		//Note: 
