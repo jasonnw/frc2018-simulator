@@ -61,26 +61,26 @@ class platform;
 class robot
 {
 private:
-	platform *m_pPlatform;
 	robotConfigurationType m_config;
 	robotStateType m_state;
 	pendingActionType m_plannedAction;
-	allianceType m_allianceType;
-	int m_robotIndex;
 
 protected:
+	platform *m_pPlatform;
 	bool m_isAiRobotFlag;  //robot is controlled by AI
+	allianceType m_allianceType;
+	int m_robotIndex;
 
 public:
 	robot();
 	~robot();
 
-	virtual void getNextAction(searchActionType * pActionOut)
+	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut) const
 	{
 		pActionOut->actionType = INVALID_ACTION;
 	}
 
-	bool getAiControlledFlag(void)
+	bool getAiControlledFlag(void) const
 	{
 		return m_isAiRobotFlag;
 	}
@@ -166,14 +166,21 @@ public:
 	}
 	double getNextStopTime(void)
 	{
-		if (m_plannedAction.path.pickUpCubeIndex != INVALID_IDX) {
-			if (m_plannedAction.pickUpCubeTime >= m_plannedAction.projectedFinishTime) {
-				printf("ERROR, pick up cube too early\n");
+		if ((m_plannedAction.actionType != INVALID_ACTION) &&
+			(m_plannedAction.actionType != RED_ACTION_NONE) &&
+			(m_plannedAction.actionType != BLUE_ACTION_NONE)) {
+			if (m_plannedAction.path.pickUpCubeIndex != INVALID_IDX) {
+				if (m_plannedAction.pickUpCubeTime >= m_plannedAction.projectedFinishTime) {
+					printf("ERROR, pick up cube too early\n");
+				}
+				return m_plannedAction.pickUpCubeTime;
 			}
-			return m_plannedAction.pickUpCubeTime;
+			else {
+				return m_plannedAction.projectedFinishTime;
+			}
 		}
 		else {
-			return m_plannedAction.projectedFinishTime;
+			return CLIMB_END_TIME;
 		}
 	}
 
@@ -200,6 +207,11 @@ protected:
 	double runFromePointToPoint(coordinateType startPoint, coordinateType endPoint, 
 		double initialSpeedIn, double maximumSpeedIn, double accelerationDistanceIn,
 		double durationIn, coordinateType *pStopPointOut, bool *pIsFinishedFlagOut) const;
+
+	//init action plan data structure
+	void initTaskToNoAction(searchActionType * pActionOut) const;
+	bool robot::checkIfActionFeasible(coordinateType robotPosIn, bool hasCubeFlagIn, allianceType allianceIn,
+		platform *pPlatformInOut, searchActionType * pActionInOut) const;
 
 };
 

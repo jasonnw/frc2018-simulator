@@ -1146,13 +1146,13 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 	int liftRebotCount = 0;
 
 	switch (actionIn) {
-	case CUBE_RED_OFFENCE_SWITCH:
+	case CUBE_RED_OFFENSE_SWITCH:
 		m_state.switchRed_RedBlockCount++;
 		if (!m_isDisplayPlatform) {
 			m_redScore += CUBE_REWARD_SCORE;
 		}
 		break;
-	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_DEFENSE_SWITCH:
 		m_state.switchBlue_RedBlockCount++;
 		if (!m_isDisplayPlatform) {
 			m_redScore += CUBE_REWARD_SCORE;
@@ -1259,13 +1259,13 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		m_liftRedRobotIndex = robotIndexIn;
 		break;
 		////////////////////
-	case CUBE_BLUE_OFFENCE_SWITCH:
+	case CUBE_BLUE_OFFENSE_SWITCH:
 		m_state.switchBlue_BlueBlockCount++;
 		if (!m_isDisplayPlatform) {
 			m_redScore += CUBE_REWARD_SCORE;
 		}
 		break;
-	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_DEFENSE_SWITCH:
 		m_state.switchRed_BlueBlockCount++;
 		if (!m_isDisplayPlatform) {
 			m_redScore += CUBE_REWARD_SCORE;
@@ -1656,8 +1656,8 @@ void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexI
 		return;
 	}
 	switch (actionIn) {
-	case CUBE_RED_OFFENCE_SWITCH:
-	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_OFFENSE_SWITCH:
+	case CUBE_RED_DEFENSE_SWITCH:
 	case CUBE_RED_SCALE:
 	case CUBE_RED_FORCE_VAULT:
 	case CUBE_RED_BOOST_VAULT:
@@ -1669,8 +1669,8 @@ void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexI
 	case RED_ROBOT_GOTO_POS:
 		fprintf(m_pLogFIle, "%d. Time %3.2f (sec), Red alliance robot[%d]: ", indexIn, timeIn, robotIndexIn);
 		break;
-	case CUBE_BLUE_OFFENCE_SWITCH:
-	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_OFFENSE_SWITCH:
+	case CUBE_BLUE_DEFENSE_SWITCH:
 	case CUBE_BLUE_SCALE:
 	case CUBE_BLUE_FORCE_VAULT:
 	case CUBE_BLUE_BOOST_VAULT:
@@ -1688,16 +1688,16 @@ void platform::logAction(actionTypeType actionIn, double timeIn, int robotIndexI
 	}
 	
 	switch (actionIn) {
-	case CUBE_RED_OFFENCE_SWITCH:
+	case CUBE_RED_OFFENSE_SWITCH:
 		fprintf(m_pLogFIle, "put a cube on red side switch");
 		break;
-	case CUBE_BLUE_OFFENCE_SWITCH:
+	case CUBE_BLUE_OFFENSE_SWITCH:
 		fprintf(m_pLogFIle, "put a cube on blue side switch");
 		break;
-	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_DEFENSE_SWITCH:
 		fprintf(m_pLogFIle, "put a cube on blue side switch");
 		break;
-	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_DEFENSE_SWITCH:
 		fprintf(m_pLogFIle, "put a cube on red side switch");
 		break;
 	case CUBE_RED_SCALE:

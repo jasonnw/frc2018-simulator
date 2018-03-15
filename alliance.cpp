@@ -128,7 +128,7 @@ void alliance::findBestAction(int actionIndexIn)
 	bool noNewActionFlag;
 	bool dontInterruptFlag; 
 
-	actionTypeType startAction = (m_allianceType == ALLIANCE_RED) ? CUBE_RED_OFFENCE_SWITCH : CUBE_BLUE_OFFENCE_SWITCH;
+	actionTypeType startAction = (m_allianceType == ALLIANCE_RED) ? CUBE_RED_OFFENSE_SWITCH : CUBE_BLUE_OFFENSE_SWITCH;
 	actionTypeType endAction = (m_allianceType == ALLIANCE_RED) ? PUSH_RED_BOOST_BUTTON : PUSH_BLUE_BOOST_BUTTON;
 	actionTypeType endRealAction = (m_allianceType == ALLIANCE_RED) ? RED_ACTION_NONE : BLUE_ACTION_NONE;
 	actionTypeType randomMove = (m_allianceType == ALLIANCE_RED) ? RED_ROBOT_GOTO_POS : BLUE_ROBOT_GOTO_POS;
@@ -188,8 +188,7 @@ void alliance::findBestAction(int actionIndexIn)
 				if ((!robot::isAutonomousAction((actionTypeType)act)) && (currentTime <= AUTONOMOUS_END_TIME)) {
 					continue;
 				}
-
-
+				
 				//find out if the action is a real robot moving action
 				isRealActionFlag = !robot::isHumanPlayerAction((actionTypeType) act);
 
@@ -198,6 +197,10 @@ void alliance::findBestAction(int actionIndexIn)
 				bestFinishRobotIdx = 0;
 				for (int robot = 0; robot < NUMBER_OF_ROBOTS; robot++) {
 					//for each action, find out which robot can do it with the shortest delay
+
+					if (!m_pRobots[robot]->getAiControlledFlag()) {
+						continue;
+					}
 
 					previousActionIndex = prevIdx;
 					previousFinishTime = 0;
@@ -320,6 +323,10 @@ void alliance::findBestAction(int actionIndexIn)
 	previousLayerEndIndex = bestScoreIdx + 1;
 	updetedTreeFlag = false;
 	for (int robot = 0; robot < NUMBER_OF_ROBOTS; robot++) {
+
+		if (!m_pRobots[robot]->getAiControlledFlag()) {
+			continue;
+		}
 
 		if (m_referencePlatForm.isRobotLifted(m_allianceType, robot)) {
 			continue; //lifted on platform, no action for this robot
@@ -451,32 +458,40 @@ void alliance::findBestAction(int actionIndexIn)
 
 	//reset the output
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
-		m_bestAction[i].actionType = randomMove;
-		m_bestAction[i].startTime = currentTime;
-		m_bestAction[i].projectedFinishTime = currentTime + 1;
-		m_bestAction[i].actionIndex = actionIndexIn;
-		m_bestAction[i].previousIndex = INVALID_IDX;
-		m_bestAction[i].projectedFinalScore = 0;
-		m_bestAction[i].robotIndex = i;
 
-		if (currentTime < COMPETITION_END_TIME) {
-			//find a random connection point for the robot
-			int zoneIdx = (rand() * NUM_OF_ZONES) / (RAND_MAX);
-			const zoneType *pZone;
-			if (zoneIdx >= NUM_OF_ZONES) {
-				zoneIdx = NUM_OF_ZONES - 1;
-			}
-			pZone = m_testPlatForm.getZone(zoneIdx);
-			for (int j = 0; j < NUM_OF_ZONES; j++) {
-				if (pZone->connectionPoints[j].x != 0) {
-					m_bestAction[i].actionDonePos = pZone->connectionPoints[j];
-					break; //find a valid workaround point
+		if (m_pRobots[i]->getAiControlledFlag()) {
+			m_bestAction[i].actionType = randomMove;
+			m_bestAction[i].startTime = currentTime;
+			m_bestAction[i].projectedFinishTime = currentTime + 1;
+			m_bestAction[i].actionIndex = actionIndexIn;
+			m_bestAction[i].previousIndex = INVALID_IDX;
+			m_bestAction[i].projectedFinalScore = 0;
+			m_bestAction[i].robotIndex = i;
+
+			if (currentTime < COMPETITION_END_TIME) {
+				//find a random connection point for the robot
+				int zoneIdx = (rand() * NUM_OF_ZONES) / (RAND_MAX);
+				const zoneType *pZone;
+				if (zoneIdx >= NUM_OF_ZONES) {
+					zoneIdx = NUM_OF_ZONES - 1;
 				}
+				pZone = m_testPlatForm.getZone(zoneIdx);
+				for (int j = 0; j < NUM_OF_ZONES; j++) {
+					if (pZone->connectionPoints[j].x != 0) {
+						m_bestAction[i].actionDonePos = pZone->connectionPoints[j];
+						break; //find a valid workaround point
+					}
+				}
+			}
+			else {
+				m_bestAction[i].actionType = INVALID_ACTION;
+				m_bestAction[i].actionDonePos = { 0, 0 };
 			}
 		}
 		else {
-			m_bestAction[i].actionType = INVALID_ACTION;
-			m_bestAction[i].actionDonePos = { 0, 0 };
+			//get programmed robot action
+			m_testPlatForm = m_referencePlatForm;
+			m_pRobots[i]->getNextAction(&m_testPlatForm, &m_bestAction[i]);
 		}
 	}
 

@@ -317,8 +317,9 @@ public:
 	bool collisionWithAllOtherObjects(const rectangleObjectType *pMovingObjectIn, coordinateType endPointIn,
 		const rectangleObjectType **pCollisionObjectOut);
 
-protected:
 	int updateOneAction(actionTypeType actionIn, double timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
+
+protected:
 
 	double findOneCube(double shortestPathIn, int startSearchIdxIn, int endSearchIdxIn, bool isAllCubeSameFlag,
 		const rectangleObjectType *pMovingObjectIn, double robotTurnDelayIn, double robotCubeDelayIn, 

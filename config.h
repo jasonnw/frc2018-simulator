@@ -90,8 +90,8 @@ typedef enum vaultButtonStateType {
 }vaultButtonStateType;
 
 typedef enum actionTypeType {
-	CUBE_RED_OFFENCE_SWITCH = 0,  //red team starts here to search the best action
-	CUBE_RED_DEFENCE_SWITCH,
+	CUBE_RED_OFFENSE_SWITCH = 0,  //red team starts here to search the best action
+	CUBE_RED_DEFENSE_SWITCH,
 	CUBE_RED_SCALE,
 	CUBE_RED_FORCE_VAULT,
 	CUBE_RED_BOOST_VAULT,
@@ -101,8 +101,8 @@ typedef enum actionTypeType {
 	PUSH_RED_FORCE_BUTTON,
 	PUSH_RED_BOOST_BUTTON,
 	RED_ROBOT_GOTO_POS,
-	CUBE_BLUE_OFFENCE_SWITCH = 100, //blue team starts here to search the best action
-	CUBE_BLUE_DEFENCE_SWITCH,
+	CUBE_BLUE_OFFENSE_SWITCH = 100, //blue team starts here to search the best action
+	CUBE_BLUE_DEFENSE_SWITCH,
 	CUBE_BLUE_SCALE,
 	CUBE_BLUE_FORCE_VAULT,
 	CUBE_BLUE_BOOST_VAULT,

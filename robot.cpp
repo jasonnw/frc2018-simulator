@@ -61,14 +61,14 @@ void robot::dumpOneCube(void)
 bool robot::isActionNeedCube(actionTypeType actionIn)
 {
 	switch (actionIn) {
-	case CUBE_RED_OFFENCE_SWITCH:
-	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_OFFENSE_SWITCH:
+	case CUBE_RED_DEFENSE_SWITCH:
 	case CUBE_RED_SCALE:
 	case CUBE_RED_FORCE_VAULT:
 	case CUBE_RED_BOOST_VAULT:
 	case CUBE_RED_LIFT_VAULT:
-	case CUBE_BLUE_OFFENCE_SWITCH:
-	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_OFFENSE_SWITCH:
+	case CUBE_BLUE_DEFENSE_SWITCH:
 	case CUBE_BLUE_SCALE:
 	case CUBE_BLUE_FORCE_VAULT:
 	case CUBE_BLUE_BOOST_VAULT:
@@ -82,11 +82,11 @@ bool robot::isActionNeedCube(actionTypeType actionIn)
 bool robot::isAutonomousAction(actionTypeType actionIn)
 {
 	switch (actionIn) {
-	case CUBE_RED_OFFENCE_SWITCH:
-	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_OFFENSE_SWITCH:
+	case CUBE_RED_DEFENSE_SWITCH:
 	case CUBE_RED_SCALE:
-	case CUBE_BLUE_OFFENCE_SWITCH:
-	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_OFFENSE_SWITCH:
+	case CUBE_BLUE_DEFENSE_SWITCH:
 	case CUBE_BLUE_SCALE:
 		return true;
 	default:
@@ -97,15 +97,15 @@ bool robot::isAutonomousAction(actionTypeType actionIn)
 bool robot::isHumanPlayerAction(actionTypeType actionIn)
 {
 	switch (actionIn) {
-	case CUBE_RED_OFFENCE_SWITCH:
-	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_OFFENSE_SWITCH:
+	case CUBE_RED_DEFENSE_SWITCH:
 	case CUBE_RED_SCALE:
 	case CUBE_RED_FORCE_VAULT:
 	case CUBE_RED_BOOST_VAULT:
 	case CUBE_RED_LIFT_VAULT:
 	case LIFT_ONE_RED_ROBOT:
-	case CUBE_BLUE_OFFENCE_SWITCH:
-	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_OFFENSE_SWITCH:
+	case CUBE_BLUE_DEFENSE_SWITCH:
 	case CUBE_BLUE_SCALE:
 	case CUBE_BLUE_FORCE_VAULT:
 	case CUBE_BLUE_BOOST_VAULT:
@@ -269,8 +269,8 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, coordinateTyp
 	//find alliance
 	alliance = ALLIANCE_BLUE;
 	switch (actionIn) {
-	case CUBE_RED_OFFENCE_SWITCH:
-	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_OFFENSE_SWITCH:
+	case CUBE_RED_DEFENSE_SWITCH:
 	case CUBE_RED_SCALE:
 	case CUBE_RED_FORCE_VAULT:
 	case CUBE_RED_BOOST_VAULT:
@@ -282,8 +282,8 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, coordinateTyp
 	case RED_ROBOT_GOTO_POS:
 		alliance = ALLIANCE_RED;
 		break;
-	case CUBE_BLUE_OFFENCE_SWITCH:
-	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_OFFENSE_SWITCH:
+	case CUBE_BLUE_DEFENSE_SWITCH:
 	case CUBE_BLUE_SCALE:
 	case CUBE_BLUE_LIFT_VAULT:
 	case CUBE_BLUE_FORCE_VAULT:
@@ -315,7 +315,7 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, coordinateTyp
 	offsetY = ROBOT_TO_WALL_DISTANCE + m_state.pos.sizeY / 2;
 
 	switch (actionIn) {
-	case CUBE_RED_OFFENCE_SWITCH:
+	case CUBE_RED_OFFENSE_SWITCH:
 		targetCenter.x = m_pPlatform->getRedSwitchX();
 		if (RED_NORTH_SWITCH_FLAG) {
 			targetCenter.y = m_pPlatform->getRedSwitchNorthY();
@@ -325,7 +325,7 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, coordinateTyp
 			offsetY = 0 - offsetY;
 		}
 		break;
-	case CUBE_BLUE_OFFENCE_SWITCH:
+	case CUBE_BLUE_OFFENSE_SWITCH:
 		targetCenter.x = m_pPlatform->getBlueSwitchX();
 		if (BLUE_NORTH_SWITCH_FLAG) {
 			targetCenter.y = m_pPlatform->getBlueSwitchNorthY();
@@ -335,7 +335,7 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, coordinateTyp
 			offsetY = 0 - offsetY;
 		}
 		break;
-	case CUBE_RED_DEFENCE_SWITCH:
+	case CUBE_RED_DEFENSE_SWITCH:
 		targetCenter.x = m_pPlatform->getBlueSwitchX();
 		if (BLUE_NORTH_SWITCH_FLAG) {
 			targetCenter.y = m_pPlatform->getBlueSwitchSouthY();
@@ -345,7 +345,7 @@ double robot::getActionDelayInSecInternal(actionTypeType actionIn, coordinateTyp
 			targetCenter.y = m_pPlatform->getBlueSwitchNorthY();
 		}
 		break;
-	case CUBE_BLUE_DEFENCE_SWITCH:
+	case CUBE_BLUE_DEFENSE_SWITCH:
 		targetCenter.x = m_pPlatform->getRedSwitchX();
 		if (RED_NORTH_SWITCH_FLAG) {
 			targetCenter.y = m_pPlatform->getRedSwitchSouthY();
@@ -908,4 +908,56 @@ int robot::findStopPosition(const coordinateType *pStartIn, const robotPathType 
 	}
 
 	return stopIndex;
+}
+
+//init action plan data structure
+void robot::initTaskToNoAction(searchActionType * pActionOut) const
+{
+	double currentTime = m_pPlatform->getTime();
+
+	pActionOut->actionType = INVALID_ACTION;
+	pActionOut->startTime = currentTime;
+	pActionOut->projectedFinishTime = currentTime + 1;
+	pActionOut->actionIndex = -1;
+	pActionOut->previousIndex = INVALID_IDX;
+	pActionOut->projectedFinalScore = 0;
+	pActionOut->robotIndex = m_robotIndex;
+	pActionOut->actionDonePos = { 0, 0 };
+	pActionOut->actionDoneWithCube = false;
+}
+
+bool robot::checkIfActionFeasible(coordinateType robotPosIn, bool hasCubeFlagIn, allianceType allianceIn,
+	platform *pPlatformInOut, searchActionType * pActionInOut) const
+{
+	double currentTime = pPlatformInOut->getTime();
+	double finishTime;
+	coordinateType newPosition;
+	bool dontInterruptFlag;
+	int updateActionResult;
+
+	finishTime = estimateActionDelayInSec(
+		pActionInOut->actionType, //expected action
+		currentTime,            //new action start time
+		true,                   //start a new action
+		robotPosIn, //robot position before the action start
+		hasCubeFlagIn,        //already has a cube loaded before the action start
+		&newPosition,            //the robot position after the action done
+		&dontInterruptFlag);     //output if the current pending action is interrupted flag
+
+	pActionInOut->projectedFinishTime = currentTime + finishTime;
+
+	if (finishTime > CLIMB_END_TIME) {
+		return false; //too late to finish
+	}
+
+	updateActionResult = pPlatformInOut->updateOneAction(pActionInOut->actionType,
+		pActionInOut->projectedFinishTime,
+		pActionInOut->robotIndex, allianceIn, pActionInOut->actionIndex);
+
+	if (updateActionResult == 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
