@@ -151,6 +151,9 @@ public:
 	const robot *const* getRedRobots(void) const { return m_pRedRobots; }
 	const robot *const* getBlueRobots(void) const { return m_pBlueRobots; }
 
+	robot ** getRedRobotsforOPeration(void) { return m_pRedRobots; }
+	robot ** getBlueRobotsForOperation(void)  { return m_pBlueRobots; }
+
 	const zoneType *getZone(int indexIn) const
 	{
 		return &m_platformStructure.zones[indexIn];

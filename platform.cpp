@@ -279,14 +279,24 @@ platform::platform()
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[0] =
 	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
 		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[1] =
+	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y };
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[2] =
 	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
 		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
 
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[2] =
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[3] =
 	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
 		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[3] =
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[4] =
+	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y};
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[5] =
 	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
 		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
 
@@ -314,14 +324,24 @@ platform::platform()
 	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[0] =
 	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX/2 - 18,
 		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+
 	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[1] =
+	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y};
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[2] =
 	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 - 18,
 		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
 
-	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[2] =
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[3] =
 	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
 		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
-	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[3] =
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[4] =
+	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y};
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[5] =
 	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
 		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
 

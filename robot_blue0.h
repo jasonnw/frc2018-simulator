@@ -4,15 +4,19 @@
 
 class robotBlue0: public robot
 {
+private:
+	int m_idleCount;
+
 public:
 	robotBlue0()
 	{
 		m_isAiRobotFlag = false;
 		m_allianceType = ALLIANCE_BLUE;
 		m_robotIndex = 0;
+		m_idleCount = 0;
 	}
 
-	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut) const
+	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut)
 	{
 		double currentTime = m_pPlatform->getTime();
 		const platformStateType *pPlatformState = m_pPlatform->getState();
@@ -21,6 +25,9 @@ public:
 		bool robotHasCubeFlag = pRobotState->cubeIdx == INVALID_IDX ? false : true;
 
 		initTaskToNoAction(pActionOut);
+		if (pPlatformInOut->isRobotLifted(m_allianceType, m_robotIndex)) {
+			return;
+		}
 
 		//the first priority is lifting
 		if (currentTime > COMPETITION_END_TIME + 5) {
@@ -32,6 +39,8 @@ public:
 						ALLIANCE_BLUE,            //alliance name
 						pPlatformInOut,           //platform object
 						pActionOut)) {            //output action plan
+
+				m_idleCount = 0;
 				return;
 			}
 		}
@@ -44,7 +53,7 @@ public:
 		}
 
 		//third priority, this robot is assigned to the scale
-		if (pPlatformState->scaleBlueBlockCount < pPlatformState->scaleRedBlockCount + 2) {
+		if (pPlatformState->scaleBlueBlockCount < pPlatformState->scaleRedBlockCount + 2 + m_idleCount/4) {
 			//we want to keep our side two blocks more than the opponent
 
 			pActionOut->actionType = CUBE_BLUE_SCALE;
@@ -55,6 +64,8 @@ public:
 						ALLIANCE_BLUE,            //alliance name
 						pPlatformInOut,           //platform object
 						pActionOut)) {            //output action plan
+
+				m_idleCount = 0;
 				return;
 			}
 		}
@@ -69,6 +80,8 @@ public:
 						ALLIANCE_BLUE,            //alliance name
 						pPlatformInOut,           //platform object
 						pActionOut)) {            //output action plan
+
+				m_idleCount = 0;
 				return;
 			}
 		}
@@ -77,6 +90,8 @@ public:
 			pActionOut->actionType = PUSH_BLUE_FORCE_BUTTON;
 			return; //push button always success, no checking for this action
 		}
+
+		m_idleCount++;
 
 		//fifth priority action, block opponent robots
 		//at the top of left switch zone

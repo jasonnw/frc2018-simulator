@@ -48,7 +48,7 @@ int alliance::initAlliance(allianceType typeIn, FILE *pLogFile,
 	const robotConfigurationType config1In[NUMBER_OF_ROBOTS],
 	const platform &platformIn)
 {
-	const robot *const* ppRobots;
+	robot ** ppRobots;
 	if (m_pSearchList == NULL) {
 		return -1;
 	}
@@ -58,10 +58,10 @@ int alliance::initAlliance(allianceType typeIn, FILE *pLogFile,
 	m_testPlatForm = platformIn;
 
 	if (typeIn == ALLIANCE_RED) {
-		ppRobots = m_testPlatForm.getRedRobots();
+		ppRobots = m_testPlatForm.getRedRobotsforOPeration();
 	}
 	else {
-		ppRobots = m_testPlatForm.getBlueRobots();
+		ppRobots = m_testPlatForm.getBlueRobotsForOperation();
 	}
 
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
@@ -492,6 +492,12 @@ void alliance::findBestAction(int actionIndexIn)
 			//get programmed robot action
 			m_testPlatForm = m_referencePlatForm;
 			m_pRobots[i]->getNextAction(&m_testPlatForm, &m_bestAction[i]);
+
+			//force no action after the game is over
+			if (currentTime >= CLIMB_END_TIME - MINMUM_TIME_RESOLUTION) {
+				m_bestAction[i].actionType = INVALID_ACTION;
+				m_bestAction[i].actionDonePos = { 0, 0 };
+			}
 		}
 	}
 

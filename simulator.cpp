@@ -221,13 +221,14 @@ int main(int argc, char** argv)
 		}
 
 		//send the last message
-		if (newActionCount != 0) {
+		if ((newActionCount == 0) || (gamePlatform.isGameTimeOver())) {
+			//send quit command
+			messageBuffer.quitFlag = true;
 			messageBuffer.commitActionFlag = true;
 			showPlatform.sendAction(&messageBuffer);
 		}
 		else {
-			//send quit command
-			messageBuffer.quitFlag = true;
+			//send commit command
 			messageBuffer.commitActionFlag = true;
 			showPlatform.sendAction(&messageBuffer);
 		}
@@ -276,7 +277,7 @@ int main(int argc, char** argv)
 	CloseHandle(threadHandle);
 
 	//final display of score board
-	imshow("FRC 2018 Game Result", gameScore);
-	waitKey(0);
+	//imshow("FRC 2018 Game Result", gameScore);
+	//waitKey(0);
 	return 0;
 }

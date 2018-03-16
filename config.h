@@ -212,9 +212,9 @@ const double LARGEST_ROBOT_SIZE = 4 * 12;
 //robot delay configurations in number of second
 const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17*12, /*max speed*/ 2*12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 1.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 17*12, /*max speed*/ 2*12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 1.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 1.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 const robotConfigurationType BLUE_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {

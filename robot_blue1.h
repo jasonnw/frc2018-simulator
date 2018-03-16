@@ -4,15 +4,18 @@
 
 class robotBlue1 : public robot
 {
+private:
+	int m_idleCount;
 public:
 	robotBlue1()
 	{
 		m_isAiRobotFlag = false;
 		m_allianceType = ALLIANCE_BLUE;
 		m_robotIndex = 1;
+		m_idleCount = 0;
 	}
 
-	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut) const
+	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut)
 	{
 		double currentTime = m_pPlatform->getTime();
 
@@ -22,6 +25,9 @@ public:
 		bool robotHasCubeFlag = pRobotState->cubeIdx == INVALID_IDX ? false : true;
 
 		initTaskToNoAction(pActionOut);
+		if (pPlatformInOut->isRobotLifted(m_allianceType, m_robotIndex)) {
+			return;
+		}
 
 		//the first priority is lifting other robots
 		if (currentTime > COMPETITION_END_TIME) {
@@ -34,6 +40,8 @@ public:
 						ALLIANCE_BLUE,            //alliance name
 						pPlatformInOut,           //platform object
 						pActionOut)) {            //output action plan
+
+				m_idleCount = 0;
 				return;
 			}
 		}
@@ -46,7 +54,7 @@ public:
 		}
 
 		//third priority, this robot is assigned to control blue switch
-		if (pPlatformState->switchBlue_BlueBlockCount < pPlatformState->switchBlue_RedBlockCount + 2) {
+		if (pPlatformState->switchBlue_BlueBlockCount < pPlatformState->switchBlue_RedBlockCount + 2 + m_idleCount/4) {
 			//we want to keep our side two blocks more than the opponent
 
 			pActionOut->actionType = CUBE_BLUE_OFFENSE_SWITCH;
@@ -57,6 +65,8 @@ public:
 						ALLIANCE_BLUE,            //alliance name
 						pPlatformInOut,           //platform object
 						pActionOut)) {            //output action plan
+
+				m_idleCount = 0;
 				return;
 			}
 		}
@@ -71,14 +81,18 @@ public:
 						ALLIANCE_BLUE,            //alliance name
 						pPlatformInOut,           //platform object
 						pActionOut)) {            //output action plan
+
+				m_idleCount = 0;
 				return;
 			}
 		}
 		//else, lift button is auto, no need to push
 
+		m_idleCount++;
+
 		//stay close to offense switch for quick response
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
-		pActionOut->actionDonePos = { 600, 50 };
+		pActionOut->actionDonePos = { 600, 250 };
 
 		return;
 		//Note: 

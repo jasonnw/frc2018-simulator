@@ -75,7 +75,7 @@ public:
 	robot();
 	~robot();
 
-	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut) const
+	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut)
 	{
 		pActionOut->actionType = INVALID_ACTION;
 	}

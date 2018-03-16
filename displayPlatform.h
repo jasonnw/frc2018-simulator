@@ -211,7 +211,7 @@ protected:
 	void playTotheNextTime(double nextTimeIn, int actionIndexIn, double delayIn);
 
 	void drawCube(coordinateType positionIn, int indexIn);
-	void drawButton(coordinateType positionIn, int pushStateIn, const Scalar& colorIn);
+	void drawButton(coordinateType positionIn, int pushStateIn, const Scalar& colorIn, int radiusIn = 10);
 	void drawObject(const rectangleObjectType *pObjectIn, bool hightLightFlagIn);
 	void drawRobot(const rectangleObjectType *pObjectIn, allianceType allianceIn, int robotIdxIn, bool hasCubeFlagIn);
 	void drawInteger(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn);

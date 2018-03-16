@@ -96,7 +96,8 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 
 	if (quitFlag) {
 		//finish all pending actions
-		while (hasPendingActions()) {
+		earliestFinishTime = getEarliestStopTime();
+		while (hasPendingActions() && (!isGameTimeOver())) {
 			earliestFinishTime = getEarliestStopTime();
 			if (earliestFinishTime > CLIMB_END_TIME) {
 				break;
@@ -112,7 +113,7 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 		logFinalRanking();
 
 		updateField();
-		gameOverDisplay.center = { 100, 180 };
+		gameOverDisplay.center = { 70, 180 };
 		drawString(&gameOverDisplay, "Game Over, Press Any Key", 3, { 128, 128, 128 });
 		drawPlatform(0);
 
@@ -164,7 +165,7 @@ Point displayPlatform::coordinateToPoint(double xIn, double yIn)
 
 void displayPlatform::drawPlatform(int delayIn)
 {
-	imshow("FRC 2018 Game Simulation", *m_pPlatform);
+	imshow("FRC 2018 Game Simulation v0.1", *m_pPlatform);
 
 	waitKey(delayIn);
 }
@@ -332,13 +333,10 @@ void displayPlatform::drawField(void)
 	}
 }
 
-void displayPlatform::drawButton(coordinateType positionIn, int pushStateIn, const Scalar& colorIn)
+void displayPlatform::drawButton(coordinateType positionIn, int pushStateIn, const Scalar& colorIn, int radiusIn)
 {
 	Point center = coordinateToPoint(positionIn.x, positionIn.y);
-	int radius = 10;
-
-	circle(*m_pPlatform, center, radius, colorIn, pushStateIn);
-
+	circle(*m_pPlatform, center, radiusIn, colorIn, pushStateIn);
 }
 
 void displayPlatform::updateField(void)
@@ -394,7 +392,6 @@ void displayPlatform::updateField(void)
 	drawInteger(&blueScoreBoard, getBlueRanking(), "Rank: ", 1, { 200, 30, 30 });
 	drawInteger(&redScoreBoard, getRedRanking(), "Rank: ", 1, { 30, 30, 200 });
 
-
 	//display time
 	timeBoard.center = { 260, 400 };
 	timeBoard.sizeX = 80;
@@ -414,20 +411,20 @@ void displayPlatform::updateField(void)
 	drawInteger(&redScoreBoard, m_state.boostRedBlockCount, "Red Boost: ", 1.0, { 30, 30, 200 });
 
 	if ((m_state.blueBoostButton >= BUTTON_PUSH) && (m_state.blueBoostButton < BUTTON_PUSH_OVER_10SEC)) {
-		buttonState = -1;
+		buttonState = CV_FILLED;
 	}
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 434, 400 }, buttonState, { 200, 30, 30 });
+	drawButton({ 434, 400 }, buttonState, { 200, 30, 30 }, 10);
 
 	if ((m_state.redBoostButton >= BUTTON_PUSH) && (m_state.redBoostButton < BUTTON_PUSH_OVER_10SEC)) {
-		buttonState = -1;
+		buttonState = CV_FILLED;
 	}
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 94, 400 }, buttonState, { 30, 30, 200});
+	drawButton({ 94, 400 }, buttonState, { 30, 30, 200}, 10);
 
 	blueScoreBoard.center = { 450, 390 };
 	redScoreBoard.center = { 110, 390 };
@@ -435,20 +432,20 @@ void displayPlatform::updateField(void)
 	drawInteger(&redScoreBoard, m_state.forceRedBlockCount, "Red Force: ", 1.0, { 30, 30, 200 });
 
 	if ((m_state.blueForceButton >= BUTTON_PUSH) && (m_state.blueForceButton < BUTTON_PUSH_OVER_10SEC)) {
-		buttonState = -1;
+		buttonState = CV_FILLED;
 	}
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 434, 385 }, buttonState, { 200, 30, 30 });
+	drawButton({ 434, 385 }, buttonState, { 200, 30, 30 }, 10);
 
 	if ((m_state.redForceButton >= BUTTON_PUSH) && (m_state.redForceButton < BUTTON_PUSH_OVER_10SEC)) {
-		buttonState = -1;
+		buttonState = CV_FILLED;
 	}
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 94, 385 }, buttonState, { 30, 30, 200 });
+	drawButton({ 94, 385 }, buttonState, { 30, 30, 200 }, 10);
 
 	blueScoreBoard.center = { 450, 375 };
 	redScoreBoard.center = { 110, 375 };
@@ -456,20 +453,54 @@ void displayPlatform::updateField(void)
 	drawInteger(&redScoreBoard, m_state.liftRedBlockCount, "Red Lift: ", 1.0, { 30, 30, 200 });
 
 	if ((m_state.blueLiftButton >= BUTTON_PUSH) && (m_state.blueLiftButton < BUTTON_PUSH_OVER_10SEC)) {
-		buttonState = -1;
+		buttonState = CV_FILLED;
 	}
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 434, 370 }, buttonState, { 200, 30, 30 });
+	drawButton({ 434, 370 }, buttonState, { 200, 30, 30 }, 10);
 
 	if ((m_state.redLiftButton >= BUTTON_PUSH) && (m_state.redLiftButton < BUTTON_PUSH_OVER_10SEC)) {
-		buttonState = -1;
+		buttonState = CV_FILLED;
 	}
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 94, 370 }, buttonState, { 30, 30, 200 });
+	drawButton({ 94, 370 }, buttonState, { 30, 30, 200 }, 10);
 
+	//display owners
+	cv::Scalar colorNoOwner(128, 180, 128);
+	cv::Scalar colorBlue(240, 60, 60);
+	cv::Scalar colorRed(60, 60, 240);
+
+	switch (m_state.switchRedOwner) {
+	case OWNED_BY_RED:
+		drawButton(m_platformStructure.structures[RED_SWITCH_ZONE].center, CV_FILLED, colorRed, 20);
+		break;
+	default:
+		drawButton(m_platformStructure.structures[RED_SWITCH_ZONE].center, CV_FILLED, colorNoOwner, 20);
+		break;
+	}
+
+	switch (m_state.switchBlueOwner) {
+	case OWNED_BY_BLUE:
+		drawButton(m_platformStructure.structures[BLUE_SWITCH_ZONE].center, CV_FILLED, colorBlue, 20);
+		break;
+	default:
+		drawButton(m_platformStructure.structures[BLUE_SWITCH_ZONE].center, CV_FILLED, colorNoOwner, 20);
+		break;
+	}
+
+	switch (m_state.scaleOwner) {
+	case OWNED_BY_BLUE:
+		drawButton(m_platformStructure.structures[SCALE_ZONE].center, CV_FILLED, colorBlue, 25);
+		break;
+	case OWNED_BY_RED:
+		drawButton(m_platformStructure.structures[SCALE_ZONE].center, CV_FILLED, colorRed, 25);
+		break;
+	default:
+		drawButton(m_platformStructure.structures[SCALE_ZONE].center, CV_FILLED, colorNoOwner, 25);
+		break;
+	}
 }
 

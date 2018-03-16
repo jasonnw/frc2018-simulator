@@ -24,7 +24,7 @@ private:
 	allianceType m_allianceType;
 	double m_timeInSec;
 	platform m_referencePlatForm;
-	const robot *m_pRobots[NUMBER_OF_ROBOTS];
+	robot *m_pRobots[NUMBER_OF_ROBOTS];
 	searchActionType m_bestAction[NUMBER_OF_ROBOTS];
 
 	searchActionType *m_pSearchList;
