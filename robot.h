@@ -210,7 +210,7 @@ protected:
 
 	//init action plan data structure
 	void initTaskToNoAction(searchActionType * pActionOut) const;
-	bool robot::checkIfActionFeasible(coordinateType robotPosIn, bool hasCubeFlagIn, allianceType allianceIn,
+	bool checkIfActionFeasible(coordinateType robotPosIn, bool hasCubeFlagIn, allianceType allianceIn,
 		platform *pPlatformInOut, searchActionType * pActionInOut) const;
 
 };

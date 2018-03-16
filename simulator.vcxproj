@@ -152,6 +152,7 @@
     <ClInclude Include="alliance.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="displayPlatform.h" />
+    <ClInclude Include="os_wrapper.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="robot.h" />
     <ClInclude Include="robot_blue0.h" />

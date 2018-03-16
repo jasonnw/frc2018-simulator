@@ -1,18 +1,38 @@
 
+
+#include "os_wrapper.h"
 #include "config.h"
 #include "displayPlatform.h"
 
 const double ORIGION_POINT_X = 10;
 const double ORIGION_POINT_Y = 790;
 const double PIXELS_PER_INCH = (double) 1.9;
-const cv::Scalar wallColor = { 128, 128, 128 };
 const double FRAME_DELAY_IN_MS = 16;
+
+#ifndef _MSC_VER
+//missing definitions of MS visual studio unique code
+typedef int errno_t;
+#define sprintf_s	sprintf
+static errno_t fopen_s(FILE** pFile, const char *filename, const char *mode)
+{
+	*pFile = fopen(filename, mode);
+	if (*pFile == NULL) {
+		return -1;
+	}
+	else {
+		return 0;
+	}
+}
+#endif
+
 
 displayPlatform::displayPlatform()
 {
 	int errorCode;
 	m_pQueue = new messageQueue <actionMessageType> (MESSAGE_QUEUE_DEPTH, &errorCode);
 	m_isDisplayPlatform = true;
+	m_wallColor = { 128, 128, 128 };
+
 
 	if (m_pQueue != NULL) {
 		if (errorCode != 0) {
@@ -270,27 +290,27 @@ void displayPlatform::drawField(void)
 	//four walls
 	lineStart = coordinateToPoint(0, 0);
 	lineEnd = coordinateToPoint(m_platformStructure.eastWall, 0);
-	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
+	line(*m_pPlatform, lineStart, lineEnd, m_wallColor, 1, 8);
 
 	lineStart = coordinateToPoint(0, 0);
 	lineEnd = coordinateToPoint(0, m_platformStructure.northWall);
-	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
+	line(*m_pPlatform, lineStart, lineEnd, m_wallColor, 1, 8);
 
 	lineStart = coordinateToPoint(0, m_platformStructure.northWall);
 	lineEnd = coordinateToPoint(m_platformStructure.eastWall, m_platformStructure.northWall);
-	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
+	line(*m_pPlatform, lineStart, lineEnd, m_wallColor, 1, 8);
 
 	lineStart = coordinateToPoint(m_platformStructure.eastWall, 0);
 	lineEnd = coordinateToPoint(m_platformStructure.eastWall, m_platformStructure.northWall);
-	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
+	line(*m_pPlatform, lineStart, lineEnd, m_wallColor, 1, 8);
 
 	lineStart = coordinateToPoint(m_platformStructure.redAutoLine, 0);
 	lineEnd = coordinateToPoint(m_platformStructure.redAutoLine, m_platformStructure.northWall);
-	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
+	line(*m_pPlatform, lineStart, lineEnd, m_wallColor, 1, 8);
 
 	lineStart = coordinateToPoint(m_platformStructure.blueAutoLine, 0);
 	lineEnd = coordinateToPoint(m_platformStructure.blueAutoLine, m_platformStructure.northWall);
-	line(*m_pPlatform, lineStart, lineEnd, wallColor, 1, 8);
+	line(*m_pPlatform, lineStart, lineEnd, m_wallColor, 1, 8);
 
 	for (int i = RED_SWITCH_ZONE; i < NUM_STILL_STRUCTURE; i++) {
 		drawObject(&m_platformStructure.structures[i]);

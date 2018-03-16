@@ -5,13 +5,29 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
-#include <windows.h>
 
+#include "os_wrapper.h"
 #include "alliance.h"
 #include "displayPlatform.h"
 
 using namespace cv;
 using namespace std;
+
+#ifndef _MSC_VER
+//missing definitions of MS visual studio unique code
+typedef int errno_t;
+#define sprintf_s	sprintf
+static errno_t fopen_s(FILE** pFile, const char *filename, const char *mode)
+{
+	*pFile = fopen(filename, mode);
+	if (*pFile == NULL) {
+		return -1;
+	}
+	else {
+		return 0;
+	}
+}
+#endif
 
 //display settings
 const cv::Scalar textColor(200, 200, 250);
@@ -43,22 +59,11 @@ platform gamePlatform;
 displayPlatform showPlatform;
 actionMessageType messageBuffer;
 
-#ifndef _MSC_VER
-//missing definitions of MS visual studio unique code
-typedef int errno_t;
-#define sprintf_s	sprintf
-static errno_t fopen_s(FILE** pFile, const char *filename,  const char *mode)
-{
-	*pFile = fopen(filename, mode);
-	if(*pFile == NULL) {
-		return -1;
-	}else {
-		return 0;
-	}
-}
-#endif
-
+#ifdef _MSC_VER
 static DWORD WINAPI displayThreadEntry(LPVOID lpParameter)
+#else
+static void* displayThreadEntry(LPVOID lpParameter)
+#endif
 {
 	int returnVal;
 	int actionCount = 0;
@@ -144,8 +149,13 @@ int main(int argc, char** argv)
 		}
 	}
 
+#ifdef _MSC_VER
 	DWORD threadID;
 	HANDLE threadHandle = CreateThread(0, 0, displayThreadEntry, NULL, 0, &threadID);
+#else
+	pthread_t threadHandle;
+	pthread_create(&threadHandle, 0, displayThreadEntry, NULL);
+#endif
 
 
 	initDisplay();
@@ -273,8 +283,13 @@ int main(int argc, char** argv)
 	blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getBlueScore();
 
 	//stop display
+#ifdef _MSC_VER
 	WaitForSingleObject(threadHandle, INFINITE);
 	CloseHandle(threadHandle);
+#else
+	void *returnValue;
+	pthread_join(threadHandle, &returnValue);
+#endif
 
 	//final display of score board
 	//imshow("FRC 2018 Game Result", gameScore);

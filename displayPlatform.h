@@ -1,6 +1,6 @@
 #pragma once
 
-#include <windows.h>
+#include "os_wrapper.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -13,9 +13,9 @@ using namespace std;
 
 template <class T> class messageQueue {
 private:
-	CRITICAL_SECTION   m_bufferLock;
-	CONDITION_VARIABLE m_senderCondVar;
-	CONDITION_VARIABLE m_recieverCondVar;
+	pthread_mutex_t   m_bufferLock;
+	pthread_cond_t m_senderCondVar;
+	pthread_cond_t m_recieverCondVar;
 
 	T *m_pQueueBuffer;
 	bool *m_pIsEmptyFlag;
@@ -26,6 +26,11 @@ private:
 public:
 	messageQueue(int qSizeIn, int *pErrorOut)
 	{
+#ifndef _MSC_VER
+		pthread_mutexattr_t mutexAttr;
+		pthread_condattr_t condvAttr;
+#endif
+
 		*pErrorOut = -1;
 		m_queueSize = 0;
 		m_readIdx = 0;
@@ -35,9 +40,15 @@ public:
 		if (m_pQueueBuffer != NULL) {
 			m_queueSize = qSizeIn;
 			*pErrorOut = 0;
-			InitializeCriticalSection(&m_bufferLock);
-			InitializeConditionVariable(&m_senderCondVar);
-			InitializeConditionVariable(&m_recieverCondVar);
+			pthread_mutexattr_init(&mutexAttr);
+			pthread_mutex_init(&m_bufferLock, &mutexAttr);
+
+			pthread_condattr_init(&condvAttr);
+			pthread_cond_init(&m_senderCondVar, &condvAttr);
+			pthread_cond_init(&m_recieverCondVar, &condvAttr);
+
+			pthread_mutexattr_destroy(&mutexAttr);
+			pthread_condattr_destroy(&condvAttr);
 
 			m_pIsEmptyFlag = (bool*) &m_pQueueBuffer[qSizeIn];
 			for (int i = 0; i < qSizeIn; i++) {
@@ -53,44 +64,46 @@ public:
 	{
 		if (m_pQueueBuffer != NULL) {
 			free(m_pQueueBuffer);
-			DeleteCriticalSection(&m_bufferLock);
+			pthread_mutex_destroy(&m_bufferLock);
+			pthread_cond_destroy(&m_senderCondVar);
+			pthread_cond_destroy(&m_recieverCondVar);
 		}
 	}
 
 	bool isQueueEmpty(void)
 	{
 		bool isEmpty = false;
-		EnterCriticalSection(&m_bufferLock);
+		pthread_mutex_lock(&m_bufferLock);
 
 		if (m_pIsEmptyFlag[m_readIdx]) {
 			isEmpty = true;
 		}
 
-		LeaveCriticalSection(&m_bufferLock);
+		pthread_mutex_unlock(&m_bufferLock);
 		return isEmpty;
 	}
 
 	bool isQueueFull(void)
 	{
 		bool isFull = false;
-		EnterCriticalSection(&m_bufferLock);
+		pthread_mutex_lock(&m_bufferLock);
 
 		if (!m_pIsEmptyFlag[m_writeIdx]) {
 			isFull = true;
 		}
 
-		LeaveCriticalSection(&m_bufferLock);
+		pthread_mutex_unlock(&m_bufferLock);
 		return isFull;
 	}
 
 
 	void send(const T *pMessageIn)
 	{
-		EnterCriticalSection(&m_bufferLock);
+		pthread_mutex_lock(&m_bufferLock);
 
 		while (!m_pIsEmptyFlag[m_writeIdx]) {
 			//Q is full
-			SleepConditionVariableCS(&m_recieverCondVar, &m_bufferLock, INFINITE);
+			pthread_cond_wait(&m_recieverCondVar, &m_bufferLock);
 		}
 
 		memcpy(&m_pQueueBuffer[m_writeIdx], pMessageIn, sizeof(T));
@@ -100,17 +113,17 @@ public:
 			m_writeIdx = 0;
 		}
 
-		LeaveCriticalSection(&m_bufferLock);
-		WakeConditionVariable(&m_senderCondVar);
+		pthread_mutex_unlock(&m_bufferLock);
+		pthread_cond_signal(&m_senderCondVar);
 	}
 
 	void receive(T* pMessageOut)
 	{
-		EnterCriticalSection(&m_bufferLock);
+		pthread_mutex_lock(&m_bufferLock);
 
 		while (m_pIsEmptyFlag[m_readIdx]) {
 			//Q is empty
-			SleepConditionVariableCS(&m_senderCondVar, &m_bufferLock, INFINITE);
+			pthread_cond_wait(&m_senderCondVar, &m_bufferLock);
 		}
 
 		memcpy(pMessageOut, &m_pQueueBuffer[m_readIdx], sizeof(T));
@@ -120,16 +133,16 @@ public:
 			m_readIdx = 0;
 		}
 
-		LeaveCriticalSection(&m_bufferLock);
-		WakeConditionVariable(&m_recieverCondVar);
+		pthread_mutex_unlock(&m_bufferLock);
+		pthread_cond_signal(&m_recieverCondVar);
 	}
 
 	int trySend(const T *pMessageIn)
 	{
-		EnterCriticalSection(&m_bufferLock);
+		pthread_mutex_lock(&m_bufferLock);
 
 		if (!m_pIsEmptyFlag[m_writeIdx]) {
-			LeaveCriticalSection(&m_bufferLock);
+			pthread_mutex_unlock(&m_bufferLock);
 			return -1;
 		}
 		else {
@@ -140,19 +153,19 @@ public:
 				m_writeIdx = 0;
 			}
 
-			LeaveCriticalSection(&m_bufferLock);
-			WakeConditionVariable(&m_senderCondVar);
+			pthread_mutex_unlock(&m_bufferLock);
+			pthread_cond_signal(&m_senderCondVar);
 			return 0;
 		}
 	}
 
 	int tryReceive(T* pMessageOut)
 	{
-		EnterCriticalSection(&m_bufferLock);
+		pthread_mutex_lock(&m_bufferLock);
 
 		if (m_pIsEmptyFlag[m_readIdx]) {
 			//Q is empty
-			LeaveCriticalSection(&m_bufferLock);
+			pthread_mutex_unlock(&m_bufferLock);
 			return -1;
 		}
 		else {
@@ -163,8 +176,8 @@ public:
 				m_readIdx = 0;
 			}
 
-			LeaveCriticalSection(&m_bufferLock);
-			WakeConditionVariable(&m_recieverCondVar);
+			pthread_mutex_unlock(&m_bufferLock);
+			pthread_cond_signal(&m_recieverCondVar);
 			return 0;
 		}
 	}
@@ -190,6 +203,8 @@ class displayPlatform :	public platform
 {
 private:
 	messageQueue <actionMessageType> *m_pQueue;
+	cv::Scalar m_wallColor;
+
 	Mat *m_pPlatform;
 	rectangleObjectType m_redRobotsOldPos[NUMBER_OF_ROBOTS];
 	rectangleObjectType m_blueRobotsOldPos[NUMBER_OF_ROBOTS];
