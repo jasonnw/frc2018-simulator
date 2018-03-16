@@ -29,30 +29,7 @@ static errno_t fopen_s(FILE** pFile, const char *filename, const char *mode)
 }
 #endif
 
-//display settings
-const cv::Scalar textColor(200, 200, 250);
-const cv::Scalar coordinateColor(100, 100, 100);
-const cv::Scalar blueColor(200, 0, 0);
-const cv::Scalar redColor(0, 0, 200);
-
-const int IMAGE_RESOLUSION_X = 1280;
-const int IMAGE_RESOLUSION_y = 800;
-
-const int ORIGIN_X = 40;
-const int ORIGIN_Y = 760;
-
-const int MAXIMUM_X = 1270;
-const int MAXIMUM_Y = 20;
-
-const int SECONDS_PER_LABEL = 10;
-const int POINTS_PER_SECOND = 5;
-const int SCORES_PER_LABEL = 40;
-const int POINTS_PER_SCORE = 1;
-
-const int LABAL_OFFSET_Y = 780;
-
 //global objects
-Mat gameScore(IMAGE_RESOLUSION_y, IMAGE_RESOLUSION_X, CV_8UC3, Scalar(0, 0, 0));
 alliance redAlliance;
 alliance blueAlliance;
 platform gamePlatform;
@@ -85,51 +62,11 @@ static void* displayThreadEntry(LPVOID lpParameter)
 	return 0;
 }
 
-static void initDisplay(void)
-{
-	char numberString[4];
-
-	//draw coordinate and write labels
-	Point start = Point(ORIGIN_X, ORIGIN_Y);
-	Point xEnd = Point(MAXIMUM_X, ORIGIN_Y);
-	Point yEnd = Point(ORIGIN_X, MAXIMUM_Y);
-
-	line(gameScore,	start, xEnd, coordinateColor, 1, 8);
-	line(gameScore, start, yEnd, coordinateColor, 1, 8);
-
-	putText(gameScore, "Time", cvPoint(MAXIMUM_X - 70, ORIGIN_Y + 30),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
-
-	putText(gameScore, "Score", cvPoint(5, MAXIMUM_Y),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
-
-	for (int i = 0; i < 22; i++) {
-		sprintf_s(numberString, "%d", i*SECONDS_PER_LABEL);
-		putText(gameScore, numberString, cvPoint(36 + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, LABAL_OFFSET_Y),
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
-
-		Point x0 = Point(ORIGIN_X + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, LABAL_OFFSET_Y - 20);
-		Point x1 = Point(ORIGIN_X + i*POINTS_PER_SECOND*SECONDS_PER_LABEL, LABAL_OFFSET_Y - 25);
-		line(gameScore,	x0, x1, coordinateColor, 1, 8);
-
-		sprintf_s(numberString, "%d", i*SCORES_PER_LABEL);
-		putText(gameScore, numberString, cvPoint(5, LABAL_OFFSET_Y - 20 - i * SCORES_PER_LABEL*POINTS_PER_SCORE),
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, textColor, 1, CV_AA);
-
-		Point y0 = Point(ORIGIN_X, ORIGIN_Y - i * SCORES_PER_LABEL*POINTS_PER_SCORE);
-		Point y1 = Point(ORIGIN_X+5, ORIGIN_Y - i * SCORES_PER_LABEL*POINTS_PER_SCORE);
-		line(gameScore, y0, y1, coordinateColor, 1, 8);
-	}
-}
-
-
 int main(int argc, char** argv)
 {
 	searchActionType redAction[NUMBER_OF_ROBOTS];
 	searchActionType blueAction[NUMBER_OF_ROBOTS];
 	const pendingActionType *pAction;
-	Point redStart, redEnd;
-	Point blueStart, blueEnd;
 	int actionCounter;
 	int newActionCount;
 	FILE *pRedActionLog = NULL;
@@ -149,6 +86,7 @@ int main(int argc, char** argv)
 		}
 	}
 
+	//start display thread
 #ifdef _MSC_VER
 	DWORD threadID;
 	HANDLE threadHandle = CreateThread(0, 0, displayThreadEntry, NULL, 0, &threadID);
@@ -156,9 +94,6 @@ int main(int argc, char** argv)
 	pthread_t threadHandle;
 	pthread_create(&threadHandle, 0, displayThreadEntry, NULL);
 #endif
-
-
-	initDisplay();
 
 	//initialization
 	gamePlatform.setLogFile(NULL);
@@ -174,11 +109,6 @@ int main(int argc, char** argv)
 	actionCounter = 0;
 	redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
 	blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
-
-	redStart.x = ORIGIN_X;
-	redStart.y = ORIGIN_Y;
-	blueStart.x = ORIGIN_X;
-	blueStart.y = ORIGIN_Y;
 
 	//enable action search log at beginning
 	//redAlliance.setLogFile(pRedActionLog);
@@ -256,16 +186,6 @@ int main(int argc, char** argv)
 			redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
 			blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
 		}
-
-		//update the score display
-		redEnd.x = blueEnd.x = ORIGIN_X + POINTS_PER_SECOND * (int) floor(gamePlatform.getTime() + 0.5);
-		redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getRedScore();
-		blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getBlueScore();
-		line(gameScore,	redStart, redEnd, redColor, 3, 8);
-		line(gameScore, blueStart, blueEnd, blueColor, 3, 8);
-
-		redStart = redEnd;
-		blueStart = blueEnd;
 	} while ((!gamePlatform.isGameTimeOver()) && (newActionCount!=0));
 
 	if (pRedActionLog != NULL) {
@@ -278,10 +198,6 @@ int main(int argc, char** argv)
 	//print the final score
 	gamePlatform.logFinalRanking();
 
-	redEnd.x = blueEnd.x = POINTS_PER_SECOND * (int)floor(gamePlatform.getTime() + 0.5);
-	redEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getRedScore();
-	blueEnd.y = ORIGIN_Y - POINTS_PER_SCORE * (int) gamePlatform.getBlueScore();
-
 	//stop display
 #ifdef _MSC_VER
 	WaitForSingleObject(threadHandle, INFINITE);
@@ -291,8 +207,5 @@ int main(int argc, char** argv)
 	pthread_join(threadHandle, &returnValue);
 #endif
 
-	//final display of score board
-	//imshow("FRC 2018 Game Result", gameScore);
-	//waitKey(0);
 	return 0;
 }

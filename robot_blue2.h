@@ -23,6 +23,8 @@ public:
 		const robotStateType *pRobotState = getState();
 		const pendingActionType *pPlannedAction;
 		bool robotHasCubeFlag = pRobotState->cubeIdx == INVALID_IDX ? false : true;
+		coordinateType rampRobotDestination = pPlatformInOut->getBlueLiftZonePosition();
+		coordinateType rampRobotCurrentPosition = pPlatformInOut->getRobotPos(m_allianceType, 1);
 
 		initTaskToNoAction(pActionOut);
 		if (pPlatformInOut->isRobotLifted(m_allianceType, m_robotIndex)) {
@@ -39,17 +41,22 @@ public:
 
 		//the first priority is lifting
 		if (currentTime > COMPETITION_END_TIME) {
-			pActionOut->actionType = LIFT_ONE_BLUE_ROBOT;
-			//check if the action is feasible
-			if (checkIfActionFeasible(
-				pRobotState->pos.center,  //current root position
-				robotHasCubeFlag,         //cube is already loaded flag
-				ALLIANCE_BLUE,            //alliance name
-				pPlatformInOut,           //platform object
-				pActionOut)) {            //output action plan
+			if ((rampRobotDestination.x == rampRobotCurrentPosition.x) &&
+				(rampRobotDestination.y == rampRobotCurrentPosition.y)) {
+				//ready for lifting
 
-				m_idleCount = 0; //planned a real action
-				return;
+				pActionOut->actionType = LIFT_ONE_BLUE_ROBOT;
+				//check if the action is feasible
+				if (checkIfActionFeasible(
+					pRobotState->pos.center,  //current root position
+					robotHasCubeFlag,         //cube is already loaded flag
+					ALLIANCE_BLUE,            //alliance name
+					pPlatformInOut,           //platform object
+					pActionOut)) {            //output action plan
+
+					m_idleCount = 0; //planned a real action
+					return;
+				}
 			}
 		}
 

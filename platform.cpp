@@ -240,18 +240,24 @@ platform::platform()
 	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x,
 		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 2 + 24};
 
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].numberOfWorkaroundPoints = 4;
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].numberOfWorkaroundPoints = 6;
 	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[0] =
 	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
 		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
 	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[1] =
 	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y};
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[2] =
+	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
 		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
 
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[2] =
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[3] =
 	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
 		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[3] =
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[4] =
+	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y };
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[5] =
 	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
 		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
 
@@ -275,7 +281,7 @@ platform::platform()
 	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 
 		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 + 24};
 
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].numberOfWorkaroundPoints = 4;
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].numberOfWorkaroundPoints = 6;
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[0] =
 	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
 		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
@@ -320,7 +326,7 @@ platform::platform()
 	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 
 		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 + 24};
 
-	m_platformStructure.zones[RIGHT_OF_SCALE].numberOfWorkaroundPoints = 4;
+	m_platformStructure.zones[RIGHT_OF_SCALE].numberOfWorkaroundPoints = 6;
 	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[0] =
 	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX/2 - 18,
 		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
@@ -365,18 +371,23 @@ platform::platform()
 		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 
 		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 + 24};
 
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].numberOfWorkaroundPoints = 4;
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].numberOfWorkaroundPoints = 6;
 	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[0] =
 	{ m_platformStructure.eastWall - 18, 
 	  m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY /4};
 	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[1] =
+	{ m_platformStructure.eastWall - 18, m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y };
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[2] =
 	{ m_platformStructure.eastWall - 18,
 		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
 
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[2] =
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[3] =
 	{ m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX  + 18,
 		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[3] =
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[4] =
+	{ m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX + 18,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y };
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[5] =
 	{ m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX + 18,
 		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
 
@@ -1660,11 +1671,6 @@ void platform::updateScore(double secondsPassedIn)
 			m_blueRank += 1;
 			m_state.allBlueRobotsLiftFlag = true;
 		}
-	}
-	else {
-		//otherwise, the push signal is ignored and reset the button state
-		m_state.redLiftButton = BUTTON_NOT_PUSH;
-		m_state.blueLiftButton = BUTTON_NOT_PUSH;
 	}
 
 	m_lastScoreUpdateTime += secondsPassedIn;
