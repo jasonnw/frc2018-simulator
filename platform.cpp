@@ -216,7 +216,9 @@ platform::platform()
 
 	for (int i = 0; i < NUM_OF_ZONES; i++) {
 		for (int j = 0; j < NUM_OF_ZONES; j++) {
-			m_platformStructure.zones[i].connectionPoints[j] = coordinateType( 0, 0 );
+			for (int k = 0; k < 2; k++) {
+				m_platformStructure.zones[i].connectionPoints[j][k] = coordinateType(0, 0);
+			}
 		}
 	}
 
@@ -233,37 +235,47 @@ platform::platform()
 		(m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.westWall) * 2;
 	m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR] = coordinateType(
-			m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x,
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR][0] = coordinateType(
+			m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - 20,
 			m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 2 - 24);
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[TOP_CORRIDOR] = coordinateType(
-			m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x,
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR][1] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + 20,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 2 - 24);
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[TOP_CORRIDOR][0] = coordinateType(
+			m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - 20,
 			m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 2 + 24);
 
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].numberOfWorkaroundPoints = 6;
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[0] =
-	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
-		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[1] =
-	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
-		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y};
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[2] =
-	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
-		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].connectionPoints[TOP_CORRIDOR][1] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + 20,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 2 + 24);
 
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[3] =
-	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
-		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[4] =
-	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
-		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y };
-	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[5] =
-	{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
-		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 };
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].numberOfWorkaroundPoints = 6;
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[0] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 );
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[1] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y);
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[2] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 );
+
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[3] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 );
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[4] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y );
+	m_platformStructure.zones[LEFT_OF_RED_SWITCH].workaroundPoints[5] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.sizeY / 4 );
 
 
 	//RIGHT_OF_RED_SWITCH
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x =
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x = 
 		(m_platformStructure.structures[RED_SWITCH_ZONE].center.x + m_platformStructure.structures[RED_SWITCH_ZONE].sizeX / 2 +
 		 m_platformStructure.structures[SCALE_ZONE].center.x - m_platformStructure.structures[SCALE_ZONE].sizeX / 2) / 2;
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y =
@@ -274,37 +286,45 @@ platform::platform()
 		m_platformStructure.structures[RED_SWITCH_ZONE].sizeX/2 - 18;
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR] =
-	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 
-		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 - 24};
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[TOP_CORRIDOR] =
-	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 
-		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 + 24};
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - 20, 
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 - 24);
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[BOTTOM_CORRIDOR][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + 20,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 - 24);
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[TOP_CORRIDOR][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - 20, 
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 + 24);
+
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].connectionPoints[TOP_CORRIDOR][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + 20,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 2 + 24);
 
 	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].numberOfWorkaroundPoints = 6;
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[0] =
-	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
-		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 );
 
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[1] =
-	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
-		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y };
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y );
 
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[2] =
-	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
-		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[2] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 );
 
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[3] =
-	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
-		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[3] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 );
 
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[4] =
-	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
-		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y};
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[4] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y);
 
-	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[5] =
-	{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
-		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_RED_SWITCH].workaroundPoints[5] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.sizeY / 4 );
 
 
 	//RIGHT_OF_SCALE
@@ -319,37 +339,46 @@ platform::platform()
 		m_platformStructure.structures[BLUE_SWITCH_ZONE].sizeX / 2 - 18;
 	m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
-	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[BOTTOM_CORRIDOR] =
-	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 
-		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 - 24};
-	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[TOP_CORRIDOR] =
-	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 
-		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 + 24};
+	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[BOTTOM_CORRIDOR][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - 20, 
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 - 24);
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[BOTTOM_CORRIDOR][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + 20,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 - 24);
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[TOP_CORRIDOR][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - 20, 
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 + 24);
+
+	m_platformStructure.zones[RIGHT_OF_SCALE].connectionPoints[TOP_CORRIDOR][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + 20,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 2 + 24);
 
 	m_platformStructure.zones[RIGHT_OF_SCALE].numberOfWorkaroundPoints = 6;
-	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[0] =
-	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX/2 - 18,
-		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX/2 - 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 );
 
-	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[1] =
-	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 - 18,
-		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y};
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y);
 
-	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[2] =
-	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 - 18,
-		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[2] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 - 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 );
 
-	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[3] =
-	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
-		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[3] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 );
 
-	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[4] =
-	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
-		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y};
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[4] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y);
 
-	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[5] =
-	{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
-		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_SCALE].workaroundPoints[5] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeX / 2 + 18,
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.y + m_platformStructure.zones[RIGHT_OF_SCALE].area.sizeY / 4 );
 
 	//RIGHT_OF_BLUE_SWITCH
 	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x = (20 + //cube pile size
@@ -364,32 +393,39 @@ platform::platform()
 		(m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x) * 2;
 	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY = m_platformStructure.structures[SCALE_ZONE].sizeY;
 
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[BOTTOM_CORRIDOR] = 
-		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 
-		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 - 24};
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[TOP_CORRIDOR] =
-		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 
-		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 + 24};
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[BOTTOM_CORRIDOR][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x - 20, 
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 - 24);
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[BOTTOM_CORRIDOR][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x + 20,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 - 24);
+
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[TOP_CORRIDOR][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x - 20, 
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 + 24);
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].connectionPoints[TOP_CORRIDOR][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x + 20,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 2 + 24);
 
 	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].numberOfWorkaroundPoints = 6;
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[0] =
-	{ m_platformStructure.eastWall - 18, 
-	  m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY /4};
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[1] =
-	{ m_platformStructure.eastWall - 18, m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y };
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[2] =
-	{ m_platformStructure.eastWall - 18,
-		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[0] = coordinateType(
+		m_platformStructure.eastWall - 18, 
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY /4);
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[1] = coordinateType(
+		m_platformStructure.eastWall - 18, m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y );
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[2] = coordinateType(
+		m_platformStructure.eastWall - 18,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 );
 
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[3] =
-	{ m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX  + 18,
-		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[4] =
-	{ m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX + 18,
-		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y };
-	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[5] =
-	{ m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX + 18,
-		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 };
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[3] = coordinateType(
+		m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX  + 18,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 );
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[4] = coordinateType(
+		m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX + 18,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y );
+	m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].workaroundPoints[5] = coordinateType(
+		m_platformStructure.eastWall - m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeX + 18,
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.y + m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.sizeY / 4 );
 
 	//bottom corridor
 	m_platformStructure.zones[BOTTOM_CORRIDOR].area.center.x =
@@ -406,24 +442,35 @@ platform::platform()
 		(m_platformStructure.zones[BOTTOM_CORRIDOR].area.center.y - m_platformStructure.southWall) * 2;
 
 
-	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[LEFT_OF_RED_SWITCH] = 
-		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24};
-	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_RED_SWITCH] =
-		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24};
-	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_SCALE] =
-		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24};
-	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_BLUE_SWITCH] =
-		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24};
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[LEFT_OF_RED_SWITCH][0] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - 20, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24);
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[LEFT_OF_RED_SWITCH][1] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + 20, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24);
+
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_RED_SWITCH][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - 20, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24);
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_RED_SWITCH][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + 20, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24);
+
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_SCALE][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - 20, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24);
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_SCALE][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + 20, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24);
+
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_BLUE_SWITCH][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x - 20, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24);
+	m_platformStructure.zones[BOTTOM_CORRIDOR].connectionPoints[RIGHT_OF_BLUE_SWITCH][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x + 20, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY - 24);
 
 	m_platformStructure.zones[BOTTOM_CORRIDOR].numberOfWorkaroundPoints = 8;
-	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[0] =
-		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, 18 };
-	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[1] =
-		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 18 };
-	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[2] =
-		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 18 };
-	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[3] =
-		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 18 };
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[0] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, 18 );
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 18 );
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[2] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 18 );
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[3] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 18 );
 
 	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[4] =
 		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
@@ -448,41 +495,56 @@ platform::platform()
 	m_platformStructure.zones[TOP_CORRIDOR].area.sizeY =
 		(m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.center.y) * 2;
 
-	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[LEFT_OF_RED_SWITCH] =
-		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, 
-		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24};
-	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_RED_SWITCH] =
-		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, 
-		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24};
-	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_SCALE] =
-		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, 
-		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24};
-	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_BLUE_SWITCH] =
-		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 
-		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24};
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[LEFT_OF_RED_SWITCH][0] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x - 20, 
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24);
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[LEFT_OF_RED_SWITCH][1] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x + 20,
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24);
+
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_RED_SWITCH][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x - 20, 
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24);
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_RED_SWITCH][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x + 20,
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24);
+
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_SCALE][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x - 20, 
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24);
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_SCALE][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x + 20,
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24);
+
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_BLUE_SWITCH][0] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x - 20, 
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24);
+	m_platformStructure.zones[TOP_CORRIDOR].connectionPoints[RIGHT_OF_BLUE_SWITCH][1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x + 20,
+		m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY + 24);
 
 	m_platformStructure.zones[TOP_CORRIDOR].numberOfWorkaroundPoints = 8;
-	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[0] =
-		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.northWall - 18 };
-	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[1] =
-		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, m_platformStructure.northWall - 18 };
-	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[2] =
-		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, m_platformStructure.northWall - 18 };
-	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[3] =
-		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, m_platformStructure.northWall - 18 };
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[0] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.northWall - 18 );
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[1] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, m_platformStructure.northWall - 18 );
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[2] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, m_platformStructure.northWall - 18 );
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[3] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, m_platformStructure.northWall - 18 );
 
-	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[4] =
-		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x,
-			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY };
-	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[5] =
-		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x,
-			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY };
-	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[6] =
-		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x,
-			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY };
-	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[7] =
-		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x,
-			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY };
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[4] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x,
+			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY );
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[5] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x,
+			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY );
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[6] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x,
+			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY );
+	m_platformStructure.zones[TOP_CORRIDOR].workaroundPoints[7] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x,
+			m_platformStructure.northWall - m_platformStructure.zones[TOP_CORRIDOR].area.sizeY );
 
 
 	for (int i = CUBE_BY_RED_SWITCH; i < CUBE_BY_BLUE_SWITCH; i++) {
@@ -968,7 +1030,7 @@ const pendingActionType *platform::getRobotAction(allianceType allianceIn, int r
 	return pRobots[robotIdxIn]->getPlannedAction();
 }
 
-int platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn)
+int platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn, bool *pNoactionCHangeFlag)
 {
 	int rvalue;
 	robot *const * pRobots;
@@ -979,6 +1041,11 @@ int platform::setRobotAction(searchActionType *pActionListInOut, allianceType al
 	}
 	else {
 		pRobots = m_pBlueRobots;
+	}
+
+	*pNoactionCHangeFlag = false;
+	if ((pRobots[robotIdx]->getPlannedAction()->actionType == pActionListInOut->actionType) && (pActionListInOut->actionType != INVALID_ACTION)) {
+		*pNoactionCHangeFlag = true;
 	}
 
 	rvalue = pRobots[robotIdx]->takeAction(pActionListInOut->actionType, pActionListInOut->actionDonePos, m_timeInSec, indexIn);
@@ -2017,6 +2084,7 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 	robotMoveZoneType targetZone;
 	robotMoveZoneType connectionZoneIdx;
 	coordinateType connectionPoint;
+	coordinateType alternativeConnectionPoint;
 
 	//initialize output
 	pPathOut->initialSpeed = 0;
@@ -2074,11 +2142,16 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 			if (connectionZoneIdx == INVALID_ZONE) {
 				//replace it with the target zone
 				connectionZoneIdx = targetZone;
-				connectionPoint = m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx];
 				isSearchDoneFlag = true;
 			}
+
+			if (movingObject.center.x > m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx][0].x + 10) {
+				connectionPoint = m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx][1];
+				alternativeConnectionPoint = m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx][0];
+			}
 			else {
-				connectionPoint = m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx];
+				connectionPoint = m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx][0];
+				alternativeConnectionPoint = m_platformStructure.zones[startZone].connectionPoints[connectionZoneIdx][1];
 			}
 
 			if (true == foundPathWithinZone(&movingObject, connectionPoint, &m_platformStructure.zones[startZone], pPathOut)) {
@@ -2089,7 +2162,16 @@ bool platform::findAvailablePath(const rectangleObjectType *pMovingObjectIn, coo
 					break;
 				}
 			}
-			else {
+			else if (true == foundPathWithinZone(&movingObject, alternativeConnectionPoint, &m_platformStructure.zones[startZone], pPathOut)) {
+				movingObject.center = alternativeConnectionPoint;
+				startZone = connectionZoneIdx;
+
+				if (isSearchDoneFlag) {
+					break;
+				}
+			}
+			else
+				{
 				//search failed, give up tis path
 				isSearchFailedFlag = true;
 				isSearchDoneFlag = true;
@@ -2330,7 +2412,10 @@ double platform::estimatePathDistance(coordinateType startIn, robotMoveZoneType 
 	startPoint = startIn;
 
 	while (connectionZoneIdx != INVALID_ZONE) {
-		connectionPoint = m_platformStructure.zones[startZoneIdx].connectionPoints[connectionZoneIdx];
+		connectionPoint = findMiddlePoint(
+			m_platformStructure.zones[startZoneIdx].connectionPoints[connectionZoneIdx][0],
+			m_platformStructure.zones[startZoneIdx].connectionPoints[connectionZoneIdx][1]);
+
 		distance += calculateDistance(connectionPoint, startPoint);
 
 		startPoint = connectionPoint;
@@ -2340,8 +2425,12 @@ double platform::estimatePathDistance(coordinateType startIn, robotMoveZoneType 
 	}
 
 	//from the last connect zone to the target zone
-	distance += calculateDistance(m_platformStructure.zones[startZoneIdx].connectionPoints[targetZoneIn], startPoint);
-	distance += calculateDistance(m_platformStructure.zones[startZoneIdx].connectionPoints[targetZoneIn], targetIn);
+	connectionPoint = findMiddlePoint(
+		m_platformStructure.zones[startZoneIdx].connectionPoints[targetZoneIn][0],
+		m_platformStructure.zones[startZoneIdx].connectionPoints[targetZoneIn][1]);
+
+	distance += calculateDistance(connectionPoint, startPoint);
+	distance += calculateDistance(connectionPoint, targetIn);
 	return distance;
 }
 
@@ -2405,7 +2494,6 @@ bool platform::foundPathWithinZone(const rectangleObjectType *pRobotIn, coordina
 	if (turnNumber >= MAX_TURNS_ON_PATH) {
 		return false;
 	}
-
 
 	memcpy(&startPos, pRobotIn, sizeof(rectangleObjectType));
 	memcpy(&searchPos, pRobotIn, sizeof(rectangleObjectType));

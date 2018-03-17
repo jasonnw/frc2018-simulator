@@ -73,6 +73,7 @@ int main(int argc, char** argv)
 	FILE *pBlueActionLog = NULL;
 	errno_t errCode;
 	double earliestFinishTime;
+	bool noActionChangeFlag;
 
 	if (argc != 3) {
 		printf("usage: simulator [redActionLogFileName blueActionLogFileName]\n");
@@ -134,7 +135,7 @@ int main(int argc, char** argv)
 		for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 
 			if ((redAction[i].actionType != INVALID_ACTION) && (redAction[i].actionType != RED_ACTION_NONE)) {
-				gamePlatform.setRobotAction(&redAction[i], ALLIANCE_RED, actionCounter);
+				gamePlatform.setRobotAction(&redAction[i], ALLIANCE_RED, actionCounter, &noActionChangeFlag);
 				newActionCount++;
 
 				pAction = gamePlatform.getRobotAction(ALLIANCE_RED, i);
@@ -147,7 +148,7 @@ int main(int argc, char** argv)
 			}
 
 			if ((blueAction[i].actionType != INVALID_ACTION) && (blueAction[i].actionType != BLUE_ACTION_NONE)) {
-				gamePlatform.setRobotAction(&blueAction[i], ALLIANCE_BLUE, actionCounter);
+				gamePlatform.setRobotAction(&blueAction[i], ALLIANCE_BLUE, actionCounter, &noActionChangeFlag);
 				newActionCount++;
 
 				pAction = gamePlatform.getRobotAction(ALLIANCE_BLUE, i);

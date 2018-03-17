@@ -173,6 +173,7 @@ typedef struct platformStateType {
 
 //AI configuration
 const int CUBE_REWARD_SCORE = 3;
+const int EXTRA_SCORE_FOR_NO_ACTION_CHANGE = 10;
 const int MAX_WALL_TO_WALL_MOVES = 4;
 const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 8;
 //maximum turning points on the path
@@ -227,9 +228,9 @@ const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
 };
 const robotConfigurationType BLUE_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.3, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.3, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.3, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 
 //initialize game setting after auto session is done

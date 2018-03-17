@@ -41,7 +41,7 @@ typedef struct zonePathType {
 
 typedef struct zoneType {
 	rectangleObjectType area;
-	coordinateType connectionPoints[NUM_OF_ZONES]; 
+	coordinateType connectionPoints[NUM_OF_ZONES][2]; 
 	coordinateType workaroundPoints[8];   //intermediate points to around blocking objects
 	int numberOfWorkaroundPoints;
 }zoneType;
@@ -285,7 +285,7 @@ public:
 
 	void removeCube(int cubeIdxIn) { m_cubes[cubeIdxIn].availbleFlag = false; }
 
-	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn);
+	int setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn, bool *pNoactionCHangeFlag);
 	void forceRobotAction(const pendingActionType *pPlannedActionIn, coordinateType startPosIn, int cubeIdxIn,
 		allianceType allianceIn, int robotIdxIn, int indexIn);
 
@@ -356,6 +356,14 @@ protected:
 		else {
 			return false;
 		}
+	}
+
+	static coordinateType findMiddlePoint(coordinateType point1In, coordinateType point2In)
+	{
+		coordinateType middlePoint;
+		middlePoint.x = (point1In.x + point2In.x) / 2;
+		middlePoint.y = (point1In.x + point2In.y) / 2;
+		return middlePoint;
 	}
 
 	bool tryPickOneCube(coordinateType robotPosIn, coordinateType cubePosIn, bool cubeAvailableFlagIn);

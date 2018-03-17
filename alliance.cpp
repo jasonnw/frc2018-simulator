@@ -471,14 +471,15 @@ void alliance::findBestAction(int actionIndexIn)
 			if (currentTime < COMPETITION_END_TIME) {
 				//find a random connection point for the robot
 				int zoneIdx = (rand() * NUM_OF_ZONES) / (RAND_MAX);
+				int connectionIdx = (rand() * NUM_OF_ZONES) & 0x01;
 				const zoneType *pZone;
 				if (zoneIdx >= NUM_OF_ZONES) {
 					zoneIdx = NUM_OF_ZONES - 1;
 				}
 				pZone = m_testPlatForm.getZone(zoneIdx);
 				for (int j = 0; j < NUM_OF_ZONES; j++) {
-					if (pZone->connectionPoints[j].x != 0) {
-						m_bestAction[i].actionDonePos = pZone->connectionPoints[j];
+					if ((pZone->connectionPoints[j][connectionIdx].x != 0) && (pZone->connectionPoints[j][connectionIdx].y != 0)) {
+						m_bestAction[i].actionDonePos = pZone->connectionPoints[j][connectionIdx];
 						break; //find a valid workaround point
 					}
 				}
@@ -575,8 +576,10 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 	int executedActionCount;
 	bool firstActionFlag[NUMBER_OF_ROBOTS];
 	int score, ranking, finalRedScore, finalBlueScore;
+	int extraNoActionChangePoints;
 	double earliestFinishTime;
 	bool isAllNoneActionFlag;
+	bool noActionChangeFlag;
 
 	*pBranchLengthOut = 0;
 
@@ -588,6 +591,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 		previousActionIndex = exeIdx;
 		pendingIdx = 0;
 		isAllNoneActionFlag = true;
+		extraNoActionChangePoints = 0;
 		while (m_pSearchList[previousActionIndex].previousIndex != INVALID_IDX) {
 
 			if (pendingIdx >= MAXIMUM_PENDING_ACTIONS + NUMBER_OF_ROBOTS) {
@@ -656,9 +660,16 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 					earliestIndex = actionChain[chainIndex].actionIndex;
 					lastFinishTime = m_pSearchList[earliestIndex].projectedFinishTime;
 
-					if (0 != m_testPlatForm.setRobotAction(&m_pSearchList[earliestIndex], m_allianceType, actionIndexIn)) {
+					if (0 != m_testPlatForm.setRobotAction(&m_pSearchList[earliestIndex], m_allianceType, actionIndexIn, &noActionChangeFlag)) {
 						isActionRejectedFlag = true;
 					}
+					else {
+						if (noActionChangeFlag) {
+							extraNoActionChangePoints += EXTRA_SCORE_FOR_NO_ACTION_CHANGE;
+						}
+					}
+
+
 					executedActionCount++;
 					assignedActionFlag = true;
 					firstActionFlag[robot] = false; //newly assigned action cannot be interrupted
@@ -704,6 +715,8 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 				score = finalBlueScore - finalRedScore;
 				ranking = m_testPlatForm.getBlueRanking();
 			}
+
+			score += extraNoActionChangePoints;
 		}
 
 		//save the final score with the last pending action entry
