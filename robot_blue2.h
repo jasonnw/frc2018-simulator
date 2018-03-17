@@ -39,6 +39,7 @@ public:
 		}
 
 		//the first priority is lifting
+		initTaskToNoAction(pActionOut);
 		if (currentTime > COMPETITION_END_TIME) {
 			if ((rampRobotDestination.x == rampRobotCurrentPosition.x) &&
 				(rampRobotDestination.y == rampRobotCurrentPosition.y)) {
@@ -58,6 +59,7 @@ public:
 		}
 
 		//second priority is the previous task
+		initTaskToNoAction(pActionOut);
 		pPlannedAction = getPlannedAction();
 		if (pPlannedAction->actionType != INVALID_ACTION) {
 			//robot still busy, don't create a new task
@@ -81,6 +83,7 @@ public:
 		}
 
 		//fourth priority action, boost vault
+		initTaskToNoAction(pActionOut);
 		if (pPlatformState->boostBlueBlockCount < 3) {
 			pActionOut->actionType = CUBE_BLUE_BOOST_VAULT;
 			//check if the action is feasible
@@ -104,6 +107,7 @@ public:
 
 		//fifth priority action, block opponent robots
 		//at the center of left switch zone
+		initTaskToNoAction(pActionOut);
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
 		if (robotPosition.y <= 200) {
 			pActionOut->actionDonePos = coordinateType( 60, 250 );

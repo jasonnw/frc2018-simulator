@@ -50,6 +50,7 @@ public:
 		}
 
 		//second priority is the previous task
+		initTaskToNoAction(pActionOut);
 		pPlannedAction = getPlannedAction();
 		if (pPlannedAction->actionType != INVALID_ACTION) {
 			//robot still busy, don't create a new task
@@ -73,6 +74,7 @@ public:
 		}
 
 		//fourth priority action, force vault
+		initTaskToNoAction(pActionOut);
 		if (pPlatformState->forceBlueBlockCount < 3) {
 			pActionOut->actionType = CUBE_BLUE_FORCE_VAULT;
 			//check if the action is feasible
@@ -95,6 +97,7 @@ public:
 
 		//fifth priority action, block opponent robots
 		//at the top of left switch zone
+		initTaskToNoAction(pActionOut);
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
 		if (robotPosition.y <= 180) {
 			pActionOut->actionDonePos = coordinateType( 60, 280 );

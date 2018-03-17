@@ -49,6 +49,7 @@ public:
 		}
 
 		//the second priority is the previous task
+		initTaskToNoAction(pActionOut);
 		pPlannedAction = getPlannedAction();
 		if (pPlannedAction->actionType != INVALID_ACTION) {
 			//robot still busy, don't create a new task
@@ -72,6 +73,7 @@ public:
 		}
 
 		//fourth priority action, lift vault
+		initTaskToNoAction(pActionOut);
 		if (pPlatformState->liftBlueBlockCount < 3) {
 			pActionOut->actionType = CUBE_BLUE_LIFT_VAULT;
 			//check if the action is feasible
@@ -89,6 +91,7 @@ public:
 		m_idleCount++;
 
 		//stay close to offense switch for quick response
+		initTaskToNoAction(pActionOut);
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
 		pActionOut->actionDonePos = coordinateType(600, 250 );
 
