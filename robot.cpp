@@ -922,7 +922,7 @@ void robot::initTaskToNoAction(searchActionType * pActionOut) const
 	pActionOut->previousIndex = INVALID_IDX;
 	pActionOut->projectedFinalScore = 0;
 	pActionOut->robotIndex = m_robotIndex;
-	pActionOut->actionDonePos = { 0, 0 };
+	pActionOut->actionDonePos = coordinateType((double) 0, (double) 0);
 	pActionOut->actionDoneWithCube = false;
 }
 

@@ -17,6 +17,15 @@ const int INVALID_IDX = INT32_MAX;
 typedef struct coordinateType {
 	double x;
 	double y;
+public:
+	coordinateType(void)
+	{
+		x = 0; y = 0;
+	}
+	coordinateType(double xIn, double yIn)
+	{
+		x = xIn; y = yIn;
+	}
 }coordinateType;
 
 typedef struct rectangleObjectType {

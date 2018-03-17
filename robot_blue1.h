@@ -17,23 +17,18 @@ public:
 
 	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut)
 	{
-		double currentTime = m_pPlatform->getTime();
-
-		const platformStateType *pPlatformState = m_pPlatform->getState();
-		const robotStateType *pRobotState = getState();
 		const pendingActionType *pPlannedAction;
-		bool robotHasCubeFlag = pRobotState->cubeIdx == INVALID_IDX ? false : true;
+		double currentTime = pPlatformInOut->getTime();
+		const platformStateType *pPlatformState = pPlatformInOut->getState();
+		coordinateType robotPosition = pPlatformInOut->getRobotPos(ALLIANCE_BLUE, m_robotIndex);
 		coordinateType rampRobotDestination = pPlatformInOut->getBlueLiftZonePosition();
 
+		//initialize the default output as NO ACTION
 		initTaskToNoAction(pActionOut);
-		if (pPlatformInOut->isRobotLifted(m_allianceType, m_robotIndex)) {
-			return;
-		}
 
-		//the first priority is lifting other robots
 		if (currentTime > COMPETITION_END_TIME) {
-			if ((pRobotState->pos.center.y == rampRobotDestination.y) &&
-				(pRobotState->pos.center.x == rampRobotDestination.x)) {
+			if ((robotPosition.y == rampRobotDestination.y) &&
+				(robotPosition.x == rampRobotDestination.x)) {
 				//stay at this position and wait for other robots to climb
 				pActionOut->actionType = INVALID_ACTION;
 				return;

@@ -126,10 +126,10 @@ public:
 	{
 		m_allianceType = allianceTypeIn;
 		if (m_allianceType == ALLIANCE_RED) {
-			m_state.pos.color = { 0, 0, 180 };
+			m_state.pos.color = cv::Scalar(0, 0, 180);
 		}
 		else {
-			m_state.pos.color = { 180, 0, 0 };
+			m_state.pos.color = cv::Scalar(180, 0, 0);
 		}
 	}
 

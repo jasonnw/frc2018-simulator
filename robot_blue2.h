@@ -18,11 +18,10 @@ public:
 
 	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut)
 	{
+		const pendingActionType *pPlannedAction;
 		double currentTime = pPlatformInOut->getTime();
 		const platformStateType *pPlatformState = pPlatformInOut->getState();
-		const robotStateType *pRobotState = getState();
-		const pendingActionType *pPlannedAction;
-		bool robotHasCubeFlag = pRobotState->cubeIdx == INVALID_IDX ? false : true;
+		coordinateType robotPosition = pPlatformInOut->getRobotPos(ALLIANCE_BLUE, m_robotIndex);
 		coordinateType rampRobotDestination = pPlatformInOut->getBlueLiftZonePosition();
 		coordinateType rampRobotCurrentPosition = pPlatformInOut->getRobotPos(m_allianceType, 1);
 
@@ -106,7 +105,7 @@ public:
 		//fifth priority action, block opponent robots
 		//at the center of left switch zone
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
-		if (pRobotState->pos.center.y <= 200) {
+		if (robotPosition.y <= 200) {
 			pActionOut->actionDonePos = { 60, 250 };
 		}
 		else {
