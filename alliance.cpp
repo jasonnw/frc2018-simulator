@@ -493,10 +493,19 @@ void alliance::findBestAction(int actionIndexIn)
 			m_testPlatForm = m_referencePlatForm;
 			m_pRobots[i]->getNextAction(&m_testPlatForm, &m_bestAction[i]);
 
-			//force no action after the game is over
-			if (currentTime >= CLIMB_END_TIME - MINMUM_TIME_RESOLUTION) {
-				m_bestAction[i].actionType = INVALID_ACTION;
-				m_bestAction[i].actionDonePos = { 0, 0 };
+			if (m_bestAction[i].actionType != INVALID_ACTION) {
+				//recover test platform because the previous function has write permission of the object
+				m_testPlatForm = m_referencePlatForm;
+				if (!m_pRobots[i]->checkIfActionFeasible(ALLIANCE_BLUE, &m_testPlatForm, &m_bestAction[i])) {
+					printf("ERROR, the action (%d) made for robot %d is not feasible\n", m_bestAction[i].actionType, i);
+					m_bestAction[i].actionType = INVALID_ACTION;
+					m_bestAction[i].actionDonePos = { 0, 0 };
+				}
+				if (currentTime >= CLIMB_END_TIME - MINMUM_TIME_RESOLUTION) {
+					//force no action after the game is over 
+					m_bestAction[i].actionType = INVALID_ACTION;
+					m_bestAction[i].actionDonePos = { 0, 0 };
+				}
 			}
 		}
 	}

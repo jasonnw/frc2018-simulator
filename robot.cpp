@@ -926,7 +926,7 @@ void robot::initTaskToNoAction(searchActionType * pActionOut) const
 	pActionOut->actionDoneWithCube = false;
 }
 
-bool robot::checkIfActionFeasible(coordinateType robotPosIn, bool hasCubeFlagIn, allianceType allianceIn,
+bool robot::checkIfActionFeasible(allianceType allianceIn,
 	platform *pPlatformInOut, searchActionType * pActionInOut) const
 {
 	double currentTime = pPlatformInOut->getTime();
@@ -934,15 +934,16 @@ bool robot::checkIfActionFeasible(coordinateType robotPosIn, bool hasCubeFlagIn,
 	coordinateType newPosition;
 	bool dontInterruptFlag;
 	int updateActionResult;
+	bool hasCubeFlag = hasCube();
 
 	finishTime = estimateActionDelayInSec(
 		pActionInOut->actionType, //expected action
-		currentTime,            //new action start time
-		true,                   //start a new action
-		robotPosIn, //robot position before the action start
-		hasCubeFlagIn,        //already has a cube loaded before the action start
-		&newPosition,            //the robot position after the action done
-		&dontInterruptFlag);     //output if the current pending action is interrupted flag
+		currentTime,              //new action start time
+		true,                     //start a new action
+		m_state.pos.center,       //robot position before the action start
+		hasCubeFlag,              //already has a cube loaded before the action start
+		&newPosition,             //the robot position after the action done
+		&dontInterruptFlag);      //output if the current pending action is interrupted flag
 
 	pActionInOut->projectedFinishTime = currentTime + finishTime;
 

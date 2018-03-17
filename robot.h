@@ -190,6 +190,8 @@ public:
 
 	actionResultType moveToNextTime(double timeIn);
 
+	bool checkIfActionFeasible(allianceType allianceIn,	platform *pPlatformInOut, searchActionType * pActionInOut) const;
+
 protected:
 	int combineTwoPathes(const robotPathType *pPath1In, const robotPathType *pPath2In, robotPathType *pPathOut) const;
 	double calculateDelayOnPath(const coordinateType *pStartIn, const robotPathType *pPathIn) const;
@@ -210,8 +212,5 @@ protected:
 
 	//init action plan data structure
 	void initTaskToNoAction(searchActionType * pActionOut) const;
-	bool checkIfActionFeasible(coordinateType robotPosIn, bool hasCubeFlagIn, allianceType allianceIn,
-		platform *pPlatformInOut, searchActionType * pActionInOut) const;
-
 };
 

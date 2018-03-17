@@ -48,8 +48,6 @@ public:
 				pActionOut->actionType = LIFT_ONE_BLUE_ROBOT;
 				//check if the action is feasible
 				if (checkIfActionFeasible(
-					pRobotState->pos.center,  //current root position
-					robotHasCubeFlag,         //cube is already loaded flag
 					ALLIANCE_BLUE,            //alliance name
 					pPlatformInOut,           //platform object
 					pActionOut)) {            //output action plan
@@ -74,8 +72,6 @@ public:
 			pActionOut->actionType = CUBE_BLUE_DEFENSE_SWITCH;
 			//check if the action is feasible
 			if (checkIfActionFeasible(
-				pRobotState->pos.center,  //current root position
-				robotHasCubeFlag,         //cube is already loaded flag
 				ALLIANCE_BLUE,            //alliance name
 				pPlatformInOut,           //platform object
 				pActionOut)) {            //output action plan
@@ -90,8 +86,6 @@ public:
 			pActionOut->actionType = CUBE_BLUE_BOOST_VAULT;
 			//check if the action is feasible
 			if (checkIfActionFeasible(
-				pRobotState->pos.center,  //current root position
-				robotHasCubeFlag,         //cube is already loaded flag
 				ALLIANCE_BLUE,            //alliance name
 				pPlatformInOut,           //platform object
 				pActionOut)) {            //output action plan
