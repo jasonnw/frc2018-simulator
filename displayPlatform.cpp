@@ -10,19 +10,7 @@ const double PIXELS_PER_INCH = (double) 1.9;
 const double FRAME_DELAY_IN_MS = 16;
 
 #ifndef _MSC_VER
-//missing definitions of MS visual studio unique code
-typedef int errno_t;
-#define sprintf_s	sprintf
-static errno_t fopen_s(FILE** pFile, const char *filename, const char *mode)
-{
-	*pFile = fopen(filename, mode);
-	if (*pFile == NULL) {
-		return -1;
-	}
-	else {
-		return 0;
-	}
-}
+
 #endif
 
 
@@ -31,7 +19,7 @@ displayPlatform::displayPlatform()
 	int errorCode;
 	m_pQueue = new messageQueue <actionMessageType> (MESSAGE_QUEUE_DEPTH, &errorCode);
 	m_isDisplayPlatform = true;
-	m_wallColor = { 128, 128, 128 };
+	m_wallColor = cv::Scalar( 128, 128, 128 );
 
 
 	if (m_pQueue != NULL) {
@@ -133,8 +121,8 @@ int displayPlatform::updatePlatform(int actionIndexIn)
 		logFinalRanking();
 
 		updateField();
-		gameOverDisplay.center = { 70, 180 };
-		drawString(&gameOverDisplay, "Game Over, Press Any Key", 3, { 128, 128, 128 });
+		gameOverDisplay.center = coordinateType( 70, 180 );
+		drawString(&gameOverDisplay, "Game Over, Press Any Key", 3, cv::Scalar(128, 128, 128));
 		drawPlatform(0);
 
 		return 1;
@@ -179,13 +167,13 @@ Point displayPlatform::coordinateToPoint(double xIn, double yIn)
 
 	x = (int) floor(ORIGION_POINT_X + (xIn * PIXELS_PER_INCH) + 0.5);
 	y = (int) floor(ORIGION_POINT_Y - (yIn * PIXELS_PER_INCH) + 0.5);
-	result = { x, y};
+	result = Point( x, y);
 	return result;
 }
 
 void displayPlatform::drawPlatform(int delayIn)
 {
-	imshow("FRC 2018 Game Simulation v0.1", *m_pPlatform);
+	imshow("FRC 2018 Game Simulation v0.1.1", *m_pPlatform);
 
 	waitKey(delayIn);
 }
@@ -203,11 +191,11 @@ void displayPlatform::drawObject(const rectangleObjectType *pObjectIn, bool high
 	if (hightLightFlagIn) {
 		point1 = coordinateToPoint(pObjectIn->center.x + pObjectIn->sizeX / 2 + 2, pObjectIn->center.y + pObjectIn->sizeY / 2 + 2);
 		point2 = coordinateToPoint(pObjectIn->center.x - pObjectIn->sizeX / 2 - 2, pObjectIn->center.y - pObjectIn->sizeY / 2 - 2);
-		rectangle(*m_pPlatform, point1, point2, { 200, 200, 200 }, 4, 8, 0);
+		rectangle(*m_pPlatform, point1, point2, cv::Scalar(200, 200, 200 ), 4, 8, 0);
 	}
 }
 
-void displayPlatform::drawInteger(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
+void displayPlatform::drawInteger(const rectangleObjectType *pObjectIn, int numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = cv::Scalar(200, 200, 200))
 {
 	Point point1;
 	char robotIdxStr[128];
@@ -217,7 +205,7 @@ void displayPlatform::drawInteger(const rectangleObjectType *pObjectIn, int numb
 	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, colorIn, 1, CV_AA);
 }
 
-void displayPlatform::drawString(const rectangleObjectType *pObjectIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
+void displayPlatform::drawString(const rectangleObjectType *pObjectIn, const char *strIn, double sizeIn, cv::Scalar colorIn = cv::Scalar( 200, 200, 200 ))
 {
 	Point point1;
 	char robotIdxStr[128];
@@ -227,7 +215,7 @@ void displayPlatform::drawString(const rectangleObjectType *pObjectIn, const cha
 	putText(*m_pPlatform, robotIdxStr, point1, FONT_HERSHEY_COMPLEX_SMALL, sizeIn, colorIn, 1, CV_AA);
 }
 
-void displayPlatform::drawFloat(const rectangleObjectType *pObjectIn, double numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = { 200, 200, 200 })
+void displayPlatform::drawFloat(const rectangleObjectType *pObjectIn, double numberIn, const char *strIn, double sizeIn, cv::Scalar colorIn = cv::Scalar(200, 200, 200))
 {
 	Point point1;
 	char robotIdxStr[128];
@@ -407,28 +395,28 @@ void displayPlatform::updateField(void)
 	redScoreBoard.sizeX = 80;
 	redScoreBoard.sizeY = 60;
 
-	blueScoreBoard.center = { 580, 390 };
-	redScoreBoard.center = { 30, 390 };
-	drawInteger(&blueScoreBoard, getBlueRanking(), "Rank: ", 1, { 200, 30, 30 });
-	drawInteger(&redScoreBoard, getRedRanking(), "Rank: ", 1, { 30, 30, 200 });
+	blueScoreBoard.center = coordinateType(580, 390);
+	redScoreBoard.center = coordinateType(30, 390);
+	drawInteger(&blueScoreBoard, getBlueRanking(), "Rank: ", 1, cv::Scalar( 200, 30, 30 ));
+	drawInteger(&redScoreBoard, getRedRanking(), "Rank: ", 1, cv::Scalar( 30, 30, 200 ));
 
 	//display time
-	timeBoard.center = { 260, 400 };
+	timeBoard.center = coordinateType(260, 400);
 	timeBoard.sizeX = 80;
 	timeBoard.sizeY = 60;
 	drawFloat(&timeBoard, getTime(), "Time: ", 1.5);
 
 	//display scores
-	blueScoreBoard.center = { 580, 400 };
-	redScoreBoard.center = { 30, 400 };
+	blueScoreBoard.center = coordinateType( 580, 400);
+	redScoreBoard.center = coordinateType( 30, 400);
 
-	drawInteger(&blueScoreBoard, (int)getBlueScore(), "", 2.0, { 200, 30, 30 });
-	drawInteger(&redScoreBoard, (int)getRedScore(), "", 2.0, { 30, 30, 200 });
+	drawInteger(&blueScoreBoard, (int)getBlueScore(), "", 2.0, cv::Scalar( 200, 30, 30 ));
+	drawInteger(&redScoreBoard, (int)getRedScore(), "", 2.0, cv::Scalar( 30, 30, 200 ));
 
-	blueScoreBoard.center = { 450, 405 };
-	redScoreBoard.center = { 110, 405 };
-	drawInteger(&blueScoreBoard, m_state.boostBlueBlockCount, "Blue Boost: ", 1.0, { 200, 30, 30 });
-	drawInteger(&redScoreBoard, m_state.boostRedBlockCount, "Red Boost: ", 1.0, { 30, 30, 200 });
+	blueScoreBoard.center = coordinateType( 450, 405);
+	redScoreBoard.center = coordinateType( 110, 405);
+	drawInteger(&blueScoreBoard, m_state.boostBlueBlockCount, "Blue Boost: ", 1.0, cv::Scalar(200, 30, 30 ));
+	drawInteger(&redScoreBoard, m_state.boostRedBlockCount, "Red Boost: ", 1.0, cv::Scalar( 30, 30, 200 ));
 
 	if ((m_state.blueBoostButton >= BUTTON_PUSH) && (m_state.blueBoostButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = CV_FILLED;
@@ -436,7 +424,7 @@ void displayPlatform::updateField(void)
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 434, 400 }, buttonState, { 200, 30, 30 }, 10);
+	drawButton(coordinateType(434, 400), buttonState, cv::Scalar( 200, 30, 30), 10);
 
 	if ((m_state.redBoostButton >= BUTTON_PUSH) && (m_state.redBoostButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = CV_FILLED;
@@ -444,12 +432,12 @@ void displayPlatform::updateField(void)
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 94, 400 }, buttonState, { 30, 30, 200}, 10);
+	drawButton(coordinateType(94, 400), buttonState, cv::Scalar( 30, 30, 200), 10);
 
-	blueScoreBoard.center = { 450, 390 };
-	redScoreBoard.center = { 110, 390 };
-	drawInteger(&blueScoreBoard, m_state.forceBlueBlockCount, "Blue Force: ", 1.0, { 200, 30, 30 });
-	drawInteger(&redScoreBoard, m_state.forceRedBlockCount, "Red Force: ", 1.0, { 30, 30, 200 });
+	blueScoreBoard.center = coordinateType( 450, 390 );
+	redScoreBoard.center = coordinateType( 110, 390 );
+	drawInteger(&blueScoreBoard, m_state.forceBlueBlockCount, "Blue Force: ", 1.0, cv::Scalar( 200, 30, 30 ));
+	drawInteger(&redScoreBoard, m_state.forceRedBlockCount, "Red Force: ", 1.0, cv::Scalar( 30, 30, 200 ));
 
 	if ((m_state.blueForceButton >= BUTTON_PUSH) && (m_state.blueForceButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = CV_FILLED;
@@ -457,7 +445,7 @@ void displayPlatform::updateField(void)
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 434, 385 }, buttonState, { 200, 30, 30 }, 10);
+	drawButton(coordinateType(434, 385), buttonState, cv::Scalar( 200, 30, 30), 10);
 
 	if ((m_state.redForceButton >= BUTTON_PUSH) && (m_state.redForceButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = CV_FILLED;
@@ -465,12 +453,12 @@ void displayPlatform::updateField(void)
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 94, 385 }, buttonState, { 30, 30, 200 }, 10);
+	drawButton(coordinateType(94, 385), buttonState, cv::Scalar( 30, 30, 200 ), 10);
 
-	blueScoreBoard.center = { 450, 375 };
-	redScoreBoard.center = { 110, 375 };
-	drawInteger(&blueScoreBoard, m_state.liftBlueBlockCount, "Blue Lift: ", 1.0, { 200, 30, 30 });
-	drawInteger(&redScoreBoard, m_state.liftRedBlockCount, "Red Lift: ", 1.0, { 30, 30, 200 });
+	blueScoreBoard.center = coordinateType( 450, 375 );
+	redScoreBoard.center = coordinateType(110, 375 );
+	drawInteger(&blueScoreBoard, m_state.liftBlueBlockCount, "Blue Lift: ", 1.0, cv::Scalar(200, 30, 30 ));
+	drawInteger(&redScoreBoard, m_state.liftRedBlockCount, "Red Lift: ", 1.0, cv::Scalar(30, 30, 200 ));
 
 	if ((m_state.blueLiftButton >= BUTTON_PUSH) && (m_state.blueLiftButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = CV_FILLED;
@@ -478,7 +466,7 @@ void displayPlatform::updateField(void)
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 434, 370 }, buttonState, { 200, 30, 30 }, 10);
+	drawButton(coordinateType(434, 370), buttonState, cv::Scalar(200, 30, 30), 10);
 
 	if ((m_state.redLiftButton >= BUTTON_PUSH) && (m_state.redLiftButton < BUTTON_PUSH_OVER_10SEC)) {
 		buttonState = CV_FILLED;
@@ -486,7 +474,7 @@ void displayPlatform::updateField(void)
 	else {
 		buttonState = 1;
 	}
-	drawButton({ 94, 370 }, buttonState, { 30, 30, 200 }, 10);
+	drawButton(coordinateType(94, 370), buttonState, cv::Scalar(30, 30, 200), 10);
 
 	//display owners
 	cv::Scalar colorNoOwner(128, 180, 128);

@@ -97,13 +97,13 @@ public:
 		//at the top of left switch zone
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
 		if (robotPosition.y <= 180) {
-			pActionOut->actionDonePos = { 60, 280 };
+			pActionOut->actionDonePos = coordinateType( 60, 280 );
 		}
 		else if (robotPosition.y >= 280) {
-			pActionOut->actionDonePos = { 60, 50 };
+			pActionOut->actionDonePos = coordinateType( 60, 50 );
 		}
 		else {
-			pActionOut->actionDonePos = { 60, 180 };
+			pActionOut->actionDonePos = coordinateType(60, 180 );
 		}
 
 		return;

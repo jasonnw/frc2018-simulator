@@ -100,7 +100,6 @@ void alliance::findBestAction(int actionIndexIn)
 	double bestFinishTime;
 	double finishTime;
 	double previousFinishTime;
-	double startTime;
 	double bestStartTime;
 
 	int bestFinishRobotIdx;
@@ -207,7 +206,6 @@ void alliance::findBestAction(int actionIndexIn)
 					interruptFlag = true;
 					actionDonePos = m_pRobots[robot]->getPosition()->center;
 					actionDoneWithCube = m_pRobots[robot]->hasCube();
-					startTime = currentTime;
 
 					if (m_referencePlatForm.isRobotLifted(m_allianceType, robot) &&
 						(isRealActionFlag)) {
@@ -228,7 +226,6 @@ void alliance::findBestAction(int actionIndexIn)
 								}
 								actionDonePos = m_pSearchList[previousActionIndex].actionDonePos;
 								actionDoneWithCube = m_pSearchList[previousActionIndex].actionDoneWithCube;
-								startTime = m_pSearchList[previousActionIndex].projectedFinishTime;
 								interruptFlag = false; //wait the current action done before start the next action
 								break; //the most recent finish time is the time to start the next action
 							}
@@ -237,7 +234,7 @@ void alliance::findBestAction(int actionIndexIn)
 						} while (previousActionIndex != INVALID_IDX);
 
 						if (previousFinishTime == 0) {
-							startTime = previousFinishTime = currentTime;
+							previousFinishTime = currentTime;
 						}
 					}
 
@@ -336,7 +333,6 @@ void alliance::findBestAction(int actionIndexIn)
 		interruptFlag = true;
 		actionDonePos = m_pRobots[robot]->getPosition()->center;
 		actionDoneWithCube = m_pRobots[robot]->hasCube();
-		startTime = currentTime;
 
 		do {
 			//the previous action finish time
@@ -363,7 +359,7 @@ void alliance::findBestAction(int actionIndexIn)
 			continue; //a lifting action is planned, no action for this robot
 		}
 		if (previousFinishTime == 0) {
-			startTime = previousFinishTime = currentTime;
+			previousFinishTime = currentTime;
 		}
 		else {
 			continue; //the robot already has a planned action, not an idle robot.
@@ -486,7 +482,7 @@ void alliance::findBestAction(int actionIndexIn)
 			}
 			else {
 				m_bestAction[i].actionType = INVALID_ACTION;
-				m_bestAction[i].actionDonePos = { 0, 0 };
+				m_bestAction[i].actionDonePos = coordinateType( 0, 0 );
 			}
 		}
 		else {
@@ -498,14 +494,17 @@ void alliance::findBestAction(int actionIndexIn)
 				//recover test platform because the previous function has write permission of the object
 				m_testPlatForm = m_referencePlatForm;
 				if (!m_pRobots[i]->checkIfActionFeasible(ALLIANCE_BLUE, &m_testPlatForm, &m_bestAction[i])) {
-					printf("ERROR, the action (%d) made for robot %d is not feasible\n", m_bestAction[i].actionType, i);
+					if ((m_bestAction[i].actionType != BLUE_ROBOT_GOTO_POS) && (m_bestAction[i].actionType != RED_ROBOT_GOTO_POS)) {
+						//Note: Robot programmer is not expected to check GOTO command feasibility. Ignore such error.
+						printf("ERROR, the action (%d) made for robot %d is not feasible\n", m_bestAction[i].actionType, i);
+					}
 					m_bestAction[i].actionType = INVALID_ACTION;
-					m_bestAction[i].actionDonePos = { 0, 0 };
+					m_bestAction[i].actionDonePos = coordinateType( 0, 0 );
 				}
 				if (currentTime >= CLIMB_END_TIME - MINMUM_TIME_RESOLUTION) {
 					//force no action after the game is over 
 					m_bestAction[i].actionType = INVALID_ACTION;
-					m_bestAction[i].actionDonePos = { 0, 0 };
+					m_bestAction[i].actionDonePos = coordinateType( 0, 0 );
 				}
 			}
 		}

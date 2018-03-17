@@ -90,7 +90,7 @@ public:
 
 		//stay close to offense switch for quick response
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
-		pActionOut->actionDonePos = { 600, 250 };
+		pActionOut->actionDonePos = coordinateType(600, 250 );
 
 		return;
 		//Note: 

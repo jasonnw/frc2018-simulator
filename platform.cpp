@@ -472,14 +472,14 @@ platform::platform()
 	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[3] = coordinateType(
 		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, 18 );
 
-	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[4] =
-		{ m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
-	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[5] =
-		{ m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
-	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[6] =
-		{ m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
-	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[7] =
-		{ m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY };
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[4] = coordinateType(
+		m_platformStructure.zones[LEFT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY);
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[5] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_RED_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY);
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[6] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_SCALE].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY);
+	m_platformStructure.zones[BOTTOM_CORRIDOR].workaroundPoints[7] = coordinateType(
+		m_platformStructure.zones[RIGHT_OF_BLUE_SWITCH].area.center.x, m_platformStructure.zones[BOTTOM_CORRIDOR].area.sizeY);
 
 	//top corridor
 	m_platformStructure.zones[TOP_CORRIDOR].area.center.x =
@@ -1478,10 +1478,10 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 	}
 
 	if (!m_state.autonomousRankingDoneFlag && m_lastScoreUpdateTime >= AUTONOMOUS_END_TIME) {
-		if ((m_state.redAutonomousLineCount >= 3) && (m_state.switchRedOwner == ALLIANCE_RED)) {
+		if ((m_state.redAutonomousLineCount >= 3) && (m_state.switchRedOwner == OWNED_BY_RED)) {
 			m_redRank++;
 		}
-		if ((m_state.blueAutonomousLineCount >= 3) && (m_state.switchBlueOwner == ALLIANCE_BLUE)) {
+		if ((m_state.blueAutonomousLineCount >= 3) && (m_state.switchBlueOwner == OWNED_BY_BLUE)) {
 			m_blueRank++;
 		}
 
@@ -2011,7 +2011,7 @@ bool platform::findTheClosestCube(const rectangleObjectType *pMovingObjectIn, al
 int platform::pickUpCube(coordinateType positionIn, allianceType allianceIn)
 {
 	if (allianceIn == ALLIANCE_RED) {
-		for (int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
+		for (unsigned int i = 0; i < sizeof(redCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
 			for (int j = redCubeSearchRange[i].startIdx; j < redCubeSearchRange[i].endIdx; j++) {
 				if (tryPickOneCube(positionIn, m_cubes[j].position, m_cubes[j].availbleFlag)) {
 					m_cubes[j].availbleFlag = false;
@@ -2030,7 +2030,7 @@ int platform::pickUpCube(coordinateType positionIn, allianceType allianceIn)
 		}
 	}
 	else {
-		for (int i = 0; i < sizeof(blueCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
+		for (unsigned int i = 0; i < sizeof(blueCubeSearchRange) / sizeof(cubeSearchRangeType); i++) {
 			for (int j = blueCubeSearchRange[i].startIdx; j < blueCubeSearchRange[i].endIdx; j++) {
 				if (tryPickOneCube(positionIn, m_cubes[j].position, m_cubes[j].availbleFlag)) {
 					m_cubes[j].availbleFlag = false;

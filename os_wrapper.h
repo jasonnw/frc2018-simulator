@@ -34,9 +34,13 @@
 #include <pthread.h>
 
 #define WINAPI /**/
-typedef  int32_t DWORD;
+typedef int DWORD;
 typedef void * LPVOID;
 typedef int HANDLE;
 
 #define CreateThread(thread, attr, entryPoint, arguments, flag, threadId)  pthread_create(thread, attr, entryPoint, arguments)
+
+//missing definitions of MS visual studio unique code
+typedef int errno_t;
+#define sprintf_s	sprintf
 #endif

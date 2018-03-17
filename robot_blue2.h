@@ -34,7 +34,7 @@ public:
 		if (currentTime < 5) {
 			//pass the auto line
 			pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
-			pActionOut->actionDonePos = { 248, 342 };
+			pActionOut->actionDonePos = coordinateType(248, 342);
 			return;
 		}
 
@@ -106,10 +106,10 @@ public:
 		//at the center of left switch zone
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
 		if (robotPosition.y <= 200) {
-			pActionOut->actionDonePos = { 60, 250 };
+			pActionOut->actionDonePos = coordinateType( 60, 250 );
 		}
 		else {
-			pActionOut->actionDonePos = { 60, 50 };
+			pActionOut->actionDonePos = coordinateType(60, 50 );
 		}
 
 		return;

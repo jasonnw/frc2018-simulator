@@ -14,9 +14,7 @@ using namespace cv;
 using namespace std;
 
 #ifndef _MSC_VER
-//missing definitions of MS visual studio unique code
-typedef int errno_t;
-#define sprintf_s	sprintf
+
 static errno_t fopen_s(FILE** pFile, const char *filename, const char *mode)
 {
 	*pFile = fopen(filename, mode);
