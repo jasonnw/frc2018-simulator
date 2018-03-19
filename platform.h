@@ -87,7 +87,7 @@ public:
 }platformLayoutType;
 
 //the indexes to all cubes in the cube array
-const int MAX_CUBES = 2000;
+const int MAX_CUBES = 66;
 typedef enum cubeIndexType {
 	CUBE_ON_RED_ROBOTS = 0,
 	CUBE_ON_BLUE_ROBOTS = 0,
@@ -96,7 +96,7 @@ typedef enum cubeIndexType {
 	CUBE_BY_RED_POWER_ZONE = 18,
 	CUBE_BY_BLUE_POWER_ZONE = 28,
 	CUBE_BY_RED_EXCHANGE_ZONE = 38,
-	CUBE_BY_BLUE_EXCHANGE_ZONE = 1064,
+	CUBE_BY_BLUE_EXCHANGE_ZONE = 52,
 	CUBE_LAST = MAX_CUBES - 1
 }cubeIndexType;
 
@@ -321,6 +321,8 @@ public:
 		const rectangleObjectType **pCollisionObjectOut);
 
 	int updateOneAction(actionTypeType actionIn, double timeIn, int robotIndexIn, allianceType allianceIn, int indexIn);
+
+	bool hasMoreBlueCubesFlag(void);
 
 protected:
 

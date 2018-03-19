@@ -22,11 +22,12 @@ public:
 		const platformStateType *pPlatformState = pPlatformInOut->getState();
 		coordinateType robotPosition = pPlatformInOut->getRobotPos(ALLIANCE_BLUE, m_robotIndex);
 		coordinateType rampRobotDestination = pPlatformInOut->getBlueLiftZonePosition();
+		bool cubesAvailableFlag = pPlatformInOut->hasMoreBlueCubesFlag();
 
 		//initialize the default output as NO ACTION
 		initTaskToNoAction(pActionOut);
 
-		if (currentTime > COMPETITION_END_TIME - 3) {
+		if ((currentTime > COMPETITION_END_TIME - 3) || (!cubesAvailableFlag)) {
 			if ((robotPosition.y == rampRobotDestination.y) &&
 				(robotPosition.x == rampRobotDestination.x)) {
 				//stay at this position and wait for other robots to climb
@@ -57,7 +58,8 @@ public:
 		}
 
 		//third priority, this robot is assigned to control blue switch
-		if (pPlatformState->switchBlue_BlueBlockCount < pPlatformState->switchBlue_RedBlockCount + 2 + m_idleCount/4) {
+		if ((pPlatformState->switchBlue_BlueBlockCount < pPlatformState->switchBlue_RedBlockCount + 2 + m_idleCount/8) &&
+		    (cubesAvailableFlag)) {
 			//we want to keep our side two blocks more than the opponent
 
 			pActionOut->actionType = CUBE_BLUE_OFFENSE_SWITCH;
@@ -74,7 +76,7 @@ public:
 
 		//fourth priority action, lift vault
 		initTaskToNoAction(pActionOut);
-		if (pPlatformState->liftBlueBlockCount < 3) {
+		if ((pPlatformState->liftBlueBlockCount < 3) && (cubesAvailableFlag)) {
 			pActionOut->actionType = CUBE_BLUE_LIFT_VAULT;
 			//check if the action is feasible
 			if (checkIfActionFeasible(

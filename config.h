@@ -199,7 +199,8 @@ const int MIN_BLOCK_DIFFERENCE_TO_SCORE = 1; //minimum 2 blocks to own scale or 
 const double ROBOT_TO_WALL_DISTANCE = 6;      //always 6 inches away from the wall
 
 //Game time in seconds
-const double MINMUM_TIME_RESOLUTION = (double) 0.1; //second
+const double MINMUM_TIME_RESOLUTION = 0.1; //second
+const double MAXIMUM_STEP_DURATION = 2.0;  //maximum number of seconds before the next state update
 
 const double COMPETITION_START_TIME = 0;                      //competition start time
 const double AUTONOMOUS_END_TIME = 15;						 // Autonomous session end time 
@@ -222,15 +223,15 @@ const double LARGEST_ROBOT_SIZE = 4 * 12;
 //robot delay configurations in number of second
 const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 1.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 17*12, /*max speed*/ 2*12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 1.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 1.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2*12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/  0.5,  /*random delay factor*/	20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 const robotConfigurationType BLUE_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.3, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.3, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 1.3, /*pick up or dump cube*/ 0.5, /*turn delay */ 17 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 
 //initialize game setting after auto session is done

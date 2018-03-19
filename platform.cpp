@@ -1030,6 +1030,46 @@ const pendingActionType *platform::getRobotAction(allianceType allianceIn, int r
 	return pRobots[robotIdxIn]->getPlannedAction();
 }
 
+bool platform::hasMoreBlueCubesFlag(void)
+{
+	int cubeCount = 0;
+	for (int i = CUBE_BY_BLUE_SWITCH; i < CUBE_BY_RED_POWER_ZONE; i++) {
+		if (m_cubes[i].availbleFlag) {
+			cubeCount++;
+		}
+	}
+
+	for (int i = CUBE_BY_BLUE_POWER_ZONE; i < CUBE_BY_RED_EXCHANGE_ZONE; i++) {
+		if (m_cubes[i].availbleFlag) {
+			cubeCount++;
+		}
+	}
+
+	for (int i = CUBE_BY_BLUE_EXCHANGE_ZONE; i < MAX_CUBES; i++) {
+		if (m_cubes[i].availbleFlag) {
+			cubeCount++;
+		}
+	}
+
+	if (!m_cubes[CUBE_BY_RED_POWER_ZONE].availbleFlag) {
+		//it is OK to take red power zone cubes
+		for (int i = CUBE_BY_RED_POWER_ZONE; i < CUBE_BY_BLUE_POWER_ZONE; i++) {
+			if (m_cubes[i].availbleFlag) {
+				cubeCount++;
+			}
+		}
+	}
+
+	if (cubeCount != 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+
+}
+
+
 int platform::setRobotAction(searchActionType *pActionListInOut, allianceType allianceIn, int indexIn, bool *pNoactionCHangeFlag)
 {
 	int rvalue;
@@ -1078,9 +1118,8 @@ bool platform::hasPendingActions(void)
 
 double platform::getEarliestStopTime(void)
 {
-	double earliestFinishTime;
+	double earliestFinishTime = getTime() + MAXIMUM_STEP_DURATION;
 
-	earliestFinishTime = CLIMB_END_TIME + 1;
 	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
 		if (hasPendingAction(i, ALLIANCE_RED)) {
 			if (earliestFinishTime > m_pRedRobots[i]->getNextStopTime()) {

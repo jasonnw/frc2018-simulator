@@ -24,6 +24,7 @@ public:
 		coordinateType robotPosition = pPlatformInOut->getRobotPos(ALLIANCE_BLUE, m_robotIndex);
 		coordinateType rampRobotDestination = pPlatformInOut->getBlueLiftZonePosition();
 		coordinateType rampRobotCurrentPosition = pPlatformInOut->getRobotPos(m_allianceType, 1);
+		bool cubesAvailableFlag = pPlatformInOut->hasMoreBlueCubesFlag();
 
 		initTaskToNoAction(pActionOut);
 		if (pPlatformInOut->isRobotLifted(m_allianceType, m_robotIndex)) {
@@ -31,7 +32,7 @@ public:
 		}
 
 		//the first priority is lifting
-		if (currentTime > COMPETITION_END_TIME + 5) {
+		if ((currentTime > COMPETITION_END_TIME) || (!cubesAvailableFlag)) {
 			if ((rampRobotDestination.x == rampRobotCurrentPosition.x) &&
 				(rampRobotDestination.y == rampRobotCurrentPosition.y)) {
 				//ready for lifting
@@ -58,7 +59,8 @@ public:
 		}
 
 		//third priority, this robot is assigned to the scale
-		if (pPlatformState->scaleBlueBlockCount < pPlatformState->scaleRedBlockCount + 2 + m_idleCount/4) {
+		if ((pPlatformState->scaleBlueBlockCount < pPlatformState->scaleRedBlockCount + 2 + m_idleCount/8) &&
+		    (cubesAvailableFlag)) {
 			//we want to keep our side two blocks more than the opponent
 
 			pActionOut->actionType = CUBE_BLUE_SCALE;
@@ -75,7 +77,7 @@ public:
 
 		//fourth priority action, force vault
 		initTaskToNoAction(pActionOut);
-		if (pPlatformState->forceBlueBlockCount < 3) {
+		if ((pPlatformState->forceBlueBlockCount < 3) && (cubesAvailableFlag)) {
 			pActionOut->actionType = CUBE_BLUE_FORCE_VAULT;
 			//check if the action is feasible
 			if (checkIfActionFeasible(
@@ -87,7 +89,8 @@ public:
 				return;
 			}
 		}
-		else if (pPlatformState->blueForceButton == BUTTON_NOT_PUSH) {
+		else if ((pPlatformState->blueForceButton == BUTTON_NOT_PUSH) && 
+			     (pPlatformState->forceBlueBlockCount > 0)) {
 			//push force vault button
 			pActionOut->actionType = PUSH_BLUE_FORCE_BUTTON;
 			return; //push button always success, no checking for this action

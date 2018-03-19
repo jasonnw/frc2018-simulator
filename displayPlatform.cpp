@@ -149,7 +149,7 @@ void displayPlatform::playTotheNextTime(double nextTimeIn, int actionIndexIn, do
 			printf("ERROR, cannot display invalid action\n");
 		}
 		updateField();
-		drawPlatform((int) floor(frameDelay * 2000));
+		drawPlatform((int) floor(frameDelay * 1000));
 	}
 
 	//last action

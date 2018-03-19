@@ -24,6 +24,7 @@ public:
 		coordinateType robotPosition = pPlatformInOut->getRobotPos(ALLIANCE_BLUE, m_robotIndex);
 		coordinateType rampRobotDestination = pPlatformInOut->getBlueLiftZonePosition();
 		coordinateType rampRobotCurrentPosition = pPlatformInOut->getRobotPos(m_allianceType, 1);
+		bool cubesAvailableFlag = pPlatformInOut->hasMoreBlueCubesFlag();
 
 		initTaskToNoAction(pActionOut);
 		if (pPlatformInOut->isRobotLifted(m_allianceType, m_robotIndex)) {
@@ -40,7 +41,7 @@ public:
 
 		//the first priority is lifting
 		initTaskToNoAction(pActionOut);
-		if (currentTime > COMPETITION_END_TIME) {
+		if ((currentTime > COMPETITION_END_TIME) || (!cubesAvailableFlag)) {
 			if ((rampRobotDestination.x == rampRobotCurrentPosition.x) &&
 				(rampRobotDestination.y == rampRobotCurrentPosition.y)) {
 				//ready for lifting
@@ -68,7 +69,8 @@ public:
 
 
 		//third priority, this robot is assigned to defense red switch
-		if (pPlatformState->switchRed_BlueBlockCount < pPlatformState->switchRed_RedBlockCount + 2 + m_idleCount/4) {
+		if ((pPlatformState->switchRed_BlueBlockCount < pPlatformState->switchRed_RedBlockCount + 2 + m_idleCount/8) &&
+		    (cubesAvailableFlag)) {
 			//we want to more than necessary blocks on our side
 			pActionOut->actionType = CUBE_BLUE_DEFENSE_SWITCH;
 			//check if the action is feasible
@@ -84,7 +86,7 @@ public:
 
 		//fourth priority action, boost vault
 		initTaskToNoAction(pActionOut);
-		if (pPlatformState->boostBlueBlockCount < 3) {
+		if ((pPlatformState->boostBlueBlockCount < 3) && (cubesAvailableFlag)) {
 			pActionOut->actionType = CUBE_BLUE_BOOST_VAULT;
 			//check if the action is feasible
 			if (checkIfActionFeasible(
@@ -96,7 +98,8 @@ public:
 				return;
 			}
 		}
-		else if (pPlatformState->blueBoostButton == BUTTON_NOT_PUSH) {
+		else if ((pPlatformState->blueBoostButton == BUTTON_NOT_PUSH) &&
+		         ((pPlatformState->boostBlueBlockCount > 0))) {
 			//push force vault button
 			pActionOut->actionType = PUSH_BLUE_BOOST_BUTTON;
 			return; //push button always success, no checking for this action
@@ -109,11 +112,11 @@ public:
 		//at the center of left switch zone
 		initTaskToNoAction(pActionOut);
 		pActionOut->actionType = BLUE_ROBOT_GOTO_POS;
-		if (robotPosition.y <= 200) {
-			pActionOut->actionDonePos = coordinateType( 60, 250 );
+		if (robotPosition.x <= 200) {
+			pActionOut->actionDonePos = coordinateType( 400, 320 );
 		}
 		else {
-			pActionOut->actionDonePos = coordinateType(60, 50 );
+			pActionOut->actionDonePos = coordinateType(100, 320 );
 		}
 
 		return;
