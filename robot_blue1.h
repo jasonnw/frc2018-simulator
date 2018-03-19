@@ -27,7 +27,7 @@ public:
 		//initialize the default output as NO ACTION
 		initTaskToNoAction(pActionOut);
 
-		if ((currentTime > COMPETITION_END_TIME - 3) || (!cubesAvailableFlag)) {
+		if ((currentTime > CLIMB_START_TIME - 3) || (!cubesAvailableFlag)) {
 			if ((robotPosition.y == rampRobotDestination.y) &&
 				(robotPosition.x == rampRobotDestination.x)) {
 				//stay at this position and wait for other robots to climb

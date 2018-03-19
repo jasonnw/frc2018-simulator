@@ -16,7 +16,9 @@ typedef struct searchActionType {
 	bool actionDoneWithCube;
 	double startTime;
 	double projectedFinishTime;
+	double taskChainFinishTime;
 	int projectedFinalScore;
+	int projectedFinalRank;
 	int actionIndex;
 	int robotIndex;
 	int previousIndex;

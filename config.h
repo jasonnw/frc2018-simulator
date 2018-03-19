@@ -204,8 +204,8 @@ const double MAXIMUM_STEP_DURATION = 2.0;  //maximum number of seconds before th
 
 const double COMPETITION_START_TIME = 0;                      //competition start time
 const double AUTONOMOUS_END_TIME = 15;						 // Autonomous session end time 
-const double COMPETITION_END_TIME = AUTONOMOUS_END_TIME + 135; //total competition time is 2m15sec
-const double CLIMB_END_TIME = COMPETITION_END_TIME + 30;      //climb after competition time is additional 30sec
+const double CLIMB_START_TIME = AUTONOMOUS_END_TIME + 135; //total competition time is 2m15sec
+const double CLIMB_END_TIME = CLIMB_START_TIME + 30;      //climb after competition time is additional 30sec
 															 //Note: To simplify the simulator, auto session result will be used to initialize the game state.
 															 //      Auto session time is excluded from game time. The game starts on COMPITATION_START_TIME
 //action search control parameters
@@ -229,9 +229,9 @@ const robotConfigurationType RED_CONFIGURATION[NUMBER_OF_ROBOTS] =
 };
 const robotConfigurationType BLUE_CONFIGURATION[NUMBER_OF_ROBOTS] =
 {
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
-	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.5, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
+	{ 30, 30, /*size*/ 6,  /*random delay factor*/  20.0, /*lift robot*/ 2.0, /*pick up or dump cube*/ 0.5, /*turn delay */ 10 * 12, /*max speed*/ 2 * 12 /*acceleration distance*/ },
 };
 
 //initialize game setting after auto session is done

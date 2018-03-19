@@ -55,5 +55,6 @@ protected:
 	void findBestAction(int actionIndexIn);
 	void resetSearchList(void);
 	int findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndexIn, int *pBranchLengthOut);
+	bool isNewTaskListBetter(int newListIdxIn, int bestListIdxIn) const;
 };
 

@@ -92,8 +92,6 @@ void alliance::syncLocalPlatform(const platform &platformIn, int actionIndexIn)
 //try all possible actions,
 void alliance::findBestAction(int actionIndexIn)
 {
-	bool searchFailedFlag;
-
 	int previousActionIndex;
 
 	double currentTime = m_referencePlatForm.getTime();
@@ -150,7 +148,6 @@ void alliance::findBestAction(int actionIndexIn)
 	m_pSearchList[previousLayerStartIndex].robotIndex = INDEX_OF_ROBOT_NONE;
 	//Note: this root action will not be used in real action list. It is a start point for action searching.
 	
-	searchFailedFlag = false;
 	bestScoreIdx = 0;
 	//project the final score if no action is taken
 	m_testPlatForm = m_referencePlatForm;
@@ -288,30 +285,29 @@ void alliance::findBestAction(int actionIndexIn)
 
 		//update layer indexes
 		if (updetedTreeFlag) {
-			static int callCounter = 0;
 			previousLayerStartIndex = layerStartIndex;
 			previousLayerEndIndex = layerEndIndex;
 
 			//After an action tree is created, search which action sequence can get the best score
-			bestScoreIdx = findBestScoreBranch(previousLayerStartIndex, previousLayerEndIndex, actionIndexIn, &numPendingAction);
-			if ((bestScoreIdx == 0) || (numPendingAction == 0)) {
-				//printf("ERROR: cannot find any useful actions\n");
+			newBestScoreIdx = findBestScoreBranch(previousLayerStartIndex, previousLayerEndIndex, actionIndexIn, &numPendingAction);
+
+			if (newBestScoreIdx != 0) {
+				if (isNewTaskListBetter(newBestScoreIdx, bestScoreIdx)) {
+					bestScoreIdx = newBestScoreIdx;
+				}
+			}
+			if ((newBestScoreIdx == 0) || (numPendingAction == 0)) {
+				//no more actions to search
 				break;
 			}
 			//recover platform state for the next search iteration
 			m_testPlatForm = m_referencePlatForm;
-			callCounter++;
 			//bestScoreIdx of the last pending action iteration is the best action list of all
 		}
 		else {
 			break; 
 			//no new action could be added, use the previous bestScoreIdx as the final result
 		}
-	}
-
-	if (bestScoreIdx == 0) {
-		//printf("ERROR: cannot find any actions, check why NO-ACTION is not used\n");
-		searchFailedFlag = true;
 	}
 
 	//add one action for each robot to avoid idle robot
@@ -433,7 +429,7 @@ void alliance::findBestAction(int actionIndexIn)
 			//cannot find any new actions
 		}
 		else {
-			if (m_pSearchList[newBestScoreIdx].projectedFinalScore > INT_MIN) {
+			if (isNewTaskListBetter(newBestScoreIdx, bestScoreIdx)) {
 				noNewActionFlag = false;
 				bestScoreIdx = newBestScoreIdx;
 			}
@@ -464,7 +460,7 @@ void alliance::findBestAction(int actionIndexIn)
 			m_bestAction[i].projectedFinalScore = 0;
 			m_bestAction[i].robotIndex = i;
 
-			if (currentTime < COMPETITION_END_TIME) {
+			if (currentTime < CLIMB_START_TIME) {
 				//find a random connection point for the robot
 				int zoneIdx = (rand() * NUM_OF_ZONES) / (RAND_MAX);
 				int connectionIdx = (rand() * NUM_OF_ZONES) & 0x01;
@@ -510,10 +506,7 @@ void alliance::findBestAction(int actionIndexIn)
 		}
 	}
 
-	if (searchFailedFlag) {
-		//printf("ERROR: cannot find any useful action, all idle\n");
-	}
-	else {
+	if (bestScoreIdx != 0) {
 		//plan the beast action
 		double earliestRobotTime[NUMBER_OF_ROBOTS];
 		previousActionIndex = bestScoreIdx;
@@ -557,10 +550,6 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 {
 	actionChainType actionChain[MAXIMUM_PENDING_ACTIONS + NUMBER_OF_ROBOTS];
 
-	int bestScore = INT32_MIN;
-	int bestRanking = 0;
-	int time2ScoreFactor;
-	double bestScoreFinishTime = 0;
 	int bestScoreIdx = 0;
 	double lastFinishTime = 0;
 	double earliestTime;
@@ -568,7 +557,6 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 	int chainIndex;
 	bool isActionRejectedFlag;
 	bool assignedActionFlag;
-	bool newBranchIsBetter;
 
 	int previousActionIndex;
 	int pendingIdx;
@@ -720,32 +708,49 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 
 		//save the final score with the last pending action entry
 		m_pSearchList[exeIdx].projectedFinalScore = score;
-		time2ScoreFactor = (int) floor((lastFinishTime - bestScoreFinishTime) * TIME_TO_SCORE_FACTOR);
+		m_pSearchList[exeIdx].projectedFinalRank = ranking;
+		m_pSearchList[exeIdx].taskChainFinishTime = lastFinishTime;
 
 		m_testPlatForm.logFinalRanking();
-		newBranchIsBetter = false;
-		if (score > INT_MIN) {
-			if (ranking > bestRanking)  {
-				//ranking is the most important
-				newBranchIsBetter = true;
-			}
-			else if (score + time2ScoreFactor > bestScore)  {
-				newBranchIsBetter = true;
-			}
-			else if ((score == bestScore) && (bestScoreFinishTime > lastFinishTime)) {
-				//favor the same score and finished earlier
-				newBranchIsBetter = true;
-			}
-		}
-
-		if (newBranchIsBetter) {
-			bestScoreIdx = actionChain[0].actionIndex;
-			bestScore = score;
-			bestRanking = ranking;
-			bestScoreFinishTime = lastFinishTime;
+		if (isNewTaskListBetter(exeIdx, bestScoreIdx)) {
+			bestScoreIdx = exeIdx;
 			*pBranchLengthOut = pendingIdx;
 		}
 	}
 	return bestScoreIdx;
+}
+
+
+bool alliance::isNewTaskListBetter(int newListIdxIn, int bestListIdxIn) const
+{
+	bool newBranchIsBetter = false;
+	int time2ScoreFactor;
+
+	if (bestListIdxIn == newListIdxIn) {
+		return false;
+	}
+	
+	time2ScoreFactor  = (int)floor((m_pSearchList[newListIdxIn].taskChainFinishTime - 
+		                            m_pSearchList[bestListIdxIn].taskChainFinishTime) * TIME_TO_SCORE_FACTOR);
+
+	if (m_pSearchList[newListIdxIn].projectedFinalScore > INT_MIN) {
+		if ((bestListIdxIn == 0) && (newListIdxIn != 0)) {
+			return true; //bestListIdxIn is not initialized
+		}
+		if (m_pSearchList[newListIdxIn].projectedFinalRank > m_pSearchList[bestListIdxIn].projectedFinalRank) {
+			//ranking is the most important
+			newBranchIsBetter = true;
+		}
+		else if (m_pSearchList[newListIdxIn].projectedFinalScore + time2ScoreFactor > m_pSearchList[bestListIdxIn].projectedFinalScore) {
+			newBranchIsBetter = true;
+		}
+		else if ((m_pSearchList[newListIdxIn].projectedFinalScore == m_pSearchList[bestListIdxIn].projectedFinalScore) &&
+			     (m_pSearchList[bestListIdxIn].taskChainFinishTime > m_pSearchList[newListIdxIn].taskChainFinishTime)) {
+			//favor the same score and finished earlier
+			newBranchIsBetter = true;
+		}
+	}
+
+	return newBranchIsBetter;
 }
 

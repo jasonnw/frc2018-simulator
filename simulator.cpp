@@ -72,6 +72,7 @@ int main(int argc, char** argv)
 	errno_t errCode;
 	double earliestFinishTime;
 	bool noActionChangeFlag;
+	bool gameOverFlag;
 
 	if (argc != 3) {
 		printf("usage: simulator [redActionLogFileName blueActionLogFileName]\n");
@@ -105,6 +106,7 @@ int main(int argc, char** argv)
 	redAlliance.initAlliance(ALLIANCE_RED, NULL, RED_CONFIGURATION, gamePlatform);
 	blueAlliance.initAlliance(ALLIANCE_BLUE, NULL, BLUE_CONFIGURATION, gamePlatform);
 
+	gameOverFlag = false;
 	actionCounter = 0;
 	redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
 	blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
@@ -160,10 +162,12 @@ int main(int argc, char** argv)
 		}
 
 		//send the last message
-		if ((newActionCount == 0) || (gamePlatform.isGameTimeOver())) {
+		if (((newActionCount == 0) && (!gamePlatform.hasPendingActions()))
+			|| (gamePlatform.isGameTimeOver())) {
 			//send quit command
 			messageBuffer.quitFlag = true;
 			messageBuffer.commitActionFlag = true;
+			gameOverFlag = true;
 			showPlatform.sendAction(&messageBuffer);
 		}
 		else {
@@ -177,15 +181,9 @@ int main(int argc, char** argv)
 			printf("Error: Action is rejected\n");
 		}
 
-		if (newActionCount == 0) {
-			//finish all pending actions and stop
-			gamePlatform.finishAllPendingActions(actionCounter, INVALID_ALLIANCE);
-		}
-		else {
-			redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
-			blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
-		}
-	} while ((!gamePlatform.isGameTimeOver()) && (newActionCount!=0));
+		redAlliance.syncLocalPlatform(gamePlatform, actionCounter);
+		blueAlliance.syncLocalPlatform(gamePlatform, actionCounter);
+	} while (!gameOverFlag);
 
 	if (pRedActionLog != NULL) {
 		fclose(pRedActionLog);

@@ -1390,7 +1390,7 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		}
 
 		if ((m_state.redLiftFlag[robotIndexIn]) ||
-			(timeIn < COMPETITION_END_TIME)) {
+			(timeIn < CLIMB_START_TIME)) {
 			return -1;
 		}
 		m_liftRedRobotIndex = robotIndexIn;
@@ -1501,7 +1501,7 @@ int platform::updateOneAction(actionTypeType actionIn, double timeIn, int robotI
 		}
 
 		if ((m_state.blueLiftFlag[robotIndexIn]) ||
-		    (timeIn < COMPETITION_END_TIME)) {
+		    (timeIn < CLIMB_START_TIME)) {
 			return -1;
 		}
 		m_liftBlueRobotIndex = robotIndexIn;
@@ -1727,7 +1727,7 @@ void platform::updateScore(double secondsPassedIn)
 		m_state.switchBlue_BlueBlockCount - m_state.switchBlue_RedBlockCount,
 		previousBlueForceButton, previousBlueBoostButton, 2, OWNED_BY_BLUE, &m_state.switchBlueOwner);
 
-	if (m_timeInSec >= COMPETITION_END_TIME) {
+	if (m_timeInSec >= CLIMB_START_TIME) {
 		//lift button is only allowed at the last 30 seconds
 
 		//red lifting

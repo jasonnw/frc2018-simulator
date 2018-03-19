@@ -41,7 +41,7 @@ public:
 
 		//the first priority is lifting
 		initTaskToNoAction(pActionOut);
-		if ((currentTime > COMPETITION_END_TIME) || (!cubesAvailableFlag)) {
+		if ((currentTime > CLIMB_START_TIME) || (!cubesAvailableFlag)) {
 			if ((rampRobotDestination.x == rampRobotCurrentPosition.x) &&
 				(rampRobotDestination.y == rampRobotCurrentPosition.y)) {
 				//ready for lifting
