@@ -888,8 +888,25 @@ void platform::configBlueRobots(const robotConfigurationType config1In[NUMBER_OF
 
 void platform::getFinalScore(int *pRedScoreOut, int *pBlueScoreOut)
 {
+	coordinateType finalPos;
+
 	if (CLIMB_END_TIME > m_timeInSec) {
 		updateScore(CLIMB_END_TIME - m_lastScoreUpdateTime);
+	}
+
+	for (int i = 0; i < NUMBER_OF_ROBOTS; i++) {
+		if (!isRobotLifted(ALLIANCE_RED, i)) {
+			finalPos = getRobotPos(ALLIANCE_RED, i);
+			if (pointInObject(&m_platformStructure.redLiftZone, finalPos.x, finalPos.y)) {
+				m_redScore += 5;  //parking score
+			}
+		}
+		if (!isRobotLifted(ALLIANCE_BLUE, i)) {
+			finalPos = getRobotPos(ALLIANCE_BLUE, i);
+			if (pointInObject(&m_platformStructure.blueLiftZone, finalPos.x, finalPos.y)) {
+				m_blueScore += 5;  //parking score
+			}
+		}
 	}
 
 	*pRedScoreOut = (int) floor(getRedScore() + 0.5);
@@ -1732,7 +1749,7 @@ void platform::updateScore(double secondsPassedIn)
 
 		//red lifting
 		if ((m_state.redLiftButton == BUTTON_PUSH) && (m_state.liftRedBlockCount >= 3)) {
-			m_redScore += 30;
+			//m_redScore += 30;
 			m_state.redLiftButton = BUTTON_PUSH_OVER_10SEC;
 		}
 		else if(m_state.liftRedButtonPushBlockCount < 3) {
@@ -1756,7 +1773,7 @@ void platform::updateScore(double secondsPassedIn)
 
 		//blue lifting
 		if ((m_state.blueLiftButton == BUTTON_PUSH) && (m_state.liftBlueBlockCount >= 3)) {
-			m_blueScore += 30;
+			//m_blueScore += 30;
 			m_state.blueLiftButton = BUTTON_PUSH_OVER_10SEC;
 		}
 		else if (m_state.liftBlueButtonPushBlockCount < 3) {
