@@ -16,6 +16,10 @@ public:
 		m_idleCount = 0;
 	}
 
+	~robotBlue0()
+	{
+	}
+
 	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut)
 	{
 		const pendingActionType *pPlannedAction;

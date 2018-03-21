@@ -3,9 +3,9 @@ SIM_SRC = alliance.cpp  displayPlatform.cpp  platform.cpp  robot.cpp  simulator.
 SIM_OBJ = alliance.o  displayPlatform.o  platform.o  robot.o  simulator.o
 SIM_EXE = simulator
 
-CPPFLAGS = -c -Wall
+CPPFLAGS = -c -Wall -O3 -g
 INCLUDE  = -I.
-LDFLAGS  = -lopencv_core -lopencv_imgproc -lopencv_photo -lopencv_highgui -lopencv_calib3d -lpthread
+LDFLAGS  = -g -lopencv_core -lopencv_imgproc -lopencv_photo -lopencv_highgui -lopencv_calib3d -lpthread
 
 all: $(SIM_SRC) $(SIM_EXE)
 

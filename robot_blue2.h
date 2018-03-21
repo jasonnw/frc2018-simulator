@@ -15,6 +15,10 @@ public:
 		m_robotIndex = 2;
 		m_idleCount = 0;
 	}
+	~robotBlue2()
+	{
+	}
+
 
 	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut)
 	{

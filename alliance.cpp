@@ -191,6 +191,9 @@ void alliance::findBestAction(int actionIndexIn)
 				//find out the earliest finish time from 3 robots
 				bestFinishTime = CLIMB_END_TIME + 1;
 				bestFinishRobotIdx = 0;
+				bestRobotDoneWithCube = false;
+				bestStartTime = currentTime;
+
 				for (int robot = 0; robot < NUMBER_OF_ROBOTS; robot++) {
 					//for each action, find out which robot can do it with the shortest delay
 
@@ -691,6 +694,7 @@ int alliance::findBestScoreBranch(int startIdxIn, int stopIdxIn, int actionIndex
 
 		if (isActionRejectedFlag) {
 			score = INT32_MIN;
+			ranking = 0;
 		}
 		else {
 			m_testPlatForm.getFinalScore(&finalRedScore, &finalBlueScore);

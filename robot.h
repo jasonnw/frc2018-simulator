@@ -75,7 +75,7 @@ protected:
 
 public:
 	robot();
-	~robot();
+	virtual ~robot();
 
 	virtual void getNextAction(platform *pPlatformInOut, searchActionType * pActionOut)
 	{
