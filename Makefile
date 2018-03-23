@@ -1,7 +1,11 @@
-
+UNAME := $(shell uname -s)
 SIM_SRC = alliance.cpp  displayPlatform.cpp  platform.cpp  robot.cpp  simulator.cpp
 SIM_OBJ = alliance.o  displayPlatform.o  platform.o  robot.o  simulator.o
+
 SIM_EXE = simulator
+ifeq ($(UNAME),Darwin)
+	SIM_EXE = simulator.mac
+endif
 
 CPPFLAGS = -c -Wall -O3 -g
 INCLUDE  = -I.
