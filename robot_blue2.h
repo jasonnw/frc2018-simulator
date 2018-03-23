@@ -73,7 +73,7 @@ public:
 
 
 		//third priority, this robot is assigned to defense red switch
-		if ((pPlatformState->switchRed_BlueBlockCount < pPlatformState->switchRed_RedBlockCount + 2 + m_idleCount/8) &&
+		if ((pPlatformState->switchRed_BlueBlockCount < pPlatformState->switchRed_RedBlockCount + 2) &&
 		    (cubesAvailableFlag)) {
 			//we want to more than necessary blocks on our side
 			pActionOut->actionType = CUBE_BLUE_DEFENSE_SWITCH;
@@ -103,7 +103,7 @@ public:
 			}
 		}
 		else if ((pPlatformState->blueBoostButton == BUTTON_NOT_PUSH) &&
-		         ((pPlatformState->boostBlueBlockCount > 0))) {
+		         ((pPlatformState->boostBlueBlockCount > 1))) {
 			//push force vault button
 			pActionOut->actionType = PUSH_BLUE_BOOST_BUTTON;
 			return; //push button always success, no checking for this action

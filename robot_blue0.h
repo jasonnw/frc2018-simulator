@@ -63,7 +63,7 @@ public:
 		}
 
 		//third priority, this robot is assigned to the scale
-		if ((pPlatformState->scaleBlueBlockCount < pPlatformState->scaleRedBlockCount + 2 + m_idleCount/8) &&
+		if ((pPlatformState->scaleBlueBlockCount < pPlatformState->scaleRedBlockCount + 2) &&
 		    (cubesAvailableFlag)) {
 			//we want to keep our side two blocks more than the opponent
 
@@ -94,7 +94,7 @@ public:
 			}
 		}
 		else if ((pPlatformState->blueForceButton == BUTTON_NOT_PUSH) && 
-			     (pPlatformState->forceBlueBlockCount > 0)) {
+			     (pPlatformState->forceBlueBlockCount > 1)) {
 			//push force vault button
 			pActionOut->actionType = PUSH_BLUE_FORCE_BUTTON;
 			return; //push button always success, no checking for this action

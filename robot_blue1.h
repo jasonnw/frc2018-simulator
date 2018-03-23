@@ -62,7 +62,7 @@ public:
 		}
 
 		//third priority, this robot is assigned to control blue switch
-		if ((pPlatformState->switchBlue_BlueBlockCount < pPlatformState->switchBlue_RedBlockCount + 2 + m_idleCount/8) &&
+		if ((pPlatformState->switchBlue_BlueBlockCount < pPlatformState->switchBlue_RedBlockCount + 2) &&
 		    (cubesAvailableFlag)) {
 			//we want to keep our side two blocks more than the opponent
 

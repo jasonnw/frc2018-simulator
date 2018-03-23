@@ -28,17 +28,13 @@ static errno_t fopen_s(FILE** pFile, const char *filename, const char *mode)
 #endif
 
 //global objects
-alliance redAlliance;
-alliance blueAlliance;
-platform gamePlatform;
-displayPlatform showPlatform;
-actionMessageType messageBuffer;
+static alliance redAlliance;
+static alliance blueAlliance;
+static platform gamePlatform;
+static displayPlatform showPlatform;
+static actionMessageType messageBuffer;
 
-#ifdef _MSC_VER
-static DWORD WINAPI displayThreadEntry(LPVOID lpParameter)
-#else
-static void* displayThreadEntry(LPVOID lpParameter)
-#endif
+static void displayThreadEntry(void)
 {
 	int returnVal;
 	int actionCount = 0;
@@ -57,11 +53,22 @@ static void* displayThreadEntry(LPVOID lpParameter)
 		returnVal = showPlatform.updatePlatform(actionCount);
 	} while (returnVal == 0);
 
-	return 0;
+	return;
 }
 
-int main(int argc, char** argv)
+typedef struct threadEntryInputType {
+	int argcIn;
+	const char *const* argvIn;
+}threadEntryInputType;
+
+#ifdef _MSC_VER
+static DWORD WINAPI mainThreadEntry(LPVOID lpParameterIn)
+#else
+static void* mainThreadEntry(LPVOID lpParameterIn)
+#endif
 {
+	const threadEntryInputType *pArgument = (threadEntryInputType *) lpParameterIn;
+
 	searchActionType redAction[NUMBER_OF_ROBOTS];
 	searchActionType blueAction[NUMBER_OF_ROBOTS];
 	const pendingActionType *pAction;
@@ -74,26 +81,17 @@ int main(int argc, char** argv)
 	bool noActionChangeFlag;
 	bool gameOverFlag;
 
-	if (argc != 3) {
+	if (pArgument->argcIn != 3) {
 		printf("usage: simulator [redActionLogFileName blueActionLogFileName]\n");
 	}
 	else {
-		if ((errCode = fopen_s(&pRedActionLog, argv[1], "w")) != 0) {
-			printf("Error: open red alliance log file %s failed, error code 0x%x\n", argv[1], errCode);
+		if ((errCode = fopen_s(&pRedActionLog, pArgument->argvIn[1], "w")) != 0) {
+			printf("Error: open red alliance log file %s failed, error code 0x%x\n", pArgument->argvIn[1], errCode);
 		 }
-		if ((errCode = fopen_s(&pBlueActionLog, argv[2], "w")) != 0) {
-			printf("Error: open blue alliance log file %s failed, error code 0x%x\n", argv[2], errCode);
+		if ((errCode = fopen_s(&pBlueActionLog, pArgument->argvIn[2], "w")) != 0) {
+			printf("Error: open blue alliance log file %s failed, error code 0x%x\n", pArgument->argvIn[2], errCode);
 		}
 	}
-
-	//start display thread
-#ifdef _MSC_VER
-	DWORD threadID;
-	HANDLE threadHandle = CreateThread(0, 0, displayThreadEntry, NULL, 0, &threadID);
-#else
-	pthread_t threadHandle;
-	pthread_create(&threadHandle, 0, displayThreadEntry, NULL);
-#endif
 
 	//initialization
 	gamePlatform.setLogFile(NULL);
@@ -195,6 +193,30 @@ int main(int argc, char** argv)
 	//print the final score
 	gamePlatform.logFinalRanking();
 
+	return 0;
+}
+
+
+int main(int argc, const char ** argv)
+{
+	threadEntryInputType arguments;
+
+	arguments.argcIn = argc;
+	arguments.argvIn = argv;
+
+	//start main thread
+#ifdef _MSC_VER
+	DWORD threadID;
+	HANDLE threadHandle = CreateThread(0, 0, mainThreadEntry, (void*) &arguments, 0, &threadID);
+#else
+	pthread_t threadHandle;
+	pthread_create(&threadHandle, 0, mainThreadEntry, (void*)&arguments);
+#endif
+
+	//start display loop
+	displayThreadEntry();
+
+
 	//stop display
 #ifdef _MSC_VER
 	WaitForSingleObject(threadHandle, INFINITE);
@@ -204,5 +226,7 @@ int main(int argc, char** argv)
 	pthread_join(threadHandle, &returnValue);
 #endif
 
+
 	return 0;
 }
+

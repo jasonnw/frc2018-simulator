@@ -173,7 +173,7 @@ typedef struct platformStateType {
 
 //AI configuration
 const int CUBE_REWARD_SCORE = 3;
-const int EXTRA_SCORE_FOR_NO_ACTION_CHANGE = 10;
+const int EXTRA_SCORE_FOR_NO_ACTION_CHANGE = 20;
 const int MAX_WALL_TO_WALL_MOVES = 4;
 const int MAX_TURNS_ON_PATH = MAX_WALL_TO_WALL_MOVES * 8;
 //maximum turning points on the path
