@@ -173,7 +173,7 @@ Point displayPlatform::coordinateToPoint(double xIn, double yIn)
 
 void displayPlatform::drawPlatform(int delayIn)
 {
-	imshow("FRC 2018 Game Simulation v0.2", *m_pPlatform);
+	imshow("FRC 2018 Game Simulation v0.2.1", *m_pPlatform);
 
 	waitKey(delayIn);
 }
